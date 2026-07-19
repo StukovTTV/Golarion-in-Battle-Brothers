@@ -109,18 +109,15 @@ this.skv_den_hunt_action <- this.inherit("scripts/factions/faction_action", {
 			return;
 		}
 
-		// ===== TEST CONFIG =====================================================
-		// Everything below marked RELEASE is commented out so the contract offers
-		// from turn 1 at the nearest village. Restore all of them before you call
-		// this done.
-		//
-		// NOTE: the contract's gates are NOT your bottleneck when testing -- the
-		// DEN existing is. It is terrain-locked to Forest/AutumnForest, which is
-		// common enough that it appears to spawn in every campaign (observed, and
-		// it contradicts the "terrain lock is the frequency dial" claim in the
-		// guide -- forest is not desert). If it ever fails to spawn, loosen
-		// minDistToSettlements in the preload's build block, not this file.
-		// =======================================================================
+		// NOTE: all the gates below are LIVE (renown floor, isolation, Den-exists,
+		// distance) -- this contract SHIPS gated, not in a test-open state. The real
+		// bottleneck for the bounty appearing is the DEN existing at all: it is
+		// terrain-locked to Forest/AutumnForest, common enough that it appears to
+		// spawn in most campaigns (observed, and it contradicts the "terrain lock is
+		// the frequency dial" claim in the guide -- forest is not desert). If it ever
+		// fails to spawn, loosen minDistToSettlements in the preload's build block,
+		// not this file. (To test quickly you can temporarily slacken the 990 renown
+		// gate or the 40-tile distance gate below; both ship enabled.)
 
 		// NO once-per-campaign flag, deliberately. It would be redundant AND wrong.
 		// Redundant: findDen() returns null once the Den is dead, so the contract
@@ -209,9 +206,9 @@ this.skv_den_hunt_action <- this.inherit("scripts/factions/faction_action", {
 		// WERE the capital, that noble hunt could never fire. So either [0] is not
 		// the seat, or Legends ships a dead registration there. Unresolved.
 		//
-		// This is a further reason to keep the Settlement registration beyond
-		// testing: a village IS its own faction, so [0] is unambiguous and the
-		// venue question does not arise.
+		// (A village Settlement registration WOULD have sidestepped this -- a village
+		// is its own faction, so [0] is unambiguous -- but that push was for testing
+		// and was removed; this SHIPS noble-only. See the preload's category block.)
 		if (seat.getTile().getDistanceTo(den.getTile()) > 40)
 		{
 			return;

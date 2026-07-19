@@ -17,7 +17,7 @@
 //  (Entry / NameWard / Top) plus a random middle drawn no-repeat from a pool of
 //  path-obstacles and opportunities, so no two campaigns get the same tower.
 //
-//  RESOLUTION. Every meaningful choice is a resolveCheck against the roster:
+//  RESOLUTION. Every meaningful choice is a ::Skv.Check.resolve against the roster:
 //  it finds the best-qualified brother by background, applies HIS OWN traits,
 //  perks and injuries, clamps 5-95, rolls d100. Traps draw from two pools
 //  (floor/wall vs chest) and wound via addInjury damage-type POOLS + unfloored
@@ -43,7 +43,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		ShutdownClean = false,  // true if the machine was READ silent (chest + fate) vs smashed
 		PendingTitle  = "",     // the generic Result screen reads these two
 		PendingText   = "",
-		LastLoot      = "",     // formatted, coloured loot line -> %loot%
+		LastLoot      = "",     // VESTIGIAL -- loot is now iconed rows (m.Rows via grantHaul); this and %loot% are unused, kept only so old saves deserialize (see onSerialize).
 		ActorName     = "",     // whoever last acted -> %actor%
 		CardTrap      = null,   // scratch: the trap drawn for the current card (not serialized)
 		Rows          = null,   // scratch: outcome rows (damage/injury/death) for the next Result/Reveal screen
@@ -1810,9 +1810,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		// %actor% -- whoever last acted, pre-coloured as a person.
 		local nm = (this.m.ActorName != null && this.m.ActorName != "") ? this.m.ActorName : "one of the company";
 		_vars.push(["actor", "[color=" + nameColor + "]" + nm + "[/color]"]);
-
-		// %loot% -- the formatted, already-coloured loot line.
-		_vars.push(["loot", this.m.LastLoot != null ? this.m.LastLoot : ""]);
+		// (no %loot% var any more -- loot is shown as iconed rows, not a text line.)
 	}
 
 	function onSerialize( _out )
@@ -1848,7 +1846,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 		_out.writeString(this.m.PendingTitle);
 		_out.writeString(this.m.PendingText);
-		_out.writeString(this.m.LastLoot);
+		_out.writeString(this.m.LastLoot);   // vestigial (always "") -- kept so the save layout stays stable
 		_out.writeString(this.m.ActorName);
 
 		this.contract.onSerialize(_out);

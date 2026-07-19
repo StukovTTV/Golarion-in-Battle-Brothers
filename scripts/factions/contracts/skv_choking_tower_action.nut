@@ -120,7 +120,7 @@ this.skv_choking_tower_action <- this.inherit("scripts/factions/faction_action",
 		}
 
 		// Rarity dial. `rand(1,100) > N` DECLINES above N, so it PASSES ~N% of
-		// eligible ticks: 15 => ~15%. (Testing value is 99 = near-guaranteed.)
+		// eligible ticks: 15 => ~15%. (Testing value was 99 = near-guaranteed.)
 		if (::Math.rand(1, 100) > 15)
 		{
 			return;
