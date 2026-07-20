@@ -366,7 +366,7 @@ if (!("Skv" in ::getroottable()))
 
 	// This mod's contract types (exact match -- so we don't flag Legends' own legend_* jobs).
 	Types = [
-		"contract.skv_metringer", "contract.skv_black_forks", "contract.skv_choking_tower",
+		"contract.skv_azari", "contract.skv_metringer", "contract.skv_black_forks", "contract.skv_choking_tower",
 		"contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing"
 	],
 
@@ -399,7 +399,29 @@ if (!("Skv" in ::getroottable()))
 		}
 		::logInfo("== " + total + " contract(s) at " + towns + " town(s), " + mineN + " from this mod" + (_onlyMine ? " (mod only)" : "") + " ==");
 	}
+
+	// Azari gate diagnosis: the once-flags + every temple-town on the map (and what
+	// is posted there), so we can see why The Azari Commission is or is not offering.
+	// Read-only. Run ::skvazari().
+	function azari()
+	{
+		::logInfo(">> Azari gate: once.active=" + ::World.Flags.has("SkvOnce.Azari.active") + " once.retired=" + ::World.Flags.has("SkvOnce.Azari.retired"));
+		local temples = 0, total = 0;
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			total = total + 1;
+			local hasT = false;
+			try { hasT = s.hasBuilding("building.temple"); } catch (e) {}
+			if (!hasT) continue;
+			temples = temples + 1;
+			local types = "";
+			foreach (c in s.getContracts()) types = types + (types == "" ? "" : ",") + c.getType();
+			::logInfo(" temple: " + s.getName() + " south=" + s.isSouthern() + " mil=" + s.isMilitary() + " iso=" + s.isIsolated() + " size=" + s.getSize() + " contracts=[" + types + "]");
+		}
+		::logInfo("== " + temples + " temple-town(s) of " + total + " settlements ==");
+	}
 };
 
 // Short console aliases: ::skvc() = all contracts, ::skvc(true) = this mod's only.
 ::skvc <- function ( _onlyMine = false ) { return ::Skv.Debug.contracts(_onlyMine); };
+::skvazari <- function () { return ::Skv.Debug.azari(); };

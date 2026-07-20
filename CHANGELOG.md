@@ -8,6 +8,35 @@ All notable changes to **Golarion Localization** are recorded here. The format l
 
 - _Work in progress goes here; move it into a dated version block on release._
 
+## [0.91] — playtest
+
+Adds the seventh contract and the scripted-combat tech behind it.
+
+### Contracts
+- **The Azari Palace** (contract #7, once-per-campaign) — a retrieval-heist under cover of an honest
+  admission fee. Pay the steward to walk a dead god's relic-halls; work a shuffled crawl of two-page
+  **lore rooms** (a reading moves a brother's mood — the devout and brave shrug off the grim ones) and
+  **moral-cost loot rooms** (rob a shrine for an iconed haul at a hit to your standing); breach an
+  optional **Ancient Dead crypt** — pick the lock (a background-ladder check) or force it (louder, a
+  bigger fight) → a **budget-scaled skeleton fight** with a ~15% chance of a **named champion** that
+  drops a named weapon → a random honour-guard **trophy** (a bardiche or a plate cuirass), an optional
+  blessed-water rite, and the steward's **2500 buy-back** of its counterpart on the way out. Learn at
+  the door that your employer is the buyer the house already refused, then choose the Tome's fate at
+  home — give it to the agent, donate it to a temple, fence it, or courier it back — each with iconed
+  coin, renown, moral, and mood outcomes, and background-aware reactions (pious vs. criminal brothers).
+  Offered in the north and the southern city-states.
+
+### Shared engine (`::Skv`)
+- Scripted tactical combat launched straight from a contract screen, spawned from a **contract-owned,
+  pure-skeleton budget menu** (no vampire/hound leak from the stock undead list), with difficulty scaled
+  to company strength and an optional champion via `makeMiniboss`.
+- `::Skv.Loot.haul` now backs crawl loot, the crypt trophy, and the buy-back; `::Skv.Check` drives the
+  crypt-door lockpick.
+
+### Tuning
+- Azari release values: offer rate **13%**, door fee **620**, base pay pool **1000**, per-room loot
+  moral cost **1–6**, crypt fight budget **117 × company scaling** (force **×1.3**, champion **15%**).
+
 ## [0.90] — playtest
 
 First tracked release. The mod is playable and stable; ongoing work is tuning, not structure.
@@ -37,5 +66,6 @@ First tracked release. The mod is playable and stable; ongoing work is tuning, n
 - One shared **Contract frequency (weight)** dial in MSU (`m.Score`, 0 = off, default 2), applied to
   every Golarion contract; each contract keeps its own rarity/eligibility gates.
 
-[Unreleased]: ../../compare/v0.90...HEAD
+[Unreleased]: ../../compare/v0.91...HEAD
+[0.91]: ../../releases/tag/v0.91
 [0.90]: ../../releases/tag/v0.90

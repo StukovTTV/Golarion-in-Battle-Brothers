@@ -5,7 +5,7 @@
 // ============================================================================
 
 local modID = "mod_golarion";
-local modVersion = "0.90.0";   // STRING semver (X.Y.Z), not a float: MSU's registry cross-checks
+local modVersion = "0.91.22";   // STRING semver (X.Y.Z), not a float: MSU's registry cross-checks
                                // the ::MSU.Class.Mod version against the one mod_hooks recorded here
                                // and throws if they differ (registry_system.nut). Same value both places.
 local modName = "Golarion Localization";
@@ -2318,6 +2318,13 @@ local modName = "Golarion Localization";
 	// the fee. Spawns and owns its own site, like contracts 2 and 3.
 	::Const.Contracts.ContractCategoryMap.skv_choking_tower_contract <- ::Const.Contracts.Categories.Economy;
 	::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_choking_tower_action");
+
+	// Contract 6 - The Azari Palace (Economy; a Tome-of-Memory heist under cover of an
+	// admission fee at a dead god's temple). Offered NORTH *and* SOUTH: pushed onto both
+	// the Settlement pool and the OrientalCityState (southern city-state) pool.
+	::Const.Contracts.ContractCategoryMap.skv_azari_contract <- ::Const.Contracts.Categories.Economy;
+	::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_azari_action");
+	::Const.FactionTrait.Actions[::Const.FactionTrait.OrientalCityState].push("scripts/factions/contracts/skv_azari_action");
 
 	// ----------------------------------------------------------------------------
 	//  LEGENDARY CATEGORY ICON
