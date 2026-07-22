@@ -5,7 +5,7 @@
 // ============================================================================
 
 local modID = "mod_golarion";
-local modVersion = "0.91.22";   // STRING semver (X.Y.Z), not a float: MSU's registry cross-checks
+local modVersion = "0.92.26";   // STRING semver (X.Y.Z), not a float: MSU's registry cross-checks
                                // the ::MSU.Class.Mod version against the one mod_hooks recorded here
                                // and throws if they differ (registry_system.nut). Same value both places.
 local modName = "Golarion Localization";
@@ -17,6 +17,67 @@ local modName = "Golarion Localization";
 	// appear (the faction-action m.Score, 0 = off .. 10 = common). Lives in ::Skv.Cfg
 	// (skv_engine.nut); every *_action.nut reads it via ::Skv.Cfg.score().
 	::Skv.Cfg.register(modID, modVersion, modName);
+
+	// ---- Loadout-from-contract -------------------------------------------------
+	// Open the character/gear screen from INSIDE a contract crawl screen (the Ambush
+	// RestRoom "set your gear right" breather) and return to that SAME screen on close,
+	// instead of dumping the party onto the world map. Folded in from the standalone
+	// mod_golarion_loadout_from_event prototype and RE-POINTED at the CONTRACT path.
+	//
+	// Why a contract-specific variant: a contract dialog is shown by contract_manager
+	// (EventScreen.show(contract)), NOT by World.Events -- so the event-flavored guards
+	// (World.Events.hasActiveEvent) are always false during a contract, and the button
+	// would silently no-op. We instead require a live active CONTRACT + a visible event
+	// screen. And the restore CANNOT go through World.State.showEventScreen /
+	// showActiveContract, because showEventScreen refuses to run while the MenuStack has
+	// backsteps -- which it always does mid-contract (world_state.nut:402). So we re-show
+	// by calling EventScreen.show(contract) DIRECTLY (setIsContract first), exactly as the
+	// event prototype did for its ActiveEvent. That re-renders the contract's CURRENT
+	// screen (RestRoom) without re-firing it.
+	//
+	// Call convention: from a "stay here" option whose getResult RETURNS THE SAME SCREEN
+	// ID (never 0 -- 0 makes processInput close the screen, and the restore would then
+	// re-show a null screen and crash). Post-combat floor screens only (CharacterScreen is
+	// null until the tactical->world transition finishes). refillAmmo() on close is a real,
+	// intentional ammunition cost. Double-entry guarded by isInCharacterScreen().
+	::mods_hookExactClass("states/world_state", function ( o )
+	{
+		o.showLoadoutFromContract <- function ()
+		{
+			if (this.m.CharacterScreen == null || this.isInCharacterScreen()) return false;
+			if (this.m.EventScreen == null || !this.m.EventScreen.isVisible() || this.m.EventScreen.isAnimating()) return false;
+			if (this.World.Contracts.getActiveContract() == null) return false;
+
+			this.World.Assets.updateFormation();   // sync the equipment/formation view
+			this.m.EventScreen.hide();             // hide underneath for clean layering
+			this.m.CharacterScreen.show();
+
+			// Our MenuStack backstep, pushed ON TOP of the contract's own (hide Event /
+			// show World) step: closes first, restores the contract screen, then the
+			// contract's step later returns to the map.
+			this.m.MenuStack.push(function ()
+			{
+				this.m.CharacterScreen.hide();
+				this.World.Assets.refillAmmo();    // spends the Ammunition stockpile (intended)
+
+				local c = this.World.Contracts.getActiveContract();
+				if (c != null)
+				{
+					// Direct EventScreen.show -- bypasses the showEventScreen backstep guard.
+					this.m.EventScreen.setIsContract(true);
+					this.m.EventScreen.show(c, false);   // false = no slide; re-renders current screen
+				}
+			},
+			function ()
+			{
+				// Only restore once the close animation has finished (the built-in openers'
+				// readiness predicate).
+				return !this.m.CharacterScreen.isAnimating();
+			});
+
+			return true;
+		}
+	});
 
 	::GolarionNames <- {
 		SteppeVillage = [
@@ -2271,6 +2332,92 @@ local modName = "Golarion Localization";
 		]
 	};
 
+	// ---- Golarion KOBOLDS: reusable "reads-as-kobold" goblin lists ---------------
+	// Kobolds don't exist in BB, so these are stock foot-goblins CURATED so an encounter reads
+	// as a Golarion kobold warren: ONLY the small foot-goblins -- goblin_fighter (skirmisher) and
+	// goblin_ambusher (net-and-dagger trapper). NONE of the greenskin cavalry (no wolfriders,
+	// direwolves, berserkers, harriers, overseers) -- kobolds don't ride wolves, and the absent
+	// top tier is the point: no matter how strong the company, a "kobold" fight never escalates
+	// into heavy cavalry, so it reads easy for LONGER up the budget curve than a real goblin list.
+	//
+	// Why a contract-owned list at all: the stock GoblinScouts / GoblinDefenders lists floor the
+	// spawn budget UP to their own MinR (75 / 55), so a small (1-skull, fresh-company) budget was
+	// silently inflated to a punishing ~5-goblin roster. MinR 15 here lets BASE x difficulty x
+	// company-scaling actually govern the size -- a weak company draws a few goblin_fighter_low /
+	// goblin_ambusher_low (a real warm-up); the (still-weak) upgrades phase in only once the budget
+	// climbs (skirmisher at MinR 120, ambusher at MinR 180). Nothing is MaxR-tier-capped, so the
+	// upgrades keep appearing for a strong company; any boss is hand-pushed separately (never gated).
+	// Reusable anywhere in the overlay for a kobold-infested ruin/dungeon; the Ambush is the first user.
+
+	// (1) Warriors only -- the clean warm-up / no-caster variant.
+	::Const.World.Spawn.GolarionKobolds <- {
+		Name = "GolarionKobolds",
+		IsDynamic = true,
+		MovementSpeedMult = 1.0,
+		VisibilityMult = 1.0,
+		VisionMult = 1.0,
+		Body = "figure_goblin_02",
+		MaxR = 600,
+		MinR = 15,
+		Troops = [
+			{   // Skirmisher line: goblin_fighter_low -> goblin_fighter at MinR 120.
+				Weight = 55,
+				Types = [
+					{ Type = ::Const.World.Spawn.Troops.GoblinSkirmisherLOW, Cost = 10 },
+					{ Type = ::Const.World.Spawn.Troops.GoblinSkirmisher, MinR = 99, Cost = 15 }
+				]
+			},
+			{   // Ambusher/trapper line: goblin_ambusher_low -> goblin_ambusher at MinR 180. No MaxR.
+				Weight = 45,
+				Types = [
+					{ Type = ::Const.World.Spawn.Troops.GoblinAmbusherLOW, Cost = 15 },
+					{ Type = ::Const.World.Spawn.Troops.GoblinAmbusher, MinR = 139, Cost = 20 }
+				]
+			}
+		]
+	};
+
+	// (2) With casters -- same warriors PLUS a rare dragon-priest caster tier. Kobold sorcerers
+	// are on-theme even at low level, so the shaman is UNGATED (affordability, Cost 35, keeps it
+	// out of the tiniest fights on its own) at a LOWER weight (2) than a real goblin band's (3);
+	// the LegendGoblinWitchDoctor stays the rare elite at ~MinR 1400 (matching the stock lists).
+	::Const.World.Spawn.GolarionKoboldsCasters <- {
+		Name = "GolarionKoboldsCasters",
+		IsDynamic = true,
+		MovementSpeedMult = 1.0,
+		VisibilityMult = 1.0,
+		VisionMult = 1.0,
+		Body = "figure_goblin_02",
+		MaxR = 600,
+		MinR = 15,
+		Troops = [
+			{
+				Weight = 55,
+				Types = [
+					{ Type = ::Const.World.Spawn.Troops.GoblinSkirmisherLOW, Cost = 10 },
+					{ Type = ::Const.World.Spawn.Troops.GoblinSkirmisher, MinR = 99, Cost = 15 }
+				]
+			},
+			{
+				Weight = 45,
+				Types = [
+					{ Type = ::Const.World.Spawn.Troops.GoblinAmbusherLOW, Cost = 15 },
+					{ Type = ::Const.World.Spawn.Troops.GoblinAmbusher, MinR = 139, Cost = 20 }
+				]
+			},
+			{   // Caster tier: shaman (ungated, low-level dragon-priest) -> witch-doctor (rare elite).
+				// MinR calibrated to THIS contract's reachable budget (escort maxes ~460, not the
+				// thousands a world goblin party reaches) -- so the witch-doctor upgrade actually
+				// appears, only for a strong/maxed company's escort. The stock lists' 1400 is dead here.
+				Weight = 2,
+				Types = [
+					{ Type = ::Const.World.Spawn.Troops.GoblinShaman, Cost = 35 },
+					{ Type = ::Const.World.Spawn.Troops.LegendGoblinWitchDoctor, MinR = 299, Cost = 50 }
+				]
+			}
+		]
+	};
+
 	// ---- Hand-authored contracts (Phase 4) -------------------------------------
 	// Register each contract's category key so its action's isReadyForContract() lookup
 	// resolves, then offer its action from settlement factions (village/terrain/flag
@@ -2325,6 +2472,15 @@ local modName = "Golarion Localization";
 	::Const.Contracts.ContractCategoryMap.skv_azari_contract <- ::Const.Contracts.Categories.Economy;
 	::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_azari_action");
 	::Const.FactionTrait.Actions[::Const.FactionTrait.OrientalCityState].push("scripts/factions/contracts/skv_azari_action");
+
+	// Contract 8 - Ambush in <City> (Battle; a return-item courier-rescue with two goblin
+	// fights and a two-city delivery). A trader's courier is dead in the undercity drains;
+	// recover the sealed parcel off the goblin chief's escort and carry it to a partner in a
+	// NEIGHBOURING city, sealed. Offered NORTH *and* SOUTH (Settlement + OrientalCityState).
+	// The action's existence-check confirms a valid delivery city exists before offering.
+	::Const.Contracts.ContractCategoryMap.skv_ambush_contract <- ::Const.Contracts.Categories.Battle;
+	::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_ambush_action");
+	::Const.FactionTrait.Actions[::Const.FactionTrait.OrientalCityState].push("scripts/factions/contracts/skv_ambush_action");
 
 	// ----------------------------------------------------------------------------
 	//  LEGENDARY CATEGORY ICON

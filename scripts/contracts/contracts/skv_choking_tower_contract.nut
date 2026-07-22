@@ -381,54 +381,64 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 	// same behaviour (sets this.m.ActorName for %actor%). The named checks below keep the
 	// tower's own background ladders and delegate to ::Skv.Check.resolve.
 
-	// The named checks (ladders per the design doc, all IDs verified).
+	// On a check SUCCESS, credit XP (::Skv.XP.grant, base 200) and push the "+N Experience"
+	// rows onto the pending Result list -- so every Tower check awards XP uniformly, shown on
+	// the same Result screen the loot uses. Guarded so a missing XP module can never break a check.
+	function checkXP( _r )
+	{
+		if (_r.ok && _r.actor != null && ("XP" in ::Skv)) this.pushRows(::Skv.XP.grant(_r.actor, 200));
+		return _r;
+	}
+
+	// The named checks (ladders per the design doc, all IDs verified). Each wraps its resolve in
+	// checkXP so a pass awards experience (see checkXP).
 	function checkLockpick()
 	{
-		return ::Skv.Check.resolve(this,
+		return this.checkXP(::Skv.Check.resolve(this,
 			[["background.thief", 80], ["background.legend_lurker", 55], ["background.vagabond", 30], ["background.gambler", 30]],
-			["dexterous"], ["clumsy"], [], ::Skv.Check.handInjuries(), 15);
+			["dexterous"], ["clumsy"], [], ::Skv.Check.handInjuries(), 15));
 	}
 	function checkDisarm()
 	{
-		return ::Skv.Check.resolve(this,
+		return this.checkXP(::Skv.Check.resolve(this,
 			[["background.poacher", 70], ["background.thief", 60], ["background.hunter", 55], ["background.legend_inventor", 50], ["background.ratcatcher", 40], ["background.assassin", 35]],
-			["dexterous", "sure_footing"], ["clumsy"], [], ::Skv.Check.handInjuries(), 20);
+			["dexterous", "sure_footing"], ["clumsy"], [], ::Skv.Check.handInjuries(), 20));
 	}
 	function checkSecretDoors()
 	{
-		return ::Skv.Check.resolve(this,
+		return this.checkXP(::Skv.Check.resolve(this,
 			[["background.legend_diviner", 90], ["background.historian", 70], ["background.graverobber", 55], ["background.mason", 49], ["background.ratcatcher", 45], ["background.legend_lurker", 37]],
-			["eagle_eyes", "bright", "paranoid"], ["short_sighted", "dumb"], [], ::Skv.Check.eyeInjuries(), 15);
+			["eagle_eyes", "bright", "paranoid"], ["short_sighted", "dumb"], [], ::Skv.Check.eyeInjuries(), 15));
 	}
 	function checkReading()
 	{
-		return ::Skv.Check.resolve(this,
+		return this.checkXP(::Skv.Check.resolve(this,
 			[["background.historian", 60], ["background.legend_astrologist", 55], ["background.legend_philosopher", 45], ["background.legend_magister", 40]],
-			["bright"], ["dumb"], [::Legends.Perk.LegendScholar], [], 5);
+			["bright"], ["dumb"], [::Legends.Perk.LegendScholar], [], 5));
 	}
 	function checkGolem()
 	{
-		return ::Skv.Check.resolve(this,
+		return this.checkXP(::Skv.Check.resolve(this,
 			[["background.legend_inventor", 65], ["background.historian", 50], ["background.legend_astrologist", 45], ["background.legend_magister", 45], ["background.legend_philosopher", 40]],
-			["bright"], ["dumb"], [::Legends.Perk.LegendScholar], [], 20);
+			["bright"], ["dumb"], [::Legends.Perk.LegendScholar], [], 20));
 	}
 	function checkStarChart()
 	{
-		return ::Skv.Check.resolve(this,
+		return this.checkXP(::Skv.Check.resolve(this,
 			[["background.legend_astrologist", 70], ["background.historian", 55], ["background.legend_diviner", 55], ["background.legend_philosopher", 45], ["background.legend_magister", 40]],
-			["bright", "eagle_eyes"], ["dumb"], [::Legends.Perk.LegendScholar], [], 15);
+			["bright", "eagle_eyes"], ["dumb"], [::Legends.Perk.LegendScholar], [], 15));
 	}
 	function checkDodge()
 	{
-		return ::Skv.Check.resolve(this,
+		return this.checkXP(::Skv.Check.resolve(this,
 			[],
-			["quick", "swift", "athletic", "dexterous", "sure_footing"], ["clumsy", "fat", "old", "clubfooted"], [], ::Skv.Check.legInjuries(), 40);
+			["quick", "swift", "athletic", "dexterous", "sure_footing"], ["clumsy", "fat", "old", "clubfooted"], [], ::Skv.Check.legInjuries(), 40));
 	}
 	function checkForce()
 	{
-		return ::Skv.Check.resolve(this,
+		return this.checkXP(::Skv.Check.resolve(this,
 			[],
-			["athletic", "tough"], ["old", "ailing"], [], [], 60);
+			["athletic", "tough"], ["old", "ailing"], [], [], 60));
 	}
 
 	// ==========================================================================

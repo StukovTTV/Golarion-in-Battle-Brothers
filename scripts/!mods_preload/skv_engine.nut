@@ -259,6 +259,80 @@ if (!("Skv" in ::getroottable()))
 		return { ok = roll <= chance, actor = actor, chance = chance };
 	}
 
+	// COMPOSITION checks -- deliberately use NO combat stats (Initiative etc.), staying on the same
+	// character axis as resolve(). A flat _base is moved by curated trait/background/perk modifiers
+	// minus an injury penalty, and -- unlike resolve() (best BACKGROUND, then that one brother) --
+	// bestByComposition() scores EVERY active brother and returns the BEST one (highest net). So
+	// your sharpest/nimblest man leads, and the negatives only bite a company with no good one left.
+	// _traitMods / _bgMods are id->delta tables; _perkMods is keyed by ::Legends.Perk DEFS (NOT raw
+	// "perk.x" strings -- Legends' hasPerk throws on a string); _injuries is a string-id set, any of
+	// which costs -15. Returns { ok, actor, chance } and sets contract.m.ActorName (for %actor%).
+	function bestByComposition( _contract, _base, _traitMods, _bgMods, _perkMods, _injuries )
+	{
+		local best = null;
+		local bestChance = -9999;
+		foreach (bro in ::World.getPlayerRoster().getAll())
+		{
+			if (bro.isInReserves()) continue;   // active company only -- matches the ::Skv.XP pool
+			local sk = bro.getSkills();
+			local c = _base;
+			foreach (id, d in _traitMods) if (sk.hasSkill(id)) c = c + d;
+			local bg = bro.getBackground();
+			if (bg != null && (bg.getID() in _bgMods)) c = c + _bgMods[bg.getID()];
+			foreach (id, d in _perkMods) if (sk.hasPerk(id)) c = c + d;
+			foreach (inj in _injuries) if (sk.hasSkill(inj)) { c = c - 15; break; }   // one penalty, not per-injury
+			if (c > bestChance) { bestChance = c; best = bro; }
+		}
+		if (best == null) bestChance = _base;   // empty / all-reserve roster safety
+		local chance = ::Math.max(5, ::Math.min(95, bestChance));
+		local roll = ::Math.rand(1, 100);
+		_contract.m.ActorName = (best != null ? best.getName() : "one of the company");
+		return { ok = roll <= chance, actor = best, chance = chance };
+	}
+
+	// AGILITY / DODGE -- the nimblest active brother leads a physical feat (a pit crossing, a dodge).
+	// Footwork signals +-12, luck-flavored ones +-5, Dodge +15, a standing leg injury -15.
+	function agility( _contract, _base )
+	{
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.dexterous"] = 12, ["trait.sure_footing"] = 12, ["trait.lucky"] = 5,
+			  ["trait.clumsy"] = -12, ["trait.clubfooted"] = -12, ["trait.fat"] = -12, ["trait.old"] = -5 },
+			{ ["background.gambler"] = 5, ["background.cripple"] = -12 },
+			{ [::Legends.Perk.Dodge] = 15 },
+			this.legInjuries());
+		::logInfo("Skv.Check.agility chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// PERCEPTION / SPOT -- the sharpest-eyed active brother notices something (a trap seam, a
+	// tell). Keen eyes and woodcraft help; short sight / dullness / a missing eye hurt. No perks.
+	function perception( _contract, _base )
+	{
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.eagle_eyes"] = 12, ["trait.short_sighted"] = -12, ["trait.dumb"] = -8 },
+			{ ["background.poacher"] = 12, ["background.brigand_poacher"] = 12, ["background.hunter"] = 12,
+			  ["background.ratcatcher"] = 10, ["background.thief"] = 8, ["background.witchhunter"] = 8 },
+			{},
+			this.eyeInjuries());
+		::logInfo("Skv.Check.perception chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// A difficulty-scaled base for a check that SHOULD stiffen on a harder contract (spotting a trap,
+	// reading a tome, picking a lock). _base is the check's STANDARD-difficulty anchor; the swing is
+	// slope*(1 - DifficultyMult), so an easy contract raises the anchor and a hard one lowers it
+	// (e.g. base 50, slope 50: DiffMult 0.72 -> 64, 1.2 -> 40). Clamped 5-95. Honors the ::Skv.Cfg
+	// "scale checks with difficulty" toggle -- OFF returns the anchor unchanged (predictable mode).
+	// Physical checks (athletics) that don't care about contract difficulty just pass a flat number
+	// and never call this. Usage: perception(contract, ::Skv.Check.scaledBase(contract, 50)).
+	function scaledBase( _contract, _base, _slope = 50 )
+	{
+		local on = true;
+		try { on = ::Skv.Cfg.scaleChecks(); } catch (e) { on = true; }
+		if (!on) return ::Math.max(5, ::Math.min(95, _base));
+		return ::Math.max(5, ::Math.min(95, _base + _slope * (1.0 - _contract.getDifficultyMult())));
+	}
+
 	// Injury sets that read as a penalty when the acting brother already carries one.
 	function handInjuries() { return ["injury.smashed_hand", "injury.split_hand", "injury.pierced_hand", "injury.fractured_hand", "injury.burnt_hands", "injury.crushed_finger", "injury.missing_hand", "injury.missing_finger"]; }
 	function eyeInjuries()  { return ["injury.grazed_eye_socket", "injury.missing_eye"]; }
@@ -299,6 +373,17 @@ if (!("Skv" in ::getroottable()))
 	DefaultScore = 2,    // out-of-the-box weight AND the fallback when MSU is absent
 	SettingID = "GolarionContractScore",
 
+	// Check-XP actor share: on a successful skill check, what % of the awarded XP goes to the
+	// acting brother; the rest is split across the active company (::Skv.XP.grant). 0..100.
+	ActorShareID = "GolarionCheckActorShare",
+	DefaultActorShare = 35,
+
+	// Whether skill-check bases scale with contract difficulty (::Skv.Check.scaledBase). ON =
+	// harder contracts hide traps / stiffen checks; OFF = every scaling check sits at its
+	// standard-difficulty anchor regardless of skull rating. Physical checks (athletics) never scale.
+	ScaleChecksID = "GolarionScaleChecks",
+	DefaultScaleChecks = true,
+
 	// Build the settings page + the single shared dial. Called once from the mod's
 	// MSU queue. Wrapped so a settings-system hiccup can never abort mod load.
 	function register( _id, _version, _name )
@@ -319,6 +404,12 @@ if (!("Skv" in ::getroottable()))
 			page.addRangeSetting(this.SettingID, this.DefaultScore, 0, 10, 1,
 				"Contract frequency (weight)",
 				"How often the mod's hand-authored contracts appear. This is the shared selection weight (m.Score) used by EVERY Golarion contract in the faction-action pick.\n\n[b]0[/b] = off (no Golarion contract is offered).\n[b]2[/b] = default.\nHigher = they win a settlement's contract slot more often.\n\nEach contract keeps its own rarity and eligibility gates; this only sets how heavily it weighs when it rolls.");
+			page.addRangeSetting(this.ActorShareID, this.DefaultActorShare, 0, 100, 5,
+				"Check XP — actor share (%)",
+				"When a brother passes a skill check (a lockpick, a trapped passage, a reading), the contract awards a bit of experience.\n\nThis sets how much of it goes to the brother who actually did it; the rest is split evenly across the whole active company (everyone learns a little from watching).\n\n[b]35[/b] = default (about a third to the doer, the rest shared).\n[b]100[/b] = all to the doer.\n[b]0[/b] = split evenly across everyone.");
+			page.addBooleanSetting(this.ScaleChecksID, this.DefaultScaleChecks,
+				"Scale skill checks with contract difficulty",
+				"When ON, skill checks that scale (spotting a trap, reading a tome, picking a lock) get harder on higher-skull contracts and easier on low ones.\n\nWhen OFF, every such check sits at its own standard-difficulty value regardless of the contract's skull rating — predictable mode.\n\nPhysical checks like crossing a pit are never affected either way.\n\n[b]On[/b] = default.");
 			::logInfo("Skv.Cfg: settings registered (default score " + this.DefaultScore + ")");
 		}
 		catch (e)
@@ -345,6 +436,41 @@ if (!("Skv" in ::getroottable()))
 			return this.DefaultScore;
 		}
 	}
+
+	// The check-XP actor share (%), read fresh on each successful check. Mirrors score()'s
+	// exact shape (same Mod handle, same defensive fallback); ::Skv.XP.grant reads it.
+	function actorShare()
+	{
+		if (this.Mod == null) return this.DefaultActorShare;
+		try
+		{
+			local s = this.Mod.ModSettings.getSetting(this.ActorShareID);
+			if (s == null) return this.DefaultActorShare;
+			return s.getValue();
+		}
+		catch (e)
+		{
+			::logError("Skv.Cfg.actorShare failed (using default): " + e);
+			return this.DefaultActorShare;
+		}
+	}
+
+	// Whether difficulty-scaled check bases actually scale. Read by ::Skv.Check.scaledBase.
+	function scaleChecks()
+	{
+		if (this.Mod == null) return this.DefaultScaleChecks;
+		try
+		{
+			local s = this.Mod.ModSettings.getSetting(this.ScaleChecksID);
+			if (s == null) return this.DefaultScaleChecks;
+			return s.getValue();
+		}
+		catch (e)
+		{
+			::logError("Skv.Cfg.scaleChecks failed (using default): " + e);
+			return this.DefaultScaleChecks;
+		}
+	}
 };
 
 // ============================================================================
@@ -366,8 +492,8 @@ if (!("Skv" in ::getroottable()))
 
 	// This mod's contract types (exact match -- so we don't flag Legends' own legend_* jobs).
 	Types = [
-		"contract.skv_azari", "contract.skv_metringer", "contract.skv_black_forks", "contract.skv_choking_tower",
-		"contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing"
+		"contract.skv_azari", "contract.skv_ambush", "contract.skv_metringer", "contract.skv_black_forks",
+		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing"
 	],
 
 	function isMine( _type )
@@ -420,8 +546,53 @@ if (!("Skv" in ::getroottable()))
 		}
 		::logInfo("== " + temples + " temple-town(s) of " + total + " settlements ==");
 	}
+
+	// Ambush gate diagnosis: the once-flags + every eligible hiring town, with how many DELIVERY
+	// candidates it has (any / road-connected) and the distance range -- so we can see why
+	// "Ambush in <city>" is or is not offering, and tune the destination pick. Read-only. Run ::skvambush().
+	function ambush()
+	{
+		::logInfo(">> Ambush gate: once.active=" + ::World.Flags.has("SkvOnce.Ambush.active") + " once.retired=" + ::World.Flags.has("SkvOnce.Ambush.retired"));
+		local towns = 0, readyN = 0;
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			local mil = true, iso = true, disc = false;
+			try { mil = s.isMilitary(); iso = s.isIsolated(); disc = s.isDiscovered(); } catch (e) { continue; }
+			if (mil || iso || !disc) continue;
+			towns = towns + 1;
+			// Resolve the owning faction and the EXACT readiness the offer gate would see.
+			local tname = "?", ready = false, excl = false;
+			try
+			{
+				local fac = ::World.FactionManager.getFaction(s.getFaction());
+				if (fac.getType() == ::Const.FactionType.Settlement)
+				{
+					tname = "SET";
+					ready = fac.isReadyForContract(::Const.Contracts.ContractCategoryMap.skv_ambush_contract);
+					excl = fac.hasContractExclusion("contract.skv_ambush");
+				}
+				else
+				{
+					tname = "CS";
+					ready = fac.isReadyForContract();
+				}
+			}
+			catch (e) { tname = "ERR:" + e; }
+			if (ready && !excl) readyN = readyN + 1;
+			local n = s.getContracts().len();
+			::logInfo(" town: " + s.getName() + " type=" + tname + " READY=" + ready + " excl=" + excl + " nContracts=" + n);
+		}
+		::logInfo("== " + towns + " eligible town(s); " + readyN + " would PASS the Ambush readiness gate ==");
+	}
 };
 
 // Short console aliases: ::skvc() = all contracts, ::skvc(true) = this mod's only.
 ::skvc <- function ( _onlyMine = false ) { return ::Skv.Debug.contracts(_onlyMine); };
 ::skvazari <- function () { return ::Skv.Debug.azari(); };
+::skvambush <- function () { return ::Skv.Debug.ambush(); };
+
+// When true, skv_ambush_action.onUpdate logs its EXACT decline reason per town to log.html.
+// Toggle from the console: ::skvambushdbg()  (on) / ::skvambushdbg(false)  (off). Then let a moment
+// of game time pass and read log.html. Leave OFF normally (it is chatty).
+::SkvAmbushDbg <- false;
+::skvambushdbg <- function ( _on = true ) { ::SkvAmbushDbg = _on; ::logInfo("SkvAmbushDbg = " + _on); return _on; };

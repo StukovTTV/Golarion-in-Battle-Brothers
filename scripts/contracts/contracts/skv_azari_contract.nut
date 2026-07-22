@@ -842,6 +842,27 @@ this.skv_azari_contract <- this.inherit("scripts/contracts/contract", {
 			}
 		});
 
+		// --- CRYPT PICKED: the quiet way in. A short story beat that shows the pick's XP (set on
+		// m.RoomRows/RoomText by the CryptDoor pick success), then descends to the crypt fight.
+		this.m.Screens.push({
+			ID = "CryptPicked",
+			Title = "The Gate Gives",
+			Text = "",
+			Image = "",
+			List = [],
+			Options = [
+				{
+					Text = "{Down, then -- quietly.}",
+					function getResult() { return "CryptFight"; }
+				}
+			],
+			function start()
+			{
+				this.Text = this.Contract.m.RoomText != "" ? this.Contract.m.RoomText : "{The gate gives.}";
+				this.List = this.Contract.m.RoomRows != null ? this.Contract.m.RoomRows : [];
+			}
+		});
+
 		// --- CRYPT DOOR: a way down is found, but the door is LOCKED. Pick it (a check -- criminals /
 		// grave-robbers best; quiet -> normal fight), FORCE it (always works, but the din rouses more
 		// dead -> a bigger fight, m.CryptForced), or leave it sealed. A failed pick leaves only force/leave.
@@ -867,7 +888,14 @@ this.skv_azari_contract <- this.inherit("scripts/contracts/contract", {
 						function getResult()
 						{
 							local r = ::Skv.Check.resolve(this.Contract, this.Contract.pickLockLadder(), ["dexterous"], ["clumsy"], [], ::Skv.Check.handInjuries(), 25);
-							if (r.ok) return "CryptFight";
+							if (r.ok)
+							{
+								// A clean, quiet pick -> a short story beat (CryptPicked) that carries
+								// the XP for the man who worked the lock, then down into the crypt.
+								this.Contract.m.RoomRows = (r.actor != null && ("XP" in ::Skv)) ? ::Skv.XP.grant(r.actor, 200) : [];
+								this.Contract.m.RoomText = "[img]gfx/ui/events/event_89.png[/img]{%SKVNAME%" + this.Contract.m.ActorName + "%SKVNAME_OFF% kneels to the old iron and works it the way a good thief works anything -- patient, listening, feeling for the give. The %SKVLOC%Azari%SKVLOC_OFF% built even the locks on their tombs to outlast the men who made them, and this one argues back through a dozen dead men's rust. Then something deep in it turns over, soft as a sigh, and the gate swings inward without a sound. Whatever keeps the dead down here will not hear you come. He rocks back on his heels, quietly pleased, and a shade the wiser for it.}";
+								return "CryptPicked";
+							}
 							this.Contract.m.CryptPickFailed = true;
 							return "CryptDoor";
 						}

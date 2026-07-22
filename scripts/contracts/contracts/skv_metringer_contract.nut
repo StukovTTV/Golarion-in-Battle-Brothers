@@ -22,6 +22,7 @@ this.skv_metringer_contract <- this.inherit("scripts/contracts/contract", {
 		TookBribe   = false,  // set at the fork; picks the ending
 		ActorName   = "",     // %actor% -- the brother who took the last skill check (::Skv.Check)
 		LootRows    = null,   // iconed loot rows (::Legends.EventList) for the climb-out screen; set+shown in one modal chain, not serialized
+		PickXPRows  = null,   // XP rows from a clean stair-pick, shown on the DescentCells narration; transient, not serialized
 		// -- fight dials (scaled by getScaledDifficultyMult(); spend ~2x nominal) --
 		MeetBudget  = 70,     // fight #1: Grummlin's agents (Spawn.BanditRaiders) -- lowish
 		KeeperBudget= 95,     // fight #2: the keepers (Spawn.Mercenaries) + Head Keeper boss -- lowish
@@ -496,6 +497,9 @@ this.skv_metringer_contract <- this.inherit("scripts/contracts/contract", {
 					local c = ::Skv.Check.resolve(this.Contract,
 						[["background.thief", 80], ["background.legend_lurker", 55], ["background.vagabond", 30], ["background.gambler", 30]],
 						["dexterous"], ["clumsy"], [], ::Skv.Check.handInjuries(), 15);
+					// XP for a clean pick -- captured and shown on the DescentCells narration below
+					// (that screen already narrates %actor% working the lock, so the "+N" reads there).
+					if (c.ok) this.Contract.m.PickXPRows = (c.actor != null && ("XP" in ::Skv)) ? ::Skv.XP.grant(c.actor, 200) : [];
 					return c.ok ? "DescentCells" : "ForcedEntry";
 				} },
 				{ Text = "{Force it -- never mind quiet.}", function getResult() { return "ForcedEntry"; } }
@@ -515,7 +519,11 @@ this.skv_metringer_contract <- this.inherit("scripts/contracts/contract", {
 				{ Text = "{Free those we can, then press on.}", function getResult() { this.World.Assets.addMoralReputation(6); return "DescentLab"; } },
 				{ Text = "{Leave them -- first we end this.}", function getResult() { return "DescentLab"; } }
 			],
-			function start() {}
+			function start()
+			{
+				// Show the XP earned for the clean pick that opened this quiet way down.
+				this.List = this.Contract.m.PickXPRows != null ? this.Contract.m.PickXPRows : [];
+			}
 		});
 
 		// FORCE path (pick failed, or chosen): loud, no quiet way down -- you rush past
