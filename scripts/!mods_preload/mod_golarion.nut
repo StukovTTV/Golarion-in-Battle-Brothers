@@ -5,7 +5,7 @@
 // ============================================================================
 
 local modID = "mod_golarion";
-local modVersion = "0.92.26";   // STRING semver (X.Y.Z), not a float: MSU's registry cross-checks
+local modVersion = "0.93.8";   // STRING semver (X.Y.Z), not a float: MSU's registry cross-checks
                                // the ::MSU.Class.Mod version against the one mod_hooks recorded here
                                // and throws if they differ (registry_system.nut). Same value both places.
 local modName = "Golarion Localization";
@@ -2481,6 +2481,22 @@ local modName = "Golarion Localization";
 	::Const.Contracts.ContractCategoryMap.skv_ambush_contract <- ::Const.Contracts.Categories.Battle;
 	::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_ambush_action");
 	::Const.FactionTrait.Actions[::Const.FactionTrait.OrientalCityState].push("scripts/factions/contracts/skv_ambush_action");
+
+	// Contract 9 - Carthica's Pride in <City> (Hunt; milestone 0.93). A noble hires the company
+	// through his fixer to recover a stolen family signet from two Sczarni cutpurses, humble the
+	// pair in public, and keep the house's name out of it: an info-broker barter, ONE alley fight
+	// (with a betrayal fork), a hidden-door search, and a five-contest tavern finale on a popularity
+	// meter. A NOBLE-HOUSE contract -- the noble lane's ~1050 "Professional" unlock is itself the
+	// gate (verified vs Legends 19.4.14 + wiki), so NO per-contract renown line. Design:
+	// carthicas_pride_contract.md. Spawns/owns its own backstreets site; reports back to the noble.
+	//
+	// NOBLE-ONLY as of 0.93.8 (test knob removed for release, decision #17). The ContractCategoryMap
+	// entry is now UNREAD (nobles don't use category slots; the settlement readiness branch never runs
+	// on the noble lane) -- kept as harmless config, and m.Category is set directly in create() (= Hunt).
+	// TO RE-ENABLE the dev test knob: re-add the Settlement push line below.
+	::Const.Contracts.ContractCategoryMap.skv_carthica_contract <- ::Const.Contracts.Categories.Hunt;
+	::Const.FactionTrait.Actions[::Const.FactionTrait.NobleHouse].push("scripts/factions/contracts/skv_carthica_action");   // SHIP: the noble lane only
+	// ::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_carthica_action");  // DEV TEST KNOB (decision #17): uncomment to also offer at ordinary size-2+ towns
 
 	// ----------------------------------------------------------------------------
 	//  LEGENDARY CATEGORY ICON

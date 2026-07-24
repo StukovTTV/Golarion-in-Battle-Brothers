@@ -396,7 +396,7 @@ this.skv_ambush_contract <- this.inherit("scripts/contracts/contract", {
 		// Reusable GolarionKobolds (warriors only, MinR 15) -- so this small budget actually governs
 		// the size, instead of the stock GoblinScouts (MinR 75) flooring it up to ~5. See mod_golarion.nut.
 		this.Const.World.Common.addUnitsToCombat(p.Entities, this.Const.World.Spawn.GolarionKobolds, budget, fac);
-		::logInfo("Skv.Ambush patrol budget=" + budget);
+		::Skv.dbg("Skv.Ambush patrol budget=" + budget);
 		this.World.Contracts.startScriptedCombat(p, false, true, true);
 	}
 
@@ -462,7 +462,7 @@ this.skv_ambush_contract <- this.inherit("scripts/contracts/contract", {
 				Faction = fac, Callback = this.onChampionChiefPlaced.bindenv(this)
 			});
 		}
-		::logInfo("Skv.Ambush escort budget=" + budget + " bossTier=" + tier);
+		::Skv.dbg("Skv.Ambush escort budget=" + budget + " bossTier=" + tier);
 		this.World.Contracts.startScriptedCombat(p, false, true, true);
 	}
 

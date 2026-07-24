@@ -18,10 +18,12 @@ This is a **submod** for Battle Brothers: Legends. You'll need Battle Brothers (
 
 ## Credits & legal
 
-An unofficial, **non-commercial fan project**. Not affiliated with, endorsed, or sponsored by Paizo Inc.
+An unofficial, **non-commercial fan project**, released free of charge — no paywalls, no purchase, no access restrictions of any kind.
 
-- **Pathfinder**, **Golarion**, the **Inner Sea**, and related names, places and deities are the intellectual property of **Paizo Inc.** Setting lore is drawn from published Pathfinder material and PathfinderWiki, used here in the spirit of fan work — please review Paizo's community-use / fan-content policy before redistributing.
-- **Battle Brothers** © **Overhype Studios**.
-- Built on **Battle Brothers: Legends** and **Modding Standards & Utilities (MSU)**. Thanks to the Legends modding community.
+> Golarion Localization uses trademarks and/or copyrights owned by Paizo Inc., used under Paizo's Community Use Policy (paizo.com/licenses/communityuse). We are expressly prohibited from charging you to use or access this content. Golarion Localization is not published, endorsed, or specifically approved by Paizo. For more information about Paizo Inc. and Paizo products, visit paizo.com.
 
-License for the mod's own code: **MIT** (the setting content above remains Paizo's).
+- **Pathfinder**, **Golarion**, the **Inner Sea**, and related names, places, and deities are trademarks and/or copyrights of **Paizo Inc.**, used under the Community Use Policy quoted above. Setting lore is drawn from published Pathfinder material and PathfinderWiki.
+- Individual contracts adapt published adventures, credited to their authors: *Ambush in Absalom* (a Pathfinder Society Quest, **Paizo Inc.**) and *Carthica's Pride* (**BlackStar Studios**). These are transformative fan adaptations — reimplemented as original code with the setting renamed into Golarion; the original adventures remain the property of their respective publishers.
+- **Battle Brothers** © **Overhype Studios**. Built on **Battle Brothers: Legends** and **Modding Standards & Utilities (MSU)** — thanks to the Legends modding community.
+
+License for the mod's own code: **MIT** (the setting and adventure content above remains the property of its respective owners).

@@ -10,6 +10,17 @@ if (!("Skv" in ::getroottable()))
 	::Skv <- {};
 }
 
+// Debug logging gate. OFF for live (release). Two ways to turn it on: the in-game MSU setting
+// ("Debug logging (log.html)", ::Skv.Cfg.debugLogging()), or the console override ::Skv.Verbose = true.
+// All Skv.* debug lines (check chances, budgets, the gambler swing) route through ::Skv.dbg().
+::Skv.Verbose <- false;   // console override; the in-game setting is the normal way
+::Skv.dbg <- function ( _s )
+{
+	local on = ::Skv.Verbose;
+	if (!on) { try { on = ::Skv.Cfg.debugLogging(); } catch (e) {} }
+	if (on) ::logInfo(_s);
+};
+
 ::Skv.Loot <- {
 
 	// Grant one item by script path into the company stash. Returns its display
@@ -255,7 +266,7 @@ if (!("Skv" in ::getroottable()))
 		chance = ::Math.max(5, ::Math.min(95, chance));
 		local roll = ::Math.rand(1, 100);
 		_contract.m.ActorName = (actor != null ? actor.getName() : "one of the company");
-		::logInfo("Skv.Check chance=" + chance + " roll=" + roll + " actor=" + _contract.m.ActorName);
+		::Skv.dbg("Skv.Check chance=" + chance + " roll=" + roll + " actor=" + _contract.m.ActorName);
 		return { ok = roll <= chance, actor = actor, chance = chance };
 	}
 
@@ -284,6 +295,21 @@ if (!("Skv" in ::getroottable()))
 			if (c > bestChance) { bestChance = c; best = bro; }
 		}
 		if (best == null) bestChance = _base;   // empty / all-reserve roster safety
+		// GAMBLER'S GAMBLE (catalog §6): a flavor that LISTS background.gambler scores it at 0 (neutral
+		// for SELECTION -- see agility/guile), then, if the chosen brother IS a gambler, his luck is
+		// itself a gamble: a rand(-5..+5) swing on the final chance, net-neutral on average. Rolled here,
+		// at resolution, for the chosen actor only -- never during scoring (which would destabilize WHO
+		// is picked). Lucky (the TRAIT) is unaffected; it stays a flat +5 in the flavor tables.
+		if (best != null && ("background.gambler" in _bgMods))
+		{
+			local bg2 = best.getBackground();
+			if (bg2 != null && bg2.getID() == "background.gambler")
+			{
+				local swing = ::Math.rand(-5, 5);
+				bestChance = bestChance + swing;
+				::Skv.dbg("Skv.Check gambler's-gamble swing=" + swing + " actor=" + best.getName());
+			}
+		}
 		local chance = ::Math.max(5, ::Math.min(95, bestChance));
 		local roll = ::Math.rand(1, 100);
 		_contract.m.ActorName = (best != null ? best.getName() : "one of the company");
@@ -295,12 +321,16 @@ if (!("Skv" in ::getroottable()))
 	function agility( _contract, _base )
 	{
 		local r = this.bestByComposition(_contract, _base,
-			{ ["trait.dexterous"] = 12, ["trait.sure_footing"] = 12, ["trait.lucky"] = 5,
+			{ ["trait.dexterous"] = 12, ["trait.sure_footing"] = 12, ["trait.lucky"] = 5, ["trait.legend_light"] = 5,
 			  ["trait.clumsy"] = -12, ["trait.clubfooted"] = -12, ["trait.fat"] = -12, ["trait.old"] = -5 },
-			{ ["background.gambler"] = 5, ["background.cripple"] = -12 },
+			{ ["background.belly_dancer"] = 7,
+			  ["background.juggler"] = 3, ["background.assassin"] = 3, ["background.messenger"] = 3,
+			  ["background.gambler"] = 0,   // 0 for selection; the ±5 gambler's-gamble swing is rolled in bestByComposition
+			  ["background.legend_blacksmith"] = -4, ["background.brawler"] = -4, ["background.butcher"] = -4,
+			  ["background.farmhand"] = -4, ["background.milkmaid"] = -4, ["background.cripple"] = -12 },
 			{ [::Legends.Perk.Dodge] = 15 },
 			this.legInjuries());
-		::logInfo("Skv.Check.agility chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		::Skv.dbg("Skv.Check.agility chance=" + r.chance + " actor=" + _contract.m.ActorName);
 		return r;
 	}
 
@@ -314,7 +344,97 @@ if (!("Skv" in ::getroottable()))
 			  ["background.ratcatcher"] = 10, ["background.thief"] = 8, ["background.witchhunter"] = 8 },
 			{},
 			this.eyeInjuries());
-		::logInfo("Skv.Check.perception chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		::Skv.dbg("Skv.Check.perception chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// BRAWN -- strongest active brother in a test of raw power (arm-wrestle, lift, force a door).
+	// Big frames help; soft/old sap it; a hand wound kills the grip. (Carthica's arm-wrestle.)
+	function brawn( _contract, _base )
+	{
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.strong"] = 12, ["trait.huge"] = 10, ["trait.brute"] = 12,
+			  ["trait.fat"] = -8, ["trait.old"] = -5 },
+			{ ["background.wildman"] = 12, ["background.legend_berserker"] = 12,
+			  ["background.legend_berserker_commander"] = 12, ["background.legend_commander_berserker"] = 12,
+			  ["background.barbarian"] = 8, ["background.brawler"] = 6,
+			  ["background.farmhand"] = 2, ["background.lumberjack"] = 2,
+			  ["background.minstrel"] = -5, ["background.historian"] = -5, ["background.messenger"] = -5 },
+			{ [::Legends.Perk.Colossus] = 5 },
+			this.handInjuries());
+		::Skv.dbg("Skv.Check.brawn chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// HAND-EYE -- steadiest active brother in a test of aim (a thrown dagger). Fine motor + keen
+	// eyes help; clumsy/short-sighted hurt; a hand wound spoils the throw. (Carthica's dagger-toss.)
+	function handEye( _contract, _base )
+	{
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.dexterous"] = 8, ["trait.eagle_eyes"] = 8,
+			  ["trait.clumsy"] = -12, ["trait.short_sighted"] = -8 },
+			{ ["background.juggler"] = 12, ["background.hunter"] = 10, ["background.poacher"] = 10,
+			  ["background.bowyer"] = 6, ["background.fletcher"] = 6, ["background.fisherman"] = 3,
+			  ["background.legend_berserker"] = -3, ["background.legend_berserker_commander"] = -3,
+			  ["background.legend_commander_berserker"] = -3, ["background.brawler"] = -3,
+			  ["background.cripple"] = -3 },
+			{},
+			this.handInjuries());
+		::Skv.dbg("Skv.Check.handEye chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// NERVE -- steeliest active brother in a test of courage (hung upside-down over spikes). Brave/
+	// determined hold; faint hearts and cowards fold. No injury set. (Carthica's courage hang.)
+	function nerve( _contract, _base )
+	{
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.fearless"] = 12, ["trait.brave"] = 12, ["trait.mad"] = 10, ["trait.determined"] = 6, ["trait.cocky"] = 3,
+			  ["trait.fainthearted"] = -12, ["trait.paranoid"] = -10, ["trait.dastard"] = -7, ["trait.insecure"] = -6 },
+			{ ["background.legend_battle_sister"] = 6, ["background.monk"] = 8, ["background.gladiator"] = 6,
+			  ["background.legend_berserker"] = 6, ["background.legend_berserker_commander"] = 6,
+			  ["background.legend_commander_berserker"] = 6, ["background.assassin"] = 4,
+			  ["background.deserter"] = -10 },
+			{},
+			[]);
+		::Skv.dbg("Skv.Check.nerve chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// GUILE -- the coldest, sharpest card-player: bluff, odds, sleight (Carthica's CARDS contest only;
+	// the crowd-work flourish is CHARM now). A Diviner "knows" the cards; Quick Hands palms them; Taunt
+	// rattles the mark; a KNOWN Thief is watched from the first hand, so his edge is small (+3). Greedy
+	// overbets. gambler = 0 for SELECTION with the ±5 gambler's-gamble swing; Lucky stays flat +5.
+	// Finger/brain wounds (crushed/missing finger, brain damage) sap the hands AND the counting.
+	function guile( _contract, _base )
+	{
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.bright"] = 12, ["trait.lucky"] = 5, ["trait.dumb"] = -8, ["trait.greedy"] = -2 },
+			{ ["background.legend_diviner"] = 12, ["background.gambler"] = 0,   // gambler = 0 for selection; ±5 swing in bestByComposition
+			  ["background.thief"] = 3, ["background.vagabond"] = 3 },
+			{ [::Legends.Perk.Taunt] = 4, [::Legends.Perk.QuickHands] = 2 },
+			[ "injury.crushed_finger", "injury.missing_finger", "injury.brain_damage" ]);
+		::Skv.dbg("Skv.Check.guile chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// CHARM -- the most magnetic active brother WORKING A CROWD (a joke, a swagger, stage presence).
+	// The social twin of guile: cards is cold cunning; this is warmth and showmanship, usually a
+	// DIFFERENT man. Entertainers lead (Qiyan, Minstrel, Juggler); the brutish/off-putting drag it
+	// (Berserker, Brawler, Cannibal, Butcher). NOTE: Dumb is NOT a penalty here -- a fool can land a
+	// joke. Brain damage still saps it. (Carthica's flourish; reusable for future persuade/rally beats.)
+	function charm( _contract, _base )
+	{
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.bright"] = 6, ["trait.lucky"] = 5 },
+			{ ["background.legend_qiyan"] = 11, ["background.minstrel"] = 8, ["background.juggler"] = 8,
+			  ["background.peddler"] = 4, ["background.servant"] = 2,   // servant covers female "Housemaid" too (same id)
+			  ["background.legend_berserker"] = -5, ["background.legend_berserker_commander"] = -5,
+			  ["background.legend_commander_berserker"] = -5, ["background.brawler"] = -5,
+			  ["background.legend_cannibal"] = -5, ["background.butcher"] = -5 },
+			{},
+			[ "injury.brain_damage" ]);
+		::Skv.dbg("Skv.Check.charm chance=" + r.chance + " actor=" + _contract.m.ActorName);
 		return r;
 	}
 
@@ -384,6 +504,11 @@ if (!("Skv" in ::getroottable()))
 	ScaleChecksID = "GolarionScaleChecks",
 	DefaultScaleChecks = true,
 
+	// Debug logging: when ON, the mod writes its skill-check chances, fight budgets, and other
+	// diagnostics to log.html (via ::Skv.dbg). OFF for normal play. Handy when reporting a bug.
+	DebugLoggingID = "GolarionDebugLogging",
+	DefaultDebugLogging = false,
+
 	// Build the settings page + the single shared dial. Called once from the mod's
 	// MSU queue. Wrapped so a settings-system hiccup can never abort mod load.
 	function register( _id, _version, _name )
@@ -410,7 +535,10 @@ if (!("Skv" in ::getroottable()))
 			page.addBooleanSetting(this.ScaleChecksID, this.DefaultScaleChecks,
 				"Scale skill checks with contract difficulty",
 				"When ON, skill checks that scale (spotting a trap, reading a tome, picking a lock) get harder on higher-skull contracts and easier on low ones.\n\nWhen OFF, every such check sits at its own standard-difficulty value regardless of the contract's skull rating — predictable mode.\n\nPhysical checks like crossing a pit are never affected either way.\n\n[b]On[/b] = default.");
-			::logInfo("Skv.Cfg: settings registered (default score " + this.DefaultScore + ")");
+			page.addBooleanSetting(this.DebugLoggingID, this.DefaultDebugLogging,
+				"Debug logging (log.html)",
+				"When ON, the mod writes diagnostics — skill-check chances and rolls, fight budgets, the gambler's-gamble swing — to log.html.\n\nLeave OFF for normal play. Turn it ON if you hit odd behaviour and want to report it, then send the log.\n\n[b]Off[/b] = default.");
+			::Skv.dbg("Skv.Cfg: settings registered (default score " + this.DefaultScore + ")");
 		}
 		catch (e)
 		{
@@ -471,6 +599,19 @@ if (!("Skv" in ::getroottable()))
 			return this.DefaultScaleChecks;
 		}
 	}
+
+	// Whether the mod writes debug diagnostics to log.html. Read by ::Skv.dbg on every log call.
+	function debugLogging()
+	{
+		if (this.Mod == null) return this.DefaultDebugLogging;
+		try
+		{
+			local s = this.Mod.ModSettings.getSetting(this.DebugLoggingID);
+			if (s == null) return this.DefaultDebugLogging;
+			return s.getValue();
+		}
+		catch (e) { return this.DefaultDebugLogging; }
+	}
 };
 
 // ============================================================================
@@ -493,7 +634,8 @@ if (!("Skv" in ::getroottable()))
 	// This mod's contract types (exact match -- so we don't flag Legends' own legend_* jobs).
 	Types = [
 		"contract.skv_azari", "contract.skv_ambush", "contract.skv_metringer", "contract.skv_black_forks",
-		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing"
+		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing",
+		"contract.skv_carthica"
 	],
 
 	function isMine( _type )
@@ -595,4 +737,4 @@ if (!("Skv" in ::getroottable()))
 // Toggle from the console: ::skvambushdbg()  (on) / ::skvambushdbg(false)  (off). Then let a moment
 // of game time pass and read log.html. Leave OFF normally (it is chatty).
 ::SkvAmbushDbg <- false;
-::skvambushdbg <- function ( _on = true ) { ::SkvAmbushDbg = _on; ::logInfo("SkvAmbushDbg = " + _on); return _on; };
+::skvambushdbg <- function ( _on = true ) { ::SkvAmbushDbg = _on; ::Skv.dbg("SkvAmbushDbg = " + _on); return _on; };

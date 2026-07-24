@@ -10,6 +10,37 @@ All notable changes to **Golarion Localization** are recorded here. The format l
   are in place, but the categories themselves — and the contract-display cap that keeps the noticeboard
   within its slot limit — are not yet wired up.
 
+## [0.93] — playtest
+
+Adds the ninth contract — a whole city-intrigue adventure that plays out in town, with no dungeon and one
+fight — and rounds the shared skill-check engine out across all six character attributes plus a social axis.
+
+### Contracts
+- **Carthica's Pride** (contract #9, once-per-campaign, noble-house Hunt) — adapted from BlackStar Studios'
+  *Carthica's Pride*. A spoiled young noble hires the company through his fixer **Natasha Corvina** to run
+  down two **Sczarni** cutpurses — **Atharius & Jhaari** — who lifted his family signet, recover the ring,
+  humiliate the pair in public, and keep his name out of it. An entirely **in-town** job that begins the
+  moment you accept: barter with the information-broker **Lady Lilianna** (pay a fee, or give up a *true*
+  secret — her charm reddens at a lie), catch the **Sczarni tail** shadowing you, wade a filthy back-alley
+  (a sickness that follows you into the fight), the one scripted **ambush** by the retained executioner
+  **Urie** — with the option to **betray the noble** for a ransom — then find the hidden thieves'-tavern
+  door and a **five-contest tavern showdown**: arm-wrestle, rail-walk, dagger-toss, courage-hang, and
+  cards, each with a crowd-working flourish, on a popularity meter. Win three games for the ring, win the
+  room (7 points) to leave in triumph; lose the games or sell the man out and the job fails. Reports back
+  to the noble for goal-scaled experience and a bonus for warning him of the Sczarni plot.
+
+### Shared engine (`::Skv`)
+- `::Skv.Check` gains four more **composition flavors** — **`brawn`** (raw strength), **`handEye`** (a
+  steady hand and true eye), **`nerve`** (courage / Will), and **`guile`** vs **`charm`** (cold cunning at
+  cards vs. warm social showmanship) — so a check now exists for every character axis. The **gambler's
+  gamble** turns the Gambler background into a wildcard: a random ±5 swing on the roll instead of a flat
+  bonus, while the Lucky trait stays a dependable +5.
+- New **in-town / no-travel crawl** pattern (a contract that plays as a chain of screens where you stand,
+  with no world marker to walk to), and a **per-brother hazard** beat that applies a real injury which
+  carries into the following battle.
+- **Debug logging** is now gated behind an in-game setting (off by default) — turn on *Debug logging
+  (log.html)* in the mod's MSU settings to capture diagnostics for a bug report.
+
 ## [0.92] — playtest
 
 Adds the eighth contract, brings Golarion's organizations into the world by name, and grows the shared
