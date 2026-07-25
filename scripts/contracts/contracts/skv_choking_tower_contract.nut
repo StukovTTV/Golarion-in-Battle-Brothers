@@ -1,15 +1,6 @@
 // ============================================================================
 //  THE CHOKING TOWER -- CONTRACT (Golarion Localization)
 //
-//  The mod's first fully NON-COMBAT contract. No startScriptedCombat anywhere.
-//  A frontier local pays a pittance to have the company go up the soot-black
-//  tower in the Smokewood of Numeria -- the sealed sanctum of the technomancer
-//  Furkas Xoud of the Technic League, a maker of metal golems -- and find out
-//  who is still working in there, because the chimneys have never once gone
-//  quiet and the machines still grind. The setup reads as OCCUPIED. The horror,
-//  proved only at the top, is that there is no one there at all: only the
-//  machine, keeping a dead man's hours because nobody ever told it he was gone.
-//
 //  STRUCTURE. Offer -> Running. On arrival at the spawned marker the ascent
 //  plays out as ONE continuous chain of event screens (Zork-in-a-mercenary-game):
 //  each room-card's options return the ID of the next screen. The climb is

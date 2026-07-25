@@ -6,7 +6,7 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 		// fight stays predictable. The alp budget is kept LOW on purpose: the cost-105
 		// DemonAlp boss (mass-sleep + nightmare summons) can never roll below ~105, so
 		// a small budget always yields the ordinary, fair alp. Raise/lower each freely.
-		CultistBudget = 75,   // ~8 cultists (budgets spend ~2x nominal). Ghosts are a fixed 2 (pushed by hand below); no alp.
+		CultistBudget = 75,   // ~8 cultists. Ghosts are a fixed 2 (pushed by hand below); no alp.
 		// ---------------------------------------------------------------------
 	},
 	function create()

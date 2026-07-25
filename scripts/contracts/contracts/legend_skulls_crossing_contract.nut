@@ -444,25 +444,13 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 
 	function onPrepareVariables( _vars )
 	{
-		// Location highlighting -- see skv_black_forks_contract.nut for the full
-		// reasoning. Short version: BB spends one hue (body 35 / speech 41 / OOC 42)
-		// in three brightness steps, so a mark must LEAVE the hue. Names took
-		// blue-grey #9dbccb (200). Places take violet-grey #b39dbc (283) -- the
-		// other far point, and BB spends no violet anywhere, so it collides with
-		// nothing.
-		//
-		// >>> ONE PLACE TO CHANGE THE LOCATION COLOUR. <<<
-		// Person highlighting. Same seam and construction as SKVLOC below.
-		// Blue-grey #9dbccb (hue 200) is the far point from BB's warm register in the
-		// other direction from violet. Brothers AND canon figures both take it: the
-		// mark says "this noun is a PERSON", which is exactly what an unfamiliar
-		// Golarion name needs to say. Karzoug and a sellsword are both men -- splitting
-		// them would encode canon-vs-procgen, a distinction the player cannot see.
-		//
-		// NOT the employer: a one-screen procgen functionary with no world behind him.
-		// Marking him would point at nothing.
-		//
-		// >>> ONE PLACE TO CHANGE THE PERSON COLOUR. <<<
+		// Location + person colour marks -- see skv_black_forks_contract.nut for the full
+		// reasoning. Short version: BB spends one warm hue (body 35 / speech 41 / OOC 42) in
+		// three brightness steps, so a mark must LEAVE the hue. Names take blue-grey #9dbccb
+		// (200); places take violet-grey #b39dbc (283) -- the other far point, and BB spends no
+		// violet anywhere, so neither collides. Brothers AND canon figures both take the person
+		// mark; the one-screen procgen employer is left unmarked.
+		// >>> The two colours to change live here. <<<
 		local nameColor = "#9dbccb";
 
 		_vars.push(["SKVNAME", "[color=" + nameColor + "]"]);

@@ -25,7 +25,7 @@ this.skv_black_forks_contract <- this.inherit("scripts/contracts/contract", {
 		SiteCleared = false,   // flips Running from "go to site" to "report to town"
 		// ---- FIGHT DIALS -----------------------------------------------------
 		// Both scale with company strength via getScaledDifficultyMult() (guide
-		// s5). Budgets spend ~2x nominal -- eyeball in game.
+		// s5). Eyeball the counts in game.
 		DayBudget   = 80,      // cultists only (Spawn.Cultists). 70 gave only 3 bodies at the 0.75 mult floor.
 		NightBudget = 120,     // champion + guards + cultist body (Spawn.GolarionCult)
 		// ---------------------------------------------------------------------

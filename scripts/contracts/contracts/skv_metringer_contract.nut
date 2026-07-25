@@ -23,7 +23,7 @@ this.skv_metringer_contract <- this.inherit("scripts/contracts/contract", {
 		ActorName   = "",     // %actor% -- the brother who took the last skill check (::Skv.Check)
 		LootRows    = null,   // iconed loot rows (::Legends.EventList) for the climb-out screen; set+shown in one modal chain, not serialized
 		PickXPRows  = null,   // XP rows from a clean stair-pick, shown on the DescentCells narration; transient, not serialized
-		// -- fight dials (scaled by getScaledDifficultyMult(); spend ~2x nominal) --
+		// -- fight dials (scaled by getScaledDifficultyMult()) --
 		MeetBudget  = 70,     // fight #1: Grummlin's agents (Spawn.BanditRaiders) -- lowish
 		KeeperBudget= 95,     // fight #2: the keepers (Spawn.Mercenaries) + Head Keeper boss -- lowish
 	},

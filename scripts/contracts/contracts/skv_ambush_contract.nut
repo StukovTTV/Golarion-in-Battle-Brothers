@@ -1,23 +1,8 @@
 // ============================================================================
 //  AMBUSH IN <CITY> -- CONTRACT (state machine)          [contract #8, v0.92]
 //
-//  Venture-Captain Ambrus Valsin of the Pathfinder Society lost a green agent in the
-//  undercity drains, carrying a SEALED package for his contact -- the Sczarni fence
-//  Guaril Karela -- in a NEIGHBOURING city. A goblin warren has nested in the tunnels
-//  and trapped them ahead of a rival warband's parley. The company follows the agent's
-//  trail down: a trapped passage (a skill check), a goblin PICKET (scripted fight), the
-//  lost trail, then the warband CHIEF's escort (a scripted fight led by a real
-//  makeMiniboss champion goblin_leader). Off the fallen escort they recover the agent's
-//  kit and the sealed satchel, and carry it to Karela -- where the temptation to break
-//  the seal decides the ending (the return_item fork: deliver sealed and be paid the
-//  balance, or pry it open, be refused, and keep only the advance). The reveal at the
-//  counter is the source's punchline: the parcel is a cookery book Karela ALREADY OWNS,
-//  a coded line hidden in one recipe -- the lad died in the dark to carry a cookbook.
-//
 //  Adapted from the Pathfinder Society Quest "Ambush in Absalom" (Mark Moreland, 2012;
-//  kobolds -> goblins). The Society framing is RESTORED as of v0.92.24: Venture-Captain
-//  Ambrus Valsin hires the company, Guaril Karela receives the parcel, and the "already
-//  owns the cookbook" reveal is put back. Built on the shared ::Skv engine, in the Azari
+//  kobolds -> goblins). Built on the shared ::Skv engine, in the Azari
 //  mould (fixed crawl, scripted combat from a screen).
 //
 //  Structure: Offer -> Running -> Deliver. The warren crawl runs in Running; once the parcel

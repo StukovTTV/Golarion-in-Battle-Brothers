@@ -24,8 +24,7 @@ this.skv_black_forks_action <- this.inherit("scripts/factions/faction_action", {
 			return;
 		}
 
-		// Once per campaign -- it is THE Black Forks. Gate via ::Skv.Once (skv_engine):
-		// one live offer at a time, only a passive expiry re-offers. Comment out to re-test.
+		// Once per campaign (::Skv.Once).
 		if (::Skv.Once.isLocked("BlackForks"))
 		{
 			return;
@@ -49,9 +48,8 @@ this.skv_black_forks_action <- this.inherit("scripts/factions/faction_action", {
 			return;
 		}
 
-		// Must have (green) forest within 3 tiles -- marks the woodland setting AND
-		// guarantees a spawnable tile for the monastery. SnowyForest excluded on
-		// purpose (Black Forks is a temperate southern wood, per the schrats hunt).
+		// Green forest within 3 tiles -- guarantees a spawnable tile for the monastery.
+		// SnowyForest excluded on purpose (Black Forks is a temperate wood).
 		if (v.getSurroundingTilesOfType([
 				this.Const.World.TerrainType.Forest,
 				this.Const.World.TerrainType.LeaveForest,
@@ -66,18 +64,13 @@ this.skv_black_forks_action <- this.inherit("scripts/factions/faction_action", {
 			return;
 		}
 
-		// Rarity dial. `rand(1,100) > N` DECLINES above N, so it PASSES ~N% of eligible
-		// ticks: 15 => ~15%. (Testing value was 99 = near-guaranteed.)
+		// Rarity dial (~15% of eligible ticks).
 		if (::Math.rand(1, 100) > 15)
 		{
 			return;
 		}
 
-		// Score is a WEIGHT in the faction action loop's weighted pick, not a boolean --
-		// the driver sums the eligible deck's scores and rolls against them. Native
-		// contract actions almost all use 1; the shared dial defaults to 2 so a contract
-		// already made rare by the roll above doesn't ALSO have to win a coin flip against
-		// every build/upgrade action. Stamp the shared MSU weight (::Skv.Cfg).
+		// Selection weight (shared ::Skv.Cfg dial).
 		this.m.Score = sc;
 	}
 

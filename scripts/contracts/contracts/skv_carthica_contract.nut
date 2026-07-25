@@ -1,23 +1,11 @@
 // ============================================================================
 //  CARTHICA'S PRIDE -- CONTRACT (state machine)                    [contract #9, 0.93.x]
 //
-//  A spoiled minor noble, Carthica, hires the company through his fixer (Natasha Corvina)
-//  to run down two Sczarni cutpurses -- Atharius & Jhaari -- who lifted his family signet,
-//  recover the ring, humble the pair in PUBLIC, and keep the house's name out of the gutter.
-//  A NOBLE-HOUSE Hunt contract. Personal names kept; only ORGANISATIONS reskinned to
-//  Golarion (Sczarni, Calistria's courtesans). Full design: carthicas_pride_contract.md.
-//
 //  IN-TOWN, NO TRAVEL: this is a city-intrigue job, so the whole crawl plays out where you
 //  ACCEPT it -- the moment you take the contract (standing in the town), the backstreet
 //  crawl begins as a chain of screens. There is NO spawned world marker to walk to and no
 //  report-back leg; the one map interruption is the alley fight (a scripted combat), after
 //  which the crawl resumes in place. The finale pays out on the spot.
-//
-//  NORTH STAR (doc §10): plays like a night at a Pathfinder table -- read-aloud scenes,
-//  named "roll me a [skill]" checks that react to WHICH brother steps up, voiced NPCs,
-//  street colour between beats. Structure = a session's rhythm: tavern hook, info-broker,
-//  ONE fight (the alley), a skill-challenge climax (the five-contest tavern showdown), a
-//  denouement (Carthica's due).
 //
 //  Deck: broker -> alley (the fight; betrayal fork) -> courtyard (search) -> door (hide-
 //  identity) -> arm/rail/dagger/hang/cards (the five contests) -> Finale -> Report.

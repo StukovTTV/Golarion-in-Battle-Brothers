@@ -1,33 +1,12 @@
 // skv_xp.nut  —  ::Skv.XP : award experience on a successful skill check.
-//
-// Preload module (adds to the ::Skv table like skv_engine.nut). Register it in the
-// preload load list next to the other ::Skv modules.
-//
-// Rule (locked this session):
-//   On a check SUCCESS only, grant a flat authored `base` * optional `mult`.
-//     - actorShare% of the total goes to the acting brother (::Skv.Cfg.actorShare, default 50)
-//     - the remainder is split evenly across every ACTIVE (non-reserve) brother, actor included
-//     - difficulty-scaled PER BROTHER inside addXP (scale = true), exactly like combat XP,
-//       so `base` is a pre-scale design number, not a promised in-game number
-//   Call from the outcome resolver on ok == true, behind the once-per-beat latch.
-//
-// Returns an array of EventList row descriptors so the caller can push them onto a
-// screen's `List`. ::Legends.EventList.changeBroExperience IS the grant path here
-// (it performs addXP + updateLevel and returns the "+N Experience" row) — do NOT also
-// call addXP for the same brother, or you double-grant.
-//
-// Verified against Legends 19.4.10:
-//   - player.addXP(_xp, _scale=true) + player.updateLevel()   (mod_legends/hooks/entity/tactical/player.nut)
-//   - player.isInReserves()                                   (ibid.)
-//   - active-roster filter idiom                              (mod_legends/system/static_functions.nut:269)
-//   - ::Legends.EventList.changeBroExperience                 (mod_legends/config/event_list.nut)
+// actorShare% to the acting brother (::Skv.Cfg.actorShare); the rest split evenly across active (non-reserve) brothers.
+// XP is difficulty-scaled per brother inside addXP (scale = true), so `base` is a pre-scale design number.
+// Returns EventList rows. changeBroExperience IS the grant path (addXP + updateLevel) — do NOT also call addXP or you double-grant.
 
 if (!("Skv" in getroottable())) ::Skv <- {};
 ::Skv.XP <- {};
 
-// _actor may be ONE actor OR an ARRAY of actors that SHARE the actor-cut (e.g. a two-part check
-// with a spotter and a crosser). The array is deduped by id, so the same brother listed twice
-// takes one full share (not a halved one). A single actor behaves exactly as before.
+// _actor may be ONE actor OR an ARRAY that SHARE the actor-cut (deduped by id). Single actor behaves as before.
 ::Skv.XP.grant <- function ( _actor, _base, _mult = 1.0 )
 {
 	local rows = [];

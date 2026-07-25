@@ -18,9 +18,7 @@ this.legend_watchtower_action <- this.inherit("scripts/factions/faction_action",
 			return;
 		}
 
-		// Once per campaign. Gate via ::Skv.Once (skv_engine): one live offer at a time,
-		// and only a passive expiry re-offers -- accept or decline retires it. Comment
-		// out this block while testing if you want the contract to keep re-appearing.
+		// Once per campaign (::Skv.Once).
 		if (::Skv.Once.isLocked("Watchtower"))
 		{
 			return;
@@ -38,11 +36,9 @@ this.legend_watchtower_action <- this.inherit("scripts/factions/faction_action",
 			return;
 		}
 
-		// CANONICAL HOST — the tower's lore ties it to Pezzack. If Pezzack is on this map
-		// AND can actually host it, then ONLY Pezzack offers it (correct settlement when
-		// it exists). If Pezzack isn't drawn, or is drawn somewhere it can't host the
-		// contract, fall through: any settlement passing canHost() may offer instead.
-		// The canHost() check on the canon town is what prevents a dead campaign.
+		// CANONICAL HOST -- Pezzack. If on the map AND able to host, ONLY Pezzack offers it.
+		// Otherwise fall through: any settlement passing canHost() may offer instead
+		// (the canHost() check on the canon town is what prevents a dead campaign).
 		local canon = null;
 		foreach (s in ::World.EntityManager.getSettlements())
 		{
@@ -63,21 +59,18 @@ this.legend_watchtower_action <- this.inherit("scripts/factions/faction_action",
 			return;
 		}
 
-		// Rarity dial. `rand(1,100) > N` DECLINES above N, so it PASSES ~N% of eligible
-		// ticks: 17 => ~17%. (Testing value was 99 = near-guaranteed.)
+		// Rarity dial (~17% of eligible ticks).
 		if (::Math.rand(1, 100) > 17)
 		{
 			return;
 		}
 
-		// Weight from the shared MSU dial (::Skv.Cfg). Was a literal 1; the shared knob
-		// defaults to 2, unifying it with the other Golarion contracts (negligible).
+		// Selection weight (shared ::Skv.Cfg dial).
 		this.m.Score = sc;
 	}
 
-	// Can this settlement host the watchtower at all? Used TWICE — for the settlement being
-	// ticked, and to test whether the canonical host is live — so the two paths can never
-	// drift apart. Terrain is part of it, which is what keeps the fallback tonally correct.
+	// Can this settlement host the watchtower? Used TWICE (ticked settlement + canon
+	// host test) so the two paths can never drift apart.
 	function canHost( _s )
 	{
 		if (_s.isIsolated())
@@ -85,17 +78,13 @@ this.legend_watchtower_action <- this.inherit("scripts/factions/faction_action",
 			return false;
 		}
 
-		// Any village. Forts inherit from legends_fort (not legends_village), so they
-		// are excluded automatically. A watchtower belongs to a vulnerable village,
-		// not a fortress.
+		// Any village. Forts inherit legends_fort (not legends_village), excluded.
 		if (!this.isKindOf(_s, "legends_village"))
 		{
 			return false;
 		}
 
-		// Must have Hills within 3 tiles. This does double duty: it marks the highland
-		// frontier (the fiction is raiders coming down from the peaks), AND it guarantees
-		// a walkable, spawnable tile for the ruined tower right next to the village.
+		// Hills within 3 tiles -- also guarantees a spawnable tile for the ruined tower.
 		if (_s.getSurroundingTilesOfType([::Const.World.TerrainType.Hills], 3).len() == 0)
 		{
 			return false;

@@ -1,11 +1,8 @@
 // ============================================================================
 //  METRINGER SANITARIUM -- ACTION (offer gate)
 //  Salindra Concilio hires the company to look into Metringer Sanitarium.
-//  Design: claude/metringer_contracts.md s3.
-//
-//  SHIP: once-per-campaign via ::Skv.Once; rarity ~15%; m.Score from the shared MSU
-//  dial (::Skv.Cfg, one knob for every Golarion contract; 0 = off). Gated to a town/city
-//  (getSize>=2); the sanitarium spawns on any land tile near home -- no biome lock.
+//  Once-per-campaign (::Skv.Once); rarity ~15%; gated to a town/city (getSize>=2).
+//  The sanitarium spawns on any land tile near home -- no biome lock.
 // ============================================================================
 this.skv_metringer_action <- this.inherit("scripts/factions/faction_action", {
 	m = {},
@@ -27,7 +24,7 @@ this.skv_metringer_action <- this.inherit("scripts/factions/faction_action", {
 			return;
 		}
 
-		// Once per campaign -- it is THE Metringer (::Skv.Once, like the tower).
+		// Once per campaign (::Skv.Once).
 		if (::Skv.Once.isLocked("Metringer"))
 		{
 			return;
@@ -51,9 +48,7 @@ this.skv_metringer_action <- this.inherit("scripts/factions/faction_action", {
 			return;
 		}
 
-		// An asylum implies a real settlement -- gate to a town or city (size >= 2), skip
-		// tier-1 hamlets. No biome gate: the sanitarium spawns on any land tile near home
-		// (contract.pickSiteTile), so nothing ties it to woods.
+		// Town or city (size >= 2), skip tier-1 hamlets. No biome gate.
 		if (v.getSize() < 2)
 		{
 			return;
@@ -64,14 +59,13 @@ this.skv_metringer_action <- this.inherit("scripts/factions/faction_action", {
 			return;
 		}
 
-		// Rarity dial: passes ~15% of eligible ticks (same as black_forks / the tower).
+		// Rarity dial (~15% of eligible ticks).
 		if (::Math.rand(1, 100) > 15)
 		{
 			return;
 		}
 
-		// The frequency dial is now the shared MSU setting (::Skv.Cfg) -- one knob for
-		// every Golarion contract, read at the top of this tick. Stamp its weight.
+		// Selection weight (shared ::Skv.Cfg dial).
 		this.m.Score = sc;
 	}
 

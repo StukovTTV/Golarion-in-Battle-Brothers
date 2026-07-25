@@ -1,14 +1,6 @@
 // ============================================================================
 //  THE AZARI PALACE -- CONTRACT (state machine)   [MILESTONE SKELETON]
 //
-//  A retrieval-heist: an anonymous Kortos Consortium smuggler hires the company to
-//  lift a Tome of Memory (a brass-bound liturgical book of the dead god Aroden) from
-//  the forlorn Azari Palace, a bankrupt noble house living in the temple they could
-//  not sell. You pay Lord Toiden's steward an admission fee to walk the halls as a
-//  paying visitor, take the Tome quietly, and on the way out learn the steward
-//  already turned away another buyer -- a man who matches your employer exactly.
-//  Back home you decide who finally gets the Tome, and see what it earned you.
-//
 //  >>> LOADABLE SKELETON. <<< Spine complete and proven in-game. STUBBED: the crawl
 //  interior (lore-mood rooms, moral-cost loot table, the Ancient Dead crypt with the
 //  trophy + 2500 buy-back) is a single "find the Tome" screen. The four endings are
