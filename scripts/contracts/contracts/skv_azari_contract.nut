@@ -879,7 +879,7 @@ this.skv_azari_contract <- this.inherit("scripts/contracts/contract", {
 						Text = "{Pick the lock. Quietly.}",
 						function getResult()
 						{
-							local r = ::Skv.Check.resolve(this.Contract, this.Contract.pickLockLadder(), ["dexterous"], ["clumsy"], [], ::Skv.Check.handInjuries(), 25);
+							local r = ::Skv.Check.lockpick(this.Contract, ::Skv.Check.scaledBase(this.Contract, 40));
 							if (r.ok)
 							{
 								// A clean, quiet pick -> a short story beat (CryptPicked) that carries

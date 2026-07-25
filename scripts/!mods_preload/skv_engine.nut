@@ -347,7 +347,7 @@ if (!("Skv" in ::getroottable()))
 	function charm( _contract, _base )
 	{
 		local r = this.bestByComposition(_contract, _base,
-			{ ["trait.bright"] = 6, ["trait.lucky"] = 5 },
+			{ ["trait.bright"] = 6, ["trait.lucky"] = 5, ["trait.legend_seductive"] = 7, ["trait.legend_gift_of_people"] = 4 },   // gift_of_people = "Charming"
 			{ ["background.legend_qiyan"] = 11, ["background.minstrel"] = 8, ["background.juggler"] = 8,
 			  ["background.peddler"] = 4, ["background.servant"] = 2,   // servant covers female "Housemaid" too (same id)
 			  ["background.legend_berserker"] = -5, ["background.legend_berserker_commander"] = -5,
@@ -356,6 +356,90 @@ if (!("Skv" in ::getroottable()))
 			{},
 			[ "injury.brain_damage" ]);
 		::Skv.dbg("Skv.Check.charm chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// LOCKPICK -- deftest active brother springs a lock (Choking lockpick, Metringer descent, Azari crypt).
+	function lockpick( _contract, _base )
+	{
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.dexterous"] = 16, ["trait.clumsy"] = -16 },
+			{ ["background.thief"] = 26, ["background.graverobber"] = 14, ["background.killer_on_the_run"] = 14,
+			  ["background.assassin"] = 16, ["background.assassin_southern"] = 16, ["background.vagabond"] = 8 },
+			{ [::Legends.Perk.QuickHands] = 5 },
+			this.handEyeInjuries());
+		::Skv.dbg("Skv.Check.lockpick chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// DISARM -- steadiest active brother defuses a trap. Base is contract-set: scaledBase(50) if a prior
+	// perception check spotted it, scaledBase(30) if the team went in blind.
+	function disarm( _contract, _base )
+	{
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.dexterous"] = 8, ["trait.legend_steady_hands"] = 5, ["trait.lucky"] = 5,
+			  ["trait.clumsy"] = -12, ["trait.hesitant"] = -4, ["trait.impatient"] = -4, ["trait.insecure"] = -4 },
+			{ ["background.poacher"] = 15, ["background.hunter"] = 12, ["background.legend_inventor"] = 10,
+			  ["background.thief"] = 9, ["background.ratcatcher"] = 7 },
+			{ [::Legends.Perk.Nimble] = 2 },
+			this.handEyeInjuries());
+		::Skv.dbg("Skv.Check.disarm chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// SECRET DOOR -- who NOTICES hidden construction: lore/training-led (the diviner senses it, the
+	// historian & mason know how it's built, the graverobber has opened sealed tombs), with a sharp or
+	// suspicious eye helping on top.
+	function secretDoor( _contract, _base )
+	{
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.eagle_eyes"] = 12, ["trait.bright"] = 8, ["trait.paranoid"] = 6,
+			  ["trait.short_sighted"] = -12, ["trait.dumb"] = -8 },
+			{ ["background.legend_diviner"] = 15, ["background.graverobber"] = 8,
+			  ["background.historian"] = 7, ["background.mason"] = 7 },
+			{},
+			this.eyeInjuries());
+		::Skv.dbg("Skv.Check.secretDoor chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// WITS -- cleverest scholar reads a text / mechanism. ONE shared table; _extraBg is an optional
+	// {bgId = bonus} the caller passes so a specific gate leans on its own lead (star-chart -> astrologist,
+	// golem -> inventor, reading -> historian). The bonus ADDS on top of the base weight.
+	function wits( _contract, _base, _extraBg = null )
+	{
+		local bg = { ["background.historian"] = 16, ["background.legend_astrologist"] = 14,
+			["background.legend_magister"] = 12, ["background.legend_philosopher"] = 12,
+			["background.legend_inventor"] = 12, ["background.legend_diviner"] = 10 };
+		if (_extraBg != null) foreach (id, d in _extraBg)
+		{
+			if (id in bg) bg[id] = bg[id] + d;
+			else bg[id] <- d;
+		}
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.bright"] = 12, ["trait.dumb"] = -10 },
+			bg,
+			{ [::Legends.Perk.LegendScholar] = 8 },
+			[ "injury.brain_damage" ]);
+		::Skv.dbg("Skv.Check.wits chance=" + r.chance + " actor=" + _contract.m.ActorName);
+		return r;
+	}
+
+	// REFLEX -- diving clear of a sudden hazard (a falling gantry). Where agility is innate balance, reflex
+	// is TRAINED evasion: the dodge perks lead (Pathfinder-style -- Evasion is potent on a reflex save).
+	function reflex( _contract, _base )
+	{
+		local r = this.bestByComposition(_contract, _base,
+			{ ["trait.dexterous"] = 12, ["trait.lucky"] = 5, ["trait.legend_light"] = 5,
+			  ["trait.quick"] = 2, ["trait.swift"] = 2, ["trait.athletic"] = 2,
+			  ["trait.clumsy"] = -12, ["trait.clubfooted"] = -12, ["trait.fat"] = -12, ["trait.old"] = -5 },
+			{ ["background.thief"] = 8, ["background.assassin"] = 8, ["background.assassin_southern"] = 8,
+			  ["background.gladiator"] = 5, ["background.monk"] = 4,
+			  ["background.belly_dancer"] = 3, ["background.juggler"] = 3,
+			  ["background.brawler"] = -5, ["background.flagellant"] = -8, ["background.cripple"] = -15 },
+			{ [::Legends.Perk.Dodge] = 15, [::Legends.Perk.LegendEvasion] = 10, [::Legends.Perk.Anticipation] = 5 },
+			this.legInjuries());
+		::Skv.dbg("Skv.Check.reflex chance=" + r.chance + " actor=" + _contract.m.ActorName);
 		return r;
 	}
 
@@ -372,6 +456,7 @@ if (!("Skv" in ::getroottable()))
 	// Injury sets that read as a penalty when the acting brother already carries one.
 	function handInjuries() { return ["injury.smashed_hand", "injury.split_hand", "injury.pierced_hand", "injury.fractured_hand", "injury.burnt_hands", "injury.crushed_finger", "injury.missing_hand", "injury.missing_finger"]; }
 	function eyeInjuries()  { return ["injury.grazed_eye_socket", "injury.missing_eye"]; }
+	function handEyeInjuries() { local a = this.handInjuries(); a.extend(this.eyeInjuries()); return a; }   // lockpick + disarm: a hurt hand OR eye costs the flat -15
 	function legInjuries()  { return ["injury.pierced_leg_muscles", "injury.injured_knee_cap", "injury.broken_leg", "injury.burnt_legs", "injury.cut_leg_muscles", "injury.bruised_leg", "injury.sprained_ankle", "injury.broken_knee", "injury.maimed_foot"]; }
 };
 

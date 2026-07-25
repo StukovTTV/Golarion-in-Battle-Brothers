@@ -5,7 +5,7 @@
 // ============================================================================
 
 local modID = "mod_golarion";
-local modVersion = "0.93.11";  // STRING semver (X.Y.Z), not a float: MSU's registry cross-checks
+local modVersion = "0.93.13";  // STRING semver (X.Y.Z), not a float: MSU's registry cross-checks
                                // it against the version mod_hooks recorded and throws if they differ.
 local modName = "Golarion Localization";
 ::mods_registerMod(modID, modVersion, modName);

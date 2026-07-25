@@ -494,9 +494,7 @@ this.skv_metringer_contract <- this.inherit("scripts/contracts/contract", {
 			List = [],
 			Options = [
 				{ Text = "{Pick the lock.}", function getResult() {
-					local c = ::Skv.Check.resolve(this.Contract,
-						[["background.thief", 80], ["background.legend_lurker", 55], ["background.vagabond", 30], ["background.gambler", 30]],
-						["dexterous"], ["clumsy"], [], ::Skv.Check.handInjuries(), 15);
+					local c = ::Skv.Check.lockpick(this.Contract, ::Skv.Check.scaledBase(this.Contract, 40));
 					// XP for a clean pick -- captured and shown on the DescentCells narration below
 					// (that screen already narrates %actor% working the lock, so the "+N" reads there).
 					if (c.ok) this.Contract.m.PickXPRows = (c.actor != null && ("XP" in ::Skv)) ? ::Skv.XP.grant(c.actor, 200) : [];

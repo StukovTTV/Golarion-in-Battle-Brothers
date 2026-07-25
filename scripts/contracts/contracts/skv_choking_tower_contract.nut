@@ -385,51 +385,38 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 	// checkXP so a pass awards experience (see checkXP).
 	function checkLockpick()
 	{
-		return this.checkXP(::Skv.Check.resolve(this,
-			[["background.thief", 80], ["background.legend_lurker", 55], ["background.vagabond", 30], ["background.gambler", 30]],
-			["dexterous"], ["clumsy"], [], ::Skv.Check.handInjuries(), 15));
+		return this.checkXP(::Skv.Check.lockpick(this, ::Skv.Check.scaledBase(this, 40)));
 	}
 	function checkDisarm()
 	{
-		return this.checkXP(::Skv.Check.resolve(this,
-			[["background.poacher", 70], ["background.thief", 60], ["background.hunter", 55], ["background.legend_inventor", 50], ["background.ratcatcher", 40], ["background.assassin", 35]],
-			["dexterous", "sure_footing"], ["clumsy"], [], ::Skv.Check.handInjuries(), 20));
+		// Spot it first (silent perception): seen -> disarm at scaledBase(50); missed -> harder at
+		// scaledBase(30). Missing the spot does NOT trigger the trap, it just makes disarming harder.
+		local spotted = ::Skv.Check.perception(this, ::Skv.Check.scaledBase(this, 50)).ok;
+		return this.checkXP(::Skv.Check.disarm(this, ::Skv.Check.scaledBase(this, spotted ? 50 : 30)));
 	}
 	function checkSecretDoors()
 	{
-		return this.checkXP(::Skv.Check.resolve(this,
-			[["background.legend_diviner", 90], ["background.historian", 70], ["background.graverobber", 55], ["background.mason", 49], ["background.ratcatcher", 45], ["background.legend_lurker", 37]],
-			["eagle_eyes", "bright", "paranoid"], ["short_sighted", "dumb"], [], ::Skv.Check.eyeInjuries(), 15));
+		return this.checkXP(::Skv.Check.secretDoor(this, ::Skv.Check.scaledBase(this, 50)));
 	}
 	function checkReading()
 	{
-		return this.checkXP(::Skv.Check.resolve(this,
-			[["background.historian", 60], ["background.legend_astrologist", 55], ["background.legend_philosopher", 45], ["background.legend_magister", 40]],
-			["bright"], ["dumb"], [::Legends.Perk.LegendScholar], [], 5));
+		return this.checkXP(::Skv.Check.wits(this, ::Skv.Check.scaledBase(this, 35), { ["background.historian"] = 5 }));
 	}
 	function checkGolem()
 	{
-		return this.checkXP(::Skv.Check.resolve(this,
-			[["background.legend_inventor", 65], ["background.historian", 50], ["background.legend_astrologist", 45], ["background.legend_magister", 45], ["background.legend_philosopher", 40]],
-			["bright"], ["dumb"], [::Legends.Perk.LegendScholar], [], 20));
+		return this.checkXP(::Skv.Check.wits(this, ::Skv.Check.scaledBase(this, 35), { ["background.legend_inventor"] = 5 }));
 	}
 	function checkStarChart()
 	{
-		return this.checkXP(::Skv.Check.resolve(this,
-			[["background.legend_astrologist", 70], ["background.historian", 55], ["background.legend_diviner", 55], ["background.legend_philosopher", 45], ["background.legend_magister", 40]],
-			["bright", "eagle_eyes"], ["dumb"], [::Legends.Perk.LegendScholar], [], 15));
+		return this.checkXP(::Skv.Check.wits(this, ::Skv.Check.scaledBase(this, 35), { ["background.legend_astrologist"] = 5 }));
 	}
 	function checkDodge()
 	{
-		return this.checkXP(::Skv.Check.resolve(this,
-			[],
-			["quick", "swift", "athletic", "dexterous", "sure_footing"], ["clumsy", "fat", "old", "clubfooted"], [], ::Skv.Check.legInjuries(), 40));
+		return this.checkXP(::Skv.Check.reflex(this, ::Skv.Check.scaledBase(this, 50)));
 	}
 	function checkForce()
 	{
-		return this.checkXP(::Skv.Check.resolve(this,
-			[],
-			["athletic", "tough"], ["old", "ailing"], [], [], 60));
+		return this.checkXP(::Skv.Check.brawn(this, ::Skv.Check.scaledBase(this, 60)));
 	}
 
 	// ==========================================================================
@@ -549,18 +536,13 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		}
 		else
 		{
-			local c = this.checkForce();
-			if (!c.ok)
-			{
-				this.applyTrap(c.actor, { Name = "the hatch's recoil", Pool = null, Hp = [3, 8], Salvage = null, Alert = false, Floored = true });
-				this.m.PendingTitle = "Forced";
-				this.m.PendingText = "[img]gfx/ui/events/event_89.png[/img]{Shoulders to the iron. The hatch fights, then gives all at once, and its sprung edge catches %actor% hard on the way through. You are inside -- but nothing was left worth stooping for at a door you had to break.}";
-			}
+			// GUARANTEED entry -- forcing always admits you (never locked out). If they TRIED the lock
+			// and it failed, say so before the shoulder-charge (do not jump silently to the force text).
+			this.m.PendingTitle = "Forced";
+			if (_pick)
+				this.m.PendingText = "[img]gfx/ui/events/event_89.png[/img]{%actor% works at the ruined lock, but it has seized past any picking and will not turn. So you give up on quiet and put your shoulders to the iron -- the hatch fights, then tears off its last seal and folds inward. You are inside, though the broken door kept nothing worth the stooping.}";
 			else
-			{
-				this.m.PendingTitle = "Forced";
 				this.m.PendingText = "[img]gfx/ui/events/event_89.png[/img]{Shoulders to the iron, and the damaged hatch tears off its last seal and folds inward. You are inside, and none the worse for it -- though the broken door kept nothing worth the stooping.}";
-			}
 		}
 		this.m.Floor = this.m.Floor + 1;
 		return "Result";
@@ -634,6 +616,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 	function resolveBarred( _method )
 	{
+		local failed = "";   // a failed bypass/pick that fell through to forcing -- named in the forced text
 		if (_method == "bypass")
 		{
 			local c = this.checkSecretDoors();
@@ -646,6 +629,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 				this.m.Floor = this.m.Floor + 1;
 				return "Result";
 			}
+			failed = "bypass";
 			_method = "force";
 		}
 		if (_method == "pick")
@@ -657,6 +641,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 				this.m.Floor = this.m.Floor + 1;
 				return "Result";
 			}
+			failed = "pick";
 			_method = "force";
 		}
 		local c = this.checkForce();
@@ -664,8 +649,11 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		{
 			this.applyTrap(c.actor, { Name = "the door", Pool = null, Hp = [2, 6], Salvage = null, Alert = false, Floored = true });
 		}
+		local lead = "";
+		if (failed == "pick") lead = "The jammed lock will not turn for anyone here, so you give up on quiet. ";
+		else if (failed == "bypass") lead = "No way around it shows itself to anyone here, so you give up on quiet. ";
 		this.m.PendingTitle = "Forced";
-		this.m.PendingText = "[img]gfx/ui/events/event_111.png[/img]{The door gives at last with a crash that goes up the tower ahead of you -- and somewhere above, something heavy shifts its weight and begins, unhurried, to come down. You are through. Best not to be here when it arrives.}";
+		this.m.PendingText = "[img]gfx/ui/events/event_111.png[/img]{" + lead + "The door gives at last with a crash that goes up the tower ahead of you -- and somewhere above, something heavy shifts its weight and begins, unhurried, to come down. You are through. Best not to be here when it arrives.}";
 		this.m.Floor = this.m.Floor + 1;
 		return "Result";
 	}
