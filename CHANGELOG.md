@@ -10,6 +10,62 @@ All notable changes to **Golarion Localization** are recorded here. The format l
   are in place, but the categories themselves — and the contract-display cap that keeps the noticeboard
   within its slot limit — are not yet wired up.
 
+## [0.94] - playtest
+
+Adds the tenth contract: a plague village, a forest vale with three places to search, and an abandoned
+dwarven monastery to work through room by room. Brings kobolds into the mod as a full family of enemies,
+and adds masterwork and magical weapon enhancement that any contract can hand out.
+
+### Contracts
+- **Hollow's Last Hope** (contract #10, once-per-campaign, Hunt) adapted from Paizo's *GameMastery Module
+  D0*. A village at the edge of the forest is dying of blackscour taint in its water. The herbalist has a
+  cure written in a hand that is not her grandmother's and none of the three things it calls for, and she
+  cannot pay you until the pot is standing. Offered only by small forest villages that are actually
+  suffering sickness.
+
+  Beyond the lumber camp that serves as your base lie three destinations: the oldest tree in the vale, the
+  hollow of a witch everyone has a story about, and a dwarven monastery under the Crags. **The monastery is
+  fifteen rooms across two wings**, explored one room at a time in whatever order you like, with a
+  watchtower, a hidden prison behind a secret door, a desecrated shrine and a far chamber at the end of it.
+
+  **Seven fights, and most can be declined.** Shut the tower door on the spider, walk past the wolf den,
+  back out of the boss's chamber. Every refusal costs something: the pack you did not kill is standing
+  beside their master when you meet him, and a floor crossed badly wakes the whole building.
+
+  **Ten road encounters** shuffle into the journey and most are not fights. A rabbit dead in a snare that
+  is no accident, a moorsnake that only matters after dark, drunk woodsmen who save you two hours, glowing
+  mould worth carrying as a light, three hunters caught forty feet up a tree by something that hunts from
+  above.
+
+  **A worg the size of a pony who talks.** He offers a bargain, names errands he wants run, and is counting
+  on you being tired when the talking stops. Take the deal, or watch his feet and work out that he is lying.
+
+  **And a clock over all of it.** Searching and travelling cost hours, villagers are buried on a curve while
+  you are away, and both the fee and your standing depend on how fast you come home. Return on the sixth day
+  and it does not matter what you carried back.
+
+### Enemies
+- **Kobolds**, as a full family: fighters, trappers, warriors, a chief, a shaman and a dragon priest.
+  Red-scaled and smaller than goblins, weaker one against one, and they come in numbers. They also replace
+  the goblins in the **Ambush** contract, so the whole mod gets them.
+- The vale itself holds a **nest of tatzlwyrms**, a spider nest thirty years undisturbed, **wolf packs**,
+  dire wolves and the worg.
+- Fights inside a building are now fought on a **stone floor** rather than on grass.
+
+### Equipment
+- **Weapon and ammunition enhancement.** Weapons and quivers can be **masterwork** or **enhanced from +1 to
+  +5**. An enhancement adds damage and accuracy and raises the item's worth steeply, but an enhanced weapon
+  **cannot be repaired** and wears out for good, and **enhanced ammunition never restocks** from your
+  supplies. Masterwork stays repairable. Nothing rolls these at random: every enhanced item in the world is
+  one somebody placed.
+- The vale holds a masterwork shortsword, a masterwork light crossbow, masterwork tools, **+1
+  armour-piercing bolts** and a **+1 hand axe** in a false-backed drawer.
+- **Ring of Torag**, off the hand of a dwarf dead four hundred years, which turns aside fire.
+- **A cut ruby**, worth a good deal of money or worth setting into an anvil, and you cannot do both.
+- **Potion of Cure Light Wounds**, which can be drunk in the middle of a fight or poured into the man
+  standing beside you.
+- A shrine in the monastery that will heal the whole company, once, if you find both halves of what wakes it.
+
 ## [0.93] — playtest
 
 Adds the ninth contract — a whole city-intrigue adventure that plays out in town, with no dungeon and one
