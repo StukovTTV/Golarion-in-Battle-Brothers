@@ -78,71 +78,8 @@
 	]
 };
 
-// ---- Golarion KOBOLDS: reusable "reads-as-kobold" goblin lists ----
-// Stock small foot-goblins only (skirmisher + ambusher), no greenskin cavalry, so a "kobold"
-// fight never escalates into heavy cavalry. MinR 15 (vs stock 55/75) lets budget govern size.
-
-// (1) Warriors only -- the clean warm-up / no-caster variant.
-::Const.World.Spawn.GolarionKobolds <- {
-	Name = "GolarionKobolds",
-	IsDynamic = true,
-	MovementSpeedMult = 1.0,
-	VisibilityMult = 1.0,
-	VisionMult = 1.0,
-	Body = "figure_goblin_02",
-	MaxR = 600,
-	MinR = 15,
-	Troops = [
-		{   // Skirmisher line: goblin_fighter_low -> goblin_fighter at MinR 120.
-			Weight = 55,
-			Types = [
-				{ Type = ::Const.World.Spawn.Troops.GoblinSkirmisherLOW, Cost = 10 },
-				{ Type = ::Const.World.Spawn.Troops.GoblinSkirmisher, MinR = 99, Cost = 15 }
-			]
-		},
-		{   // Ambusher/trapper line: goblin_ambusher_low -> goblin_ambusher at MinR 180. No MaxR.
-			Weight = 45,
-			Types = [
-				{ Type = ::Const.World.Spawn.Troops.GoblinAmbusherLOW, Cost = 15 },
-				{ Type = ::Const.World.Spawn.Troops.GoblinAmbusher, MinR = 139, Cost = 20 }
-			]
-		}
-	]
-};
-
-// (2) With casters -- same warriors PLUS a rare dragon-priest caster tier (shaman ungated
-// at low weight; LegendGoblinWitchDoctor the rare elite).
-::Const.World.Spawn.GolarionKoboldsCasters <- {
-	Name = "GolarionKoboldsCasters",
-	IsDynamic = true,
-	MovementSpeedMult = 1.0,
-	VisibilityMult = 1.0,
-	VisionMult = 1.0,
-	Body = "figure_goblin_02",
-	MaxR = 600,
-	MinR = 15,
-	Troops = [
-		{
-			Weight = 55,
-			Types = [
-				{ Type = ::Const.World.Spawn.Troops.GoblinSkirmisherLOW, Cost = 10 },
-				{ Type = ::Const.World.Spawn.Troops.GoblinSkirmisher, MinR = 99, Cost = 15 }
-			]
-		},
-		{
-			Weight = 45,
-			Types = [
-				{ Type = ::Const.World.Spawn.Troops.GoblinAmbusherLOW, Cost = 15 },
-				{ Type = ::Const.World.Spawn.Troops.GoblinAmbusher, MinR = 139, Cost = 20 }
-			]
-		},
-		{   // Caster tier: shaman -> witch-doctor. MinR calibrated to this contract's
-			// reachable budget (~460), so the witch-doctor upgrade actually appears.
-			Weight = 2,
-			Types = [
-				{ Type = ::Const.World.Spawn.Troops.GoblinShaman, Cost = 35 },
-				{ Type = ::Const.World.Spawn.Troops.LegendGoblinWitchDoctor, MinR = 299, Cost = 50 }
-			]
-		}
-	]
-};
+// ---- Golarion KOBOLDS ------------------------------------------------------
+// MOVED to config/76_kobolds.nut (0.94.21). They are no longer green goblins in a
+// kobold-shaped list: they are four real subclasses with their own EntityTypes, a
+// de-tune and a rust-red hide, and GolarionKobolds / GolarionKoboldsCasters are
+// built out of those there.

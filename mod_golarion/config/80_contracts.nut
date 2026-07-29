@@ -44,6 +44,11 @@
 // DEV knob: uncomment to also offer at size-2+ towns:
 // ::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_carthica_action");
 
+// Contract 10 - Hollow's Last Hope (Hunt; plague clock, Darkmoon Vale expedition).
+// Gate is situation.sickness on a forest-adjacent village of size <=2 -- NO rarity roll.
+::Const.Contracts.ContractCategoryMap.skv_hollows_contract <- ::Const.Contracts.Categories.Hunt;
+::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_hollows_action");
+
 // ---- Legendary category icon ----
 // Legends ships Legendary = "" (deliberately blank). This fills it; GLOBAL, cosmetic, save-safe.
 // Two files needed: JS appends "_sw.png" (disabled) or ".png" -- value here has NO extension.

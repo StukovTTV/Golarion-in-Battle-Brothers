@@ -422,28 +422,28 @@ this.skv_ambush_contract <- this.inherit("scripts/contracts/contract", {
 		local tier = this.escortBossTier();
 		if (tier == 0)
 		{
-			// weakest company -> a goblin_fighter_low headman
+			// weakest company -> a plain kobold headman (skv_kobold, off goblin_fighter_low)
 			p.Entities.push({
-				ID = this.Const.EntityType.GoblinFighter, Variant = 0, Row = 0,
-				Script = "scripts/entity/tactical/enemies/goblin_fighter_low",
+				ID = ::Const.EntityType.SkvKobold, Variant = 0, Row = 0,
+				Script = "scripts/entity/tactical/enemies/skv_kobold",
 				Faction = fac, Callback = this.onCappedChampionPlaced.bindenv(this)
 			});
 		}
 		else if (tier == 1)
 		{
-			// mid -> a full goblin_fighter
+			// mid -> a grown kobold warrior (off goblin_fighter)
 			p.Entities.push({
-				ID = this.Const.EntityType.GoblinFighter, Variant = 0, Row = 0,
-				Script = "scripts/entity/tactical/enemies/goblin_fighter",
+				ID = ::Const.EntityType.SkvKoboldWarrior, Variant = 0, Row = 0,
+				Script = "scripts/entity/tactical/enemies/skv_kobold_warrior",
 				Faction = fac, Callback = this.onCappedChampionPlaced.bindenv(this)
 			});
 		}
 		else
 		{
-			// strong -> the true chief, goblin_leader (keeps his named crossbow)
+			// strong -> the true chief (off goblin_leader; keeps his named crossbow)
 			p.Entities.push({
-				ID = this.Const.EntityType.GoblinLeader, Variant = 0, Row = 0,
-				Script = "scripts/entity/tactical/enemies/goblin_leader",
+				ID = ::Const.EntityType.SkvKoboldChief, Variant = 0, Row = 0,
+				Script = "scripts/entity/tactical/enemies/skv_kobold_chief",
 				Faction = fac, Callback = this.onChampionChiefPlaced.bindenv(this)
 			});
 		}

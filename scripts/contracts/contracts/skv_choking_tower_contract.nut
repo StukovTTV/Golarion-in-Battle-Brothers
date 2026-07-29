@@ -1,94 +1,62 @@
-// ============================================================================
-//  THE CHOKING TOWER -- CONTRACT (Golarion Localization)
-//
-//  STRUCTURE. Offer -> Running. On arrival at the spawned marker the ascent
-//  plays out as ONE continuous chain of event screens (Zork-in-a-mercenary-game):
-//  each room-card's options return the ID of the next screen. The climb is
-//  assembled from a randomized DECK (assembleDeck) of three guaranteed anchors
-//  (Entry / NameWard / Top) plus a random middle drawn no-repeat from a pool of
-//  path-obstacles and opportunities, so no two campaigns get the same tower.
-//
-//  RESOLUTION. Every meaningful choice is a ::Skv.Check.resolve against the roster:
-//  it finds the best-qualified brother by background, applies HIS OWN traits,
-//  perks and injuries, clamps 5-95, rolls d100. Traps draw from two pools
-//  (floor/wall vs chest) and wound via addInjury damage-type POOLS + unfloored
-//  HP. Smoke is a constant, minor, NEVER-lethal tick. Death is actualized once,
-//  by an end-of-crawl SWEEP (proper hedge-knight death sequence) at the top or
-//  on abort -- a trap can drive HP <= 0 mid-climb, the sweep is what makes it
-//  real. Loot is the whole reward and is ALWAYS named to the player on-screen.
-//
-//  Every background / trait / injury / item / method path in this file was
-//  verified against the Legends 19.4.10 tree and the vanilla decompile. See
-//  claude/choking_tower_contracts.md for the full design and the tuning knobs.
-// ============================================================================
 this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 	m = {
-		Destination   = null,   // WeakTableRef to the tower marker
-		Deck          = null,   // array of card-key strings, assembled on accept
-		Floor         = 0,      // index of the card currently being faced
-		KnowsName     = false,  // reading the offer Lore or the Star-Chart sets this; the Name-Ward reads it
-		ClimbDone     = false,  // true once the contract has fully finished (report collected, or aborted)
-		TowerDone     = false,  // true once the tower is silenced -- objective flips to "carry word back home"
-		SmokedFloor   = -1,     // last Floor index that took a smoke tick (once-per-floor guard)
-		DoomedCount   = 0,      // how many the sweep took, for the reveal text
-		ShutdownClean = false,  // true if the machine was READ silent (chest + fate) vs smashed
-		PendingTitle  = "",     // the generic Result screen reads these two
+		Destination   = null,
+		Deck          = null,
+		Floor         = 0,
+		KnowsName     = false,
+		ClimbDone     = false,
+		TowerDone     = false,
+		SmokedFloor   = -1,
+		DoomedCount   = 0,
+		ShutdownClean = false,
+		PendingTitle  = "",
 		PendingText   = "",
-		LastLoot      = "",     // VESTIGIAL -- loot is now iconed rows (m.Rows via grantHaul); this and %loot% are unused, kept only so old saves deserialize (see onSerialize).
-		ActorName     = "",     // whoever last acted -> %actor%
-		CardTrap      = null,   // scratch: the trap drawn for the current card (not serialized)
-		Rows          = null,   // scratch: outcome rows (damage/injury/death) for the next Result/Reveal screen
-		SmokePending  = 0,      // scratch: smoke HP breathed since the last outcome screen, shown then reset
+		LastLoot      = "",
+		ActorName     = "",
+		CardTrap      = null,
+		Rows          = null,
+		SmokePending  = 0,
 	},
 
-	// ==========================================================================
-	//  LOOT -- the tower pool. THIS is the payoff, and it is always NAMED.
-	// ==========================================================================
-	// entry: { W=weight, T=tier, Path="..." }  OR  { W, T, Gold=[min,max] }
 	function towerLoot()
 	{
 		return [
-			// general salvage (T1)
-			{ W = 14, T = 1, Path = "scripts/items/shields/heater_shield" },        // metal shield (250)
-			{ W = 10, T = 1, Path = "scripts/items/weapons/light_crossbow" },        // the "hand crossbow" (300)
+
+			{ W = 14, T = 1, Path = "scripts/items/shields/heater_shield" },
+			{ W = 10, T = 1, Path = "scripts/items/weapons/light_crossbow" },
 			{ W = 25, T = 1, Gold = [50, 150] },
-			// minor valuables (T1)
-			{ W = 18, T = 1, Path = "scripts/items/loot/signet_ring_item" },         // his own ring (245)
-			{ W = 15, T = 1, Path = "scripts/items/loot/bead_necklace_item" },       // 250
-			{ W = 16, T = 1, Path = "scripts/items/loot/silverware_item" },          // 350
-			{ W = 12, T = 1, Path = "scripts/items/loot/jade_broche_item" },         // 400
-			{ W = 12, T = 1, Path = "scripts/items/loot/silver_bowl_item" },         // 490
-			{ W = 12, T = 1, Path = "scripts/items/loot/ancient_amber_item" },       // 500
-			{ W = 10, T = 1, Path = "scripts/items/loot/glittering_rock_item" },     // reflavour: raw noqual (500)
-			// better finds (T2)
-			{ W = 12, T = 2, Path = "scripts/items/misc/legend_masterwork_tools" },  // Masterwork Tools (750)
+
+			{ W = 18, T = 1, Path = "scripts/items/loot/signet_ring_item" },
+			{ W = 15, T = 1, Path = "scripts/items/loot/bead_necklace_item" },
+			{ W = 16, T = 1, Path = "scripts/items/loot/silverware_item" },
+			{ W = 12, T = 1, Path = "scripts/items/loot/jade_broche_item" },
+			{ W = 12, T = 1, Path = "scripts/items/loot/silver_bowl_item" },
+			{ W = 12, T = 1, Path = "scripts/items/loot/ancient_amber_item" },
+			{ W = 10, T = 1, Path = "scripts/items/loot/glittering_rock_item" },
+
+			{ W = 12, T = 2, Path = "scripts/items/misc/legend_masterwork_tools" },
 			{ W = 15, T = 2, Gold = [150, 400] },
-			{ W = 10, T = 2, Path = "scripts/items/loot/ornate_tome_item" },         // his lesser writings (595)
-			{ W = 8,  T = 2, Path = "scripts/items/loot/marble_bust_item" },         // 600
-			{ W = 6,  T = 2, Path = "scripts/items/loot/golden_chalice_item" },      // 980
-			// the prizes (T3)
+			{ W = 10, T = 2, Path = "scripts/items/loot/ornate_tome_item" },
+			{ W = 8,  T = 2, Path = "scripts/items/loot/marble_bust_item" },
+			{ W = 6,  T = 2, Path = "scripts/items/loot/golden_chalice_item" },
+
 			{ W = 8,  T = 3, Gold = [400, 900] },
-			{ W = 8,  T = 3, Path = "scripts/items/loot/ancient_gold_coins_item" },  // 875
-			{ W = 4,  T = 3, Path = "scripts/items/loot/gemstones_item" },           // 1120
-			{ W = 2,  T = 3, Path = "scripts/items/loot/jeweled_crown_item" },       // 1260
+			{ W = 8,  T = 3, Path = "scripts/items/loot/ancient_gold_coins_item" },
+			{ W = 4,  T = 3, Path = "scripts/items/loot/gemstones_item" },
+			{ W = 2,  T = 3, Path = "scripts/items/loot/jeweled_crown_item" },
 		];
 	}
 
-	// His own alchemy, left on the bench -- pulled by the Gas-Store card.
 	function towerAlchemicals()
 	{
 		return [
-			"scripts/items/tools/acid_flask_item",   // 400
-			"scripts/items/tools/smoke_bomb_item",   // 400
-			"scripts/items/tools/daze_bomb_item",    // 500
-			"scripts/items/tools/fire_bomb_item",    // 600 (weapon.fire_bomb)
+			"scripts/items/tools/acid_flask_item",
+			"scripts/items/tools/smoke_bomb_item",
+			"scripts/items/tools/daze_bomb_item",
+			"scripts/items/tools/fire_bomb_item",
 		];
 	}
 
-	// Roll n entries (tier <= maxTier) + a guaranteed base of coin, and RETURN
-	// { paths, coin } for grantHaul to grant + render as Legends' iconed reward rows.
-	// No granting here -- the caller assembles any extra salvage/alchemical paths and
-	// calls grantHaul once, so a mixed haul is one grant and one grouped icon list.
 	function rollTowerLoot( _n, _maxTier )
 	{
 		local paths = [];
@@ -128,46 +96,28 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			if ("Gold" in pick) coin = coin + this.Math.rand(pick.Gold[0], pick.Gold[1]);
 			else paths.push(pick.Path);
 		}
-		// GUARANTEED base coin on every haul, scaled by how much and how deep it was --
-		// the plunder IS the reward, so no loot event ever comes up empty of coin.
+
 		for( local i = 0; i < _n; i = i + 1 ) coin = coin + this.Math.rand(15, 40) * _maxTier;
 		return { paths = paths, coin = coin };
 	}
 
-	// Grant an assembled haul (item paths + coin) as iconed reward rows on the outcome
-	// screen -- items to the stash with their icons + amounts, coin as its own row.
 	function grantHaul( _paths, _coin )
 	{
 		this.pushRows(::Skv.Loot.haul(::Skv.Loot.make(_paths), _coin));
 	}
 
-	// Append pre-built List rows (e.g. from ::Skv.Loot.haul) to the pending outcome list.
 	function pushRows( _rows )
 	{
 		if (this.m.Rows == null) this.m.Rows = [];
 		foreach( r in _rows ) this.m.Rows.push(r);
 	}
 
-	// grantItem, color and lootLine now live in ::Skv.Loot (skv_engine.nut). One random
-	// workshop alchemical PATH (the Tower's own pool) -- grantHaul grants + renders it.
 	function pickAlchemical()
 	{
 		local paths = this.towerAlchemicals();
 		return paths[this.Math.rand(0, paths.len() - 1)];
 	}
 
-	// (loot line + colour helpers moved to ::Skv.Loot -- see skv_engine.nut)
-
-	// ==========================================================================
-	//  TRAPS -- two pools, drawn by WHERE the trap sits. Both pools skew magical/
-	//  tech, as a technomancer's sanctum should.
-	//
-	//  DAMAGE MODEL (see applyTrap): Pool != null -> the wound is the engine's own
-	//  addInjury (injury + ~5-20 HP, floored at 1) -- survivable, so `Hp` here is
-	//  IGNORED for those. Pool == null -> a direct `Hp` hit; `Floored` ones can
-	//  never kill (gas/daze woosiness), un-floored ones (the electrical SHOCKS) are
-	//  the rare lethal hazards that feed the end-of-crawl sweep.
-	// ==========================================================================
 	function floorTraps()
 	{
 		return [
@@ -175,8 +125,8 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			{ Name = "a spring-driven spear",           Pool = this.Const.Injury.PiercingBody, Hp = [10, 18], Salvage = null,                                     Alert = false },
 			{ Name = "a wall-scythe on a cable",        Pool = this.Const.Injury.CuttingBody,  Hp = [10, 18], Salvage = null,                                     Alert = false },
 			{ Name = "a counterweighted falling block", Pool = this.Const.Injury.BluntHead,    Hp = [8, 16], Salvage = null,                                      Alert = false },
-			{ Name = "a floor plated in live skymetal", Pool = null,                           Hp = [6, 13], Salvage = "scripts/items/loot/glittering_rock_item", Alert = false }, // SHOCK: unfloored, lethal-capable
-			{ Name = "a venting of pale gas",           Pool = null,                           Hp = [3, 7],  Salvage = "scripts/items/tools/daze_bomb_item",      Alert = false, Floored = true }, // gas: minor, never kills
+			{ Name = "a floor plated in live skymetal", Pool = null,                           Hp = [6, 13], Salvage = "scripts/items/loot/glittering_rock_item", Alert = false },
+			{ Name = "a venting of pale gas",           Pool = null,                           Hp = [3, 7],  Salvage = "scripts/items/tools/daze_bomb_item",      Alert = false, Floored = true },
 		];
 	}
 
@@ -187,8 +137,8 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			{ Name = "a spring-blade set in the lid", Pool = this.Const.Injury.CuttingBody,  Hp = [6, 12], Salvage = null,                                       Alert = false },
 			{ Name = "a fire glyph",                  Pool = this.Const.Injury.Burning,      Hp = [8, 15], Salvage = "scripts/items/tools/fire_bomb_item",       Alert = false },
 			{ Name = "a rigged phial of acid",        Pool = this.Const.Injury.Burning,      Hp = [8, 15], Salvage = "scripts/items/tools/acid_flask_item",      Alert = false },
-			{ Name = "a puffer of grey dust",         Pool = null,                           Hp = [3, 7],  Salvage = "scripts/items/tools/daze_bomb_item",       Alert = false, Floored = true }, // daze: minor, never kills
-			{ Name = "a shock-ward wired to a bell",  Pool = null,                           Hp = [6, 12], Salvage = "scripts/items/loot/glittering_rock_item",  Alert = true  }, // SHOCK: unfloored, lethal-capable
+			{ Name = "a puffer of grey dust",         Pool = null,                           Hp = [3, 7],  Salvage = "scripts/items/tools/daze_bomb_item",       Alert = false, Floored = true },
+			{ Name = "a shock-ward wired to a bell",  Pool = null,                           Hp = [6, 12], Salvage = "scripts/items/loot/glittering_rock_item",  Alert = true  },
 		];
 	}
 
@@ -198,21 +148,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		return pool[this.Math.rand(0, pool.len() - 1)];
 	}
 
-	// Apply a trap to an actor (the disarmer/dodger/opener). If none qualified,
-	// a random brother eats it.
-	//
-	// CRITICAL, LEARNED THE HARD WAY: player.addInjury (player.nut:2206) is NOT just an
-	// injury -- it ALSO deals its own this.Math.rand(5, 20) HP loss and FLOORS the result
-	// at 1. So a trap that inflicts an injury already carries a full ~5-20 HP wound. The
-	// first build applied _trap.Hp ON TOP of that, double-counting (a fire glyph did ~35 HP,
-	// not ~12, and nearly killed a fresh recruit in one hit). The model now:
-	//   - Injury traps (Pool != null): addInjury IS the entire wound -- injury + ~5-20 HP,
-	//     floored at 1 by the engine. Injuries MAIM but are survivable; they do not kill.
-	//     A `before <= 0` guard stops an injury from REVIVING a brother a hazard already doomed.
-	//   - HP-only hazards (Pool == null): a direct hit of _trap.Hp. If `Floored`, it can never
-	//     kill (minor mishaps: a forced door, a fright, gas/daze woosiness). If NOT floored
-	//     (the electrical shocks), it is UNFLOORED and can drive HP <= 0 -- the rare lethal
-	//     backstop the end-of-crawl sweep turns into a death.
 	function applyTrap( _actor, _trap )
 	{
 		local bro = _actor;
@@ -233,10 +168,10 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		if (_trap.Pool != null)
 		{
 			local before = bro.getHitpoints();
-			local injury = bro.addInjury(_trap.Pool);         // injury + engine's rand(5,20) HP, floored >= 1
+			local injury = bro.addInjury(_trap.Pool);
 			if (before <= 0)
 			{
-				bro.setHitpoints(before);                     // never let an injury revive an already-doomed brother
+				bro.setHitpoints(before);
 			}
 			local lost = before - bro.getHitpoints();
 			if (lost > 0)
@@ -256,7 +191,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			local hp = cur - dmg;
 			if (("Floored" in _trap) && _trap.Floored && cur > 0 && hp < 1)
 			{
-				hp = 1;                                       // minor mishaps never kill
+				hp = 1;
 			}
 			bro.setHitpoints(hp);
 			local lost = cur - hp;
@@ -268,10 +203,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		}
 	}
 
-	// Outcome rows -- the icon+text list the Result / Reveal screens show below their
-	// text, so trap damage, injuries and deaths are VISIBLE (contract screens render
-	// m.ActiveScreen.List via getUIList, exactly as events do). pushRow appends a row;
-	// showRows flushes the pending smoke + rows onto a screen and clears them.
 	function pushRow( _icon, _text )
 	{
 		if (this.m.Rows == null)
@@ -281,10 +212,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Rows.push({ id = 11, icon = _icon, text = _text });
 	}
 
-	// Put every outcome onto a screen's List so it is VISIBLE: the choking smoke breathed
-	// since the last outcome screen (accumulated in SmokePending across any skipped rooms),
-	// then the trap damage / injuries / deaths (m.Rows). Both are reset once shown. Called
-	// by the Result and Reveal screens -- the two places the player pauses to read outcomes.
 	function showRows( _screen )
 	{
 		if (this.m.SmokePending > 0)
@@ -302,23 +229,16 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		}
 	}
 
-	// ==========================================================================
-	//  SMOKE -- constant, minor, NEVER lethal. Once per floor. Flooring at 1
-	//  means smoke cannot kill and, crucially, cannot heal a brother a trap has
-	//  already driven to <= 0 (we skip the already-doomed).
-	// ==========================================================================
 	function tickSmoke()
 	{
 		if (this.m.Floor == this.m.SmokedFloor)
 		{
-			return;   // already smoked this floor (a resume) -- SmokePending keeps its running total
+			return;
 		}
 		this.m.SmokedFloor = this.m.Floor;
-		this.m.SmokePending = this.m.SmokePending + this.breatheSmoke(0);   // accrue until the next outcome screen shows it
+		this.m.SmokePending = this.m.SmokePending + this.breatheSmoke(0);
 	}
 
-	// The extra lungful the "long way round" / gas rooms cost, bypassing the
-	// once-per-floor guard. Folds into the same pending total.
 	function tickSmokeExtra()
 	{
 		this.m.SmokePending = this.m.SmokePending + this.breatheSmoke(1);
@@ -336,7 +256,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			local cur = bro.getHitpoints();
 			if (cur <= 0)
 			{
-				continue;                                     // already doomed by a trap; smoke neither hurts nor heals
+				continue;
 			}
 			local dmg = this.Math.rand(0, 2) + _bonus;
 			if (bro.getSkills().hasSkill("trait.athletic") || bro.getSkills().hasSkill("trait.tough"))
@@ -354,7 +274,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			local hp = cur - dmg;
 			if (hp < 1)
 			{
-				hp = 1;                                       // smoke NEVER kills
+				hp = 1;
 			}
 			bro.setHitpoints(hp);
 			total = total + (cur - hp);
@@ -363,34 +283,19 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		return total;
 	}
 
-	// ==========================================================================
-	//  THE SKILL-CHECK ENGINE. Finds the best-qualified brother, applies HIS OWN
-	//  traits/perks/injuries, clamps 5-95, rolls, logs. Stores the actor's name
-	//  for %actor%.
-	// ==========================================================================
-	// resolveCheck + the injury sets now live in ::Skv.Check (skv_engine.nut) -- shared,
-	// same behaviour (sets this.m.ActorName for %actor%). The named checks below keep the
-	// tower's own background ladders and delegate to ::Skv.Check.resolve.
-
-	// On a check SUCCESS, credit XP (::Skv.XP.grant, base 200) and push the "+N Experience"
-	// rows onto the pending Result list -- so every Tower check awards XP uniformly, shown on
-	// the same Result screen the loot uses. Guarded so a missing XP module can never break a check.
 	function checkXP( _r )
 	{
 		if (_r.ok && _r.actor != null && ("XP" in ::Skv)) this.pushRows(::Skv.XP.grant(_r.actor, 200));
 		return _r;
 	}
 
-	// The named checks (ladders per the design doc, all IDs verified). Each wraps its resolve in
-	// checkXP so a pass awards experience (see checkXP).
 	function checkLockpick()
 	{
 		return this.checkXP(::Skv.Check.lockpick(this, ::Skv.Check.scaledBase(this, 40)));
 	}
 	function checkDisarm()
 	{
-		// Spot it first (silent perception): seen -> disarm at scaledBase(50); missed -> harder at
-		// scaledBase(30). Missing the spot does NOT trigger the trap, it just makes disarming harder.
+
 		local spotted = ::Skv.Check.perception(this, ::Skv.Check.scaledBase(this, 50)).ok;
 		return this.checkXP(::Skv.Check.disarm(this, ::Skv.Check.scaledBase(this, spotted ? 50 : 30)));
 	}
@@ -419,14 +324,9 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		return this.checkXP(::Skv.Check.brawn(this, ::Skv.Check.scaledBase(this, 60)));
 	}
 
-	// ==========================================================================
-	//  THE DECK. Three guaranteed anchors + a random middle, no repeats. The
-	//  ward drops at a random middle slot; if the Star-Chart is drawn it is kept
-	//  BEFORE the ward, so it can still serve as the alternate key.
-	// ==========================================================================
 	function cardKeys()
 	{
-		// Stable order -- the index is the serialized card id. Append only.
+
 		return ["Entry", "NameWard", "Top", "TrappedPassage", "BarredDoor", "BrokenGantry", "Strongbox", "HiddenVault", "GasStore", "GolemSlab", "StarChart", "EmptyLanding"];
 	}
 	function cardIndex( _key )
@@ -445,7 +345,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 	function assembleDeck()
 	{
 		local pool = ["TrappedPassage", "BarredDoor", "BrokenGantry", "Strongbox", "HiddenVault", "GasStore", "GolemSlab", "StarChart", "EmptyLanding"];
-		// Fisher-Yates
+
 		for( local i = pool.len() - 1; i > 0; i = i - 1 )
 		{
 			local j = this.Math.rand(0, i);
@@ -453,8 +353,8 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			pool[i] = pool[j];
 			pool[j] = tmp;
 		}
-		local n = this.Math.rand(3, 5);          // middle floor count, INCLUDING the ward
-		local take = n - 1;                        // non-ward middle cards
+		local n = this.Math.rand(3, 5);
+		local take = n - 1;
 		if (take > pool.len())
 		{
 			take = pool.len();
@@ -464,7 +364,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		{
 			middle.push(pool[i]);
 		}
-		// keep the Star-Chart before the ward if it was drawn
+
 		local scPos = -1;
 		foreach( idx, c in middle )
 		{
@@ -497,9 +397,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.logInfo("CT deck (" + deck.len() + " floors): " + s);
 	}
 
-	// The current card's screen ID. Ticks smoke once for this floor as a side
-	// effect of arriving. Used to START the climb, to RESUME it (on return to the
-	// tile), and by the Result screen's climb-on.
 	function showFloor()
 	{
 		if (this.m.Deck == null || this.m.Floor >= this.m.Deck.len())
@@ -514,12 +411,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		return this.m.Deck[this.m.Floor];
 	}
 
-	// ==========================================================================
-	//  RESOLUTIONS -- one method per card. Each does its effects, sets the
-	//  Pending* text, advances the floor, and hands back the generic "Result"
-	//  screen (which shows the text and offers the climb-on). Pass-through
-	//  options (leave it / climb on) advance and jump straight to the next card.
-	// ==========================================================================
 	function resolveEntry( _pick )
 	{
 		local inClean = false;
@@ -536,8 +427,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		}
 		else
 		{
-			// GUARANTEED entry -- forcing always admits you (never locked out). If they TRIED the lock
-			// and it failed, say so before the shoulder-charge (do not jump silently to the force text).
+
 			this.m.PendingTitle = "Forced";
 			if (_pick)
 				this.m.PendingText = "[img]gfx/ui/events/event_89.png[/img]{%actor% works at the ruined lock, but it has seized past any picking and will not turn. So you give up on quiet and put your shoulders to the iron -- the hatch fights, then tears off its last seal and folds inward. You are inside, though the broken door kept nothing worth the stooping.}";
@@ -616,7 +506,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 	function resolveBarred( _method )
 	{
-		local failed = "";   // a failed bypass/pick that fell through to forcing -- named in the forced text
+		local failed = "";
 		if (_method == "bypass")
 		{
 			local c = this.checkSecretDoors();
@@ -697,7 +587,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			this.m.Floor = this.m.Floor + 1;
 			return "Result";
 		}
-		if (trap.Salvage != null) this.grantHaul([trap.Salvage], 0);   // the drawn fangs, kept either way
+		if (trap.Salvage != null) this.grantHaul([trap.Salvage], 0);
 		if (this.checkLockpick().ok)
 		{
 			local h = this.rollTowerLoot(1, 2);
@@ -796,11 +686,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		return "Result";
 	}
 
-	// The top. Reading it silences the machine CLEAN (compartment + the fate).
-	// A SUCCESSFUL read goes straight to the reveal. A FAILED read does NOT silently
-	// become a smash -- it routes through the "CannotRead" beat so the player sees
-	// that the script defeated them and CHOOSES to put an axe to the panel. Smashing
-	// (from the Top or from CannotRead) is crude, always works, no chest, no answer.
 	function resolveTopRead()
 	{
 		if (this.checkReading().ok)
@@ -809,6 +694,8 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			local h = this.rollTowerLoot(this.Math.rand(2, 3), 3);
 			this.grantHaul(h.paths, h.coin);
 			this.m.DoomedCount = this.deathSweep();
+
+			::Skv.dbg("CT end: READ clean=true items=" + h.paths.len() + " coin=" + h.coin + " dead=" + this.m.DoomedCount);
 			return "Reveal";
 		}
 		return "CannotRead";
@@ -818,14 +705,10 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 	{
 		this.m.ShutdownClean = false;
 		this.m.DoomedCount = this.deathSweep();
+		::Skv.dbg("CT end: SMASHED clean=false no chest dead=" + this.m.DoomedCount);
 		return "Reveal";
 	}
 
-	// ==========================================================================
-	//  THE SWEEP. Everyone the tower drove to <= 0 dies here, properly -- the
-	//  hedge-knight sequence (obituary, gear to stash, mourning), not a bare
-	//  remove() that would only vanish them. Run at the top AND on abort.
-	// ==========================================================================
 	function deathSweep()
 	{
 		local doomed = [];
@@ -866,18 +749,13 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		}
 	}
 
-	// ==========================================================================
-	//  CONTRACT BOILERPLATE
-	// ==========================================================================
 	function create()
 	{
 		this.contract.create();
-		this.m.Rows = [];   // init here, not as an m-table default, so instances never share one array
+		this.m.Rows = [];
 		this.m.Type = "contract.skv_choking_tower";
 		this.m.Name = "The Choking Tower";
-		// Long window: the tower is a genuine trek into the deep wood (6-12 tiles) AND
-		// the word must be carried back, so the company makes that distance TWICE.
-		// 35 days keeps a slow company from timing out on the return leg.
+
 		this.m.TimeOut = this.Time.getVirtualTimeF() + this.World.getTime().SecondsPerDay * 35.0;
 		this.m.Category = this.Const.Contracts.Categories.Economy;
 		this.m.DescriptionTemplates = [
@@ -893,10 +771,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 	function start()
 	{
-		// 1 skull, capped. The 0.70-0.82 band shows a single skull and keeps the
-		// fee small via DIFF^POW. The low rating is an honest read of the COMBAT
-		// axis (there is none) and a deliberate undersell of the tower's real
-		// danger, exactly as the poor employer undersells it.
+
 		this.m.DifficultyMult = this.Math.rand(70, 82) * 0.01;
 
 		local wealth = 1.0;
@@ -907,17 +782,14 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			wealth = this.Math.maxf(0.6, this.Math.minf(1.1, v.getResources().tofloat() / baseline));
 		}
 
-		// Small base (250). The reward is the tower's plunder, not the purse.
 		this.m.Payment.Pool = 250 * wealth * this.getPaymentMult() * this.Math.pow(this.getDifficultyMult(), this.Const.World.Assets.ContractRewardPOW) * this.getReputationToPaymentMult();
-		// A token retainer up front (paid in Offer.end); the rest on completion.
-		// The floor that makes "turn back" fair is the BANKED LOOT, not the advance.
+
 		this.m.Payment.Advance = 0.2;
 		this.m.Payment.Completion = 0.8;
 
 		this.contract.start();
 	}
 
-	// A free forest tile 6-12 tiles out -- Xoud sealed himself deep in the wood.
 	function pickSiteTile()
 	{
 		local candidates = this.m.Home.getSurroundingTilesOfType([
@@ -954,9 +826,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 			function end()
 			{
-				// The token retainer. The live-offer slot was claimed at generation and is
-				// freed in onClear; the PERMANENT retire happens only when an accepted
-				// contract concludes -- handled in onClear via m.IsActive, not here.
+
 				this.World.Assets.addMoney(this.Contract.m.Payment.getInAdvance());
 
 				local tile = this.Contract.pickSiteTile();
@@ -971,8 +841,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 				}
 
 				tile.clear();
-				// No combat: a marker we resolve entirely through the screen chain.
-				// Reuse undead_ruins as the black_forks / skulls_crossing contracts do.
+
 				this.Contract.m.Destination = this.WeakTableRef(this.World.spawnLocation("scripts/entity/world/locations/undead_ruins_location", tile.Coords));
 				this.Contract.m.Destination.onSpawned();
 				this.Contract.m.Destination.setName("The Choking Tower");
@@ -993,7 +862,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			ID = "Running",
 			function start()
 			{
-				// Two legs: climb the tower, then carry the word back to the village.
+
 				if (this.Contract.m.TowerDone)
 				{
 					this.Contract.m.BulletpointsObjectives = [
@@ -1018,8 +887,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
-				// LEG 2 -- the tower is silenced; carry the word home for pay. Checked
-				// BEFORE the destination guard because the site is despawned by now.
+
 				if (this.Contract.m.TowerDone)
 				{
 					if (this.Contract.m.Home != null && !this.Contract.m.Home.isNull())
@@ -1041,8 +909,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					return;
 				}
 
-				// LEG 1 -- the climb. update() only STARTS it on arrival and RESUMES it
-				// if the player wandered off the tile and came back.
 				if (::MSU.isNull(this.Contract.m.Destination))
 				{
 					return;
@@ -1073,7 +939,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.importScreens(this.Const.Contracts.NegotiationDefault);
 		this.importScreens(this.Const.Contracts.Overview);
 
-		// ---- OFFER: Task ------------------------------------------------------
 		this.m.Screens.push({
 			ID = "Task",
 			Title = "The Choking Tower",
@@ -1110,15 +975,13 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					Text = "{We will leave your tower to itself.}",
 					function getResult()
 					{
-						this.World.Contracts.removeContract(this.Contract);   // pre-accept decline -> NOT retired (can re-offer)
+						this.World.Contracts.removeContract(this.Contract);
 						return 0;
 					}
 				});
 			}
 		});
 
-		// ---- OFFER: Lore -- accurate Numeria, and it NAMES him (sets KnowsName,
-		// which the Name-Ward reads as the key). Two-brother conversation.
 		this.m.Screens.push({
 			ID = "Lore",
 			Title = "The Choking Tower",
@@ -1136,12 +999,11 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			],
 			function start()
 			{
-				// Reading the lore IS knowing the name. The ward becomes answerable.
+
 				this.Contract.m.KnowsName = true;
 			}
 		});
 
-		// ---- ANCHOR: Entry ----------------------------------------------------
 		this.m.Screens.push({
 			ID = "Entry",
 			Title = "The Iron Hatch",
@@ -1174,7 +1036,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			function start() {}
 		});
 
-		// ---- ANCHOR: Name-Ward ------------------------------------------------
 		this.m.Screens.push({
 			ID = "NameWard",
 			Title = "Name Your Master",
@@ -1237,7 +1098,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			}
 		});
 
-		// ---- PATH: Trapped Passage (draws a floor/wall trap) ------------------
 		this.m.Screens.push({
 			ID = "TrappedPassage",
 			Title = "A Trapped Passage",
@@ -1274,7 +1134,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			}
 		});
 
-		// ---- PATH: Barred Door ------------------------------------------------
 		this.m.Screens.push({
 			ID = "BarredDoor",
 			Title = "The Barred Door",
@@ -1314,7 +1173,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			function start() {}
 		});
 
-		// ---- PATH: Broken Gantry ----------------------------------------------
 		this.m.Screens.push({
 			ID = "BrokenGantry",
 			Title = "The Broken Gantry",
@@ -1347,7 +1205,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			function start() {}
 		});
 
-		// ---- OPPORTUNITY: Trapped Strongbox (draws a chest trap) --------------
 		this.m.Screens.push({
 			ID = "Strongbox",
 			Title = "The Trapped Strongbox",
@@ -1385,7 +1242,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			}
 		});
 
-		// ---- OPPORTUNITY: Hidden Vault ----------------------------------------
 		this.m.Screens.push({
 			ID = "HiddenVault",
 			Title = "The Hidden Vault",
@@ -1419,7 +1275,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			function start() {}
 		});
 
-		// ---- OPPORTUNITY: Gas-Flooded Store (draws a chest trap) --------------
 		this.m.Screens.push({
 			ID = "GasStore",
 			Title = "The Gas-Flooded Store",
@@ -1457,7 +1312,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			}
 		});
 
-		// ---- OPPORTUNITY: The Golem on the Slab -------------------------------
 		this.m.Screens.push({
 			ID = "GolemSlab",
 			Title = "The Golem on the Slab",
@@ -1491,7 +1345,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			function start() {}
 		});
 
-		// ---- OPPORTUNITY: The Star-Chart --------------------------------------
 		this.m.Screens.push({
 			ID = "StarChart",
 			Title = "The Star-Chart",
@@ -1525,7 +1378,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			function start() {}
 		});
 
-		// ---- BREATHER: The Empty Landing --------------------------------------
 		this.m.Screens.push({
 			ID = "EmptyLanding",
 			Title = "An Empty Landing",
@@ -1552,7 +1404,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			function start() {}
 		});
 
-		// ---- ANCHOR: The Top --------------------------------------------------
 		this.m.Screens.push({
 			ID = "Top",
 			Title = "Xoud's Study",
@@ -1585,10 +1436,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			function start() {}
 		});
 
-		// ---- The failed-read beat: the script defeats you, so you smash it. This
-		// screen exists SO A FAILED READ IS NOT SILENT -- the player sees the notes
-		// beat them and CHOOSES the crude way, instead of jumping straight to the
-		// reveal with no acknowledgement (the bug this fixes).
 		this.m.Screens.push({
 			ID = "CannotRead",
 			Title = "Beyond You",
@@ -1614,7 +1461,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			function start() {}
 		});
 
-		// ---- The generic RESULT screen (shows Pending*, offers the climb-on) --
 		this.m.Screens.push({
 			ID = "Result",
 			Title = "The Tower",
@@ -1638,7 +1484,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			}
 		});
 
-		// ---- The REVEAL -- sweep has run; emptiness for all, fate for a reader -
 		this.m.Screens.push({
 			ID = "Reveal",
 			Title = "No One Here",
@@ -1673,9 +1518,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 						Text = "{Climb down, and carry the word back.}",
 						function getResult()
 						{
-							// The tower is silenced, but the job was to bring back WORD. Do NOT pay
-							// here -- flip to the report leg and route the company home; pay + finish
-							// happen at the Report screen in the village.
+
 							this.Contract.m.TowerDone = true;
 							this.Contract.despawnSite();
 							this.Contract.m.BulletpointsObjectives = [
@@ -1692,10 +1535,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			}
 		});
 
-		// ---- REPORT -- carry the word back to the village for pay. The employer is
-		// kept GENERIC ("the man who sent you out"): %employer% may not resolve to the
-		// same NPC days later, so nothing here leans on it. Reflects whether the notes
-		// were read (the kept seed) and whether anyone fell.
 		this.m.Screens.push({
 			ID = "Report",
 			Title = "Word From the Wood",
@@ -1733,8 +1572,6 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			}
 		});
 
-		// ---- ABORT -- turn back on any floor. Keep advance + banked loot; the
-		// sweep still runs (a brother a trap doomed does not walk out at <= 0 HP).
 		this.m.Screens.push({
 			ID = "Aborted",
 			Title = "Down and Out",
@@ -1762,10 +1599,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 	function onClear()
 	{
-		// Always free the live-offer slot. If the contract was ACCEPTED (m.IsActive),
-		// this onClear is an accept-then-conclude -- completed OR aborted mid-climb --
-		// so retire the tower for good. A pre-accept decline or a passive expiry lands
-		// here with IsActive false, leaving the tower re-offerable.
+
 		::Skv.Once.release("ChokingTower");
 
 		if (this.m.IsActive)
@@ -1785,9 +1619,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 	function onPrepareVariables( _vars )
 	{
-		// Location highlighting -- see skv_black_forks_contract.nut for the full
-		// reasoning. Names take blue-grey #9dbccb; places take violet-grey #b39dbc;
-		// both are far points from BB's warm register and collide with nothing.
+
 		local nameColor = "#9dbccb";
 		_vars.push(["SKVNAME", "[color=" + nameColor + "]"]);
 		_vars.push(["SKVNAME_OFF", "[/color]"]);
@@ -1796,10 +1628,9 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		_vars.push(["SKVLOC", "[color=" + locColor + "]"]);
 		_vars.push(["SKVLOC_OFF", "[/color]"]);
 
-		// %actor% -- whoever last acted, pre-coloured as a person.
 		local nm = (this.m.ActorName != null && this.m.ActorName != "") ? this.m.ActorName : "one of the company";
 		_vars.push(["actor", "[color=" + nameColor + "]" + nm + "[/color]"]);
-		// (no %loot% var any more -- loot is shown as iconed rows, not a text line.)
+
 	}
 
 	function onSerialize( _out )
@@ -1835,7 +1666,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 		_out.writeString(this.m.PendingTitle);
 		_out.writeString(this.m.PendingText);
-		_out.writeString(this.m.LastLoot);   // vestigial (always "") -- kept so the save layout stays stable
+		_out.writeString(this.m.LastLoot);
 		_out.writeString(this.m.ActorName);
 
 		this.contract.onSerialize(_out);
@@ -1876,11 +1707,9 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.LastLoot     = _in.readString();
 		this.m.ActorName    = _in.readString();
 
-		// The current floor is treated as already-smoked on load, so returning to
-		// a save mid-climb does not sting the company a second time for one floor.
 		this.m.SmokedFloor = this.m.Floor;
 		this.m.CardTrap = null;
-		this.m.Rows = [];        // transient outcome rows -- rebuilt as the player acts
+		this.m.Rows = [];
 		this.m.SmokePending = 0;
 
 		this.contract.onDeserialize(_in);
