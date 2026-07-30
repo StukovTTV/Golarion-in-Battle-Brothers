@@ -430,9 +430,9 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 			this.m.PendingTitle = "Forced";
 			if (_pick)
-				this.m.PendingText = "[img]gfx/ui/events/event_89.png[/img]{%actor% works at the ruined lock, but it has seized past any picking and will not turn. So you give up on quiet and put your shoulders to the iron -- the hatch fights, then tears off its last seal and folds inward. You are inside, though the broken door kept nothing worth the stooping.}";
+				this.m.PendingText = "[img]gfx/ui/events/event_89.png[/img]{%actor% works at the ruined lock, but it has seized past any picking and will not turn. So you give up on quiet and put your shoulders to the iron - the hatch fights, then tears off its last seal and folds inward. You are inside, though the broken door kept nothing worth the stooping.}";
 			else
-				this.m.PendingText = "[img]gfx/ui/events/event_89.png[/img]{Shoulders to the iron, and the damaged hatch tears off its last seal and folds inward. You are inside, and none the worse for it -- though the broken door kept nothing worth the stooping.}";
+				this.m.PendingText = "[img]gfx/ui/events/event_89.png[/img]{Shoulders to the iron, and the damaged hatch tears off its last seal and folds inward. You are inside, and none the worse for it - though the broken door kept nothing worth the stooping.}";
 		}
 		this.m.Floor = this.m.Floor + 1;
 		return "Result";
@@ -471,7 +471,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 				if (trap.Salvage != null)
 				{
 					this.grantHaul([trap.Salvage], 0);
-					this.m.PendingText = "[img]gfx/ui/events/event_89.png[/img]{%actor% reads the mechanism the way another man reads a sentence, and stills it. The passage is dead for everyone now -- and out of its works you draw something worth the prising.}";
+					this.m.PendingText = "[img]gfx/ui/events/event_89.png[/img]{%actor% reads the mechanism the way another man reads a sentence, and stills it. The passage is dead for everyone now - and out of its works you draw something worth the prising.}";
 				}
 				else
 				{
@@ -543,7 +543,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		if (failed == "pick") lead = "The jammed lock will not turn for anyone here, so you give up on quiet. ";
 		else if (failed == "bypass") lead = "No way around it shows itself to anyone here, so you give up on quiet. ";
 		this.m.PendingTitle = "Forced";
-		this.m.PendingText = "[img]gfx/ui/events/event_111.png[/img]{" + lead + "The door gives at last with a crash that goes up the tower ahead of you -- and somewhere above, something heavy shifts its weight and begins, unhurried, to come down. You are through. Best not to be here when it arrives.}";
+		this.m.PendingText = "[img]gfx/ui/events/event_111.png[/img]{" + lead + "The door gives at last with a crash that goes up the tower ahead of you - and somewhere above, something heavy shifts its weight and begins, unhurried, to come down. You are through. Best not to be here when it arrives.}";
 		this.m.Floor = this.m.Floor + 1;
 		return "Result";
 	}
@@ -598,7 +598,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		else
 		{
 			this.m.PendingTitle = "Beaten by the Lock";
-			this.m.PendingText = "[img]gfx/ui/events/event_04.png[/img]{%actor% draws the box's fangs -- but the lock beneath will not turn for anyone here, and there is no forcing it without ruining what it guards. You keep the trap's makings; the box keeps its own.}";
+			this.m.PendingText = "[img]gfx/ui/events/event_04.png[/img]{%actor% draws the box's fangs - but the lock beneath will not turn for anyone here, and there is no forcing it without ruining what it guards. You keep the trap's makings; the box keeps its own.}";
 		}
 		this.m.Floor = this.m.Floor + 1;
 		return "Result";
@@ -613,7 +613,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			local h = this.rollTowerLoot(this.Math.rand(2, 3), 3);
 			this.grantHaul(h.paths, h.coin);
 			this.m.PendingTitle = "The Hidden Vault";
-			this.m.PendingText = "[img]gfx/ui/events/event_55.png[/img]{%actor% finds the catch in the hollow wall and it grinds back on a technomancer's private store -- the things a man keeps when he trusts no one. You take all of it.}";
+			this.m.PendingText = "[img]gfx/ui/events/event_55.png[/img]{%actor% finds the catch in the hollow wall and it grinds back on a technomancer's private store - the things a man keeps when he trusts no one. You take all of it.}";
 		}
 		else
 		{
@@ -654,13 +654,13 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		{
 			this.grantHaul(["scripts/items/loot/glittering_rock_item"], 0);
 			this.m.PendingTitle = "The Half-Made Man";
-			this.m.PendingText = "[img]gfx/ui/events/event_116.png[/img]{%actor% reads the marks scored around the slab and the thing lying half-finished on it -- iron and brass and pale noqual, a man's height and a man's shape with no face cut yet, and prises loose a fitting of green skymetal. As the hand comes free the whole unfinished thing TWITCHES once on its cradle, and is still. You do not touch it again.}";
+			this.m.PendingText = "[img]gfx/ui/events/event_116.png[/img]{%actor% reads the marks scored around the slab and the thing lying half-finished on it - iron and brass and pale noqual, a man's height and a man's shape with no face cut yet, and prises loose a fitting of green skymetal. As the hand comes free the whole unfinished thing TWITCHES once on its cradle, and is still. You do not touch it again.}";
 		}
 		else
 		{
 			this.applyTrap(c.actor, { Name = "the fright", Pool = null, Hp = [2, 5], Salvage = null, Alert = false, Floored = true });
 			this.m.PendingTitle = "It Moved";
-			this.m.PendingText = "[img]gfx/ui/events/event_116.png[/img]{No one here can make sense of the marks around the slab. And when %actor% leans in close the half-made thing on it TWITCHES under their hands -- they go over backward hard, and you are all through the door before the echo dies.}";
+			this.m.PendingText = "[img]gfx/ui/events/event_116.png[/img]{No one here can make sense of the marks around the slab. And when %actor% leans in close the half-made thing on it TWITCHES under their hands - they go over backward hard, and you are all through the door before the echo dies.}";
 		}
 		this.m.Floor = this.m.Floor + 1;
 		return "Result";
@@ -675,12 +675,12 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			local h = this.rollTowerLoot(1, 1);
 			this.grantHaul(h.paths, h.coin);
 			this.m.PendingTitle = "The Fall of Stars";
-			this.m.PendingText = "[img]gfx/ui/events/legend_stollwurm_hole.png[/img]{%actor% reads the domed ceiling like a page. The charts track the skyfall over Numeria, year upon year -- where the burning green metal came down, and where a man went out to dig it from the crater and did not come back up the same. One mark is circled and circled again, and set under it in a proud hand, over and over, is a name. You will know it now, if the tower asks. Among the instruments you also turn up a thing or two worth the carrying.}";
+			this.m.PendingText = "[img]gfx/ui/events/legend_stollwurm_hole.png[/img]{%actor% reads the domed ceiling like a page. The charts track the skyfall over Numeria, year upon year - where the burning green metal came down, and where a man went out to dig it from the crater and did not come back up the same. One mark is circled and circled again, and set under it in a proud hand, over and over, is a name. You will know it now, if the tower asks. Among the instruments you also turn up a thing or two worth the carrying.}";
 		}
 		else
 		{
 			this.m.PendingTitle = "Charts and Dust";
-			this.m.PendingText = "[img]gfx/ui/events/event_45.png[/img]{The charts of the star-fall mean little to anyone here -- lines and dead reckonings and a language of numbers no one was taught. You leave the domed room no wiser than you came, the circled mark and its name blurring into all the rest.}";
+			this.m.PendingText = "[img]gfx/ui/events/event_45.png[/img]{The charts of the star-fall mean little to anyone here - lines and dead reckonings and a language of numbers no one was taught. You leave the domed room no wiser than you came, the circled mark and its name blurring into all the rest.}";
 		}
 		this.m.Floor = this.m.Floor + 1;
 		return "Result";
@@ -759,7 +759,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.TimeOut = this.Time.getVirtualTimeF() + this.World.getTime().SecondsPerDay * 35.0;
 		this.m.Category = this.Const.Contracts.Categories.Economy;
 		this.m.DescriptionTemplates = [
-			"A frontier local wants someone to go up to the old tower in the deep wood -- the soot-black one whose chimneys never stop smoking -- and find out who is still working in there. Small pay, for a look.",
+			"A frontier local wants someone to go up to the old tower in the deep wood - the soot-black one whose chimneys never stop smoking - and find out who is still working in there. Small pay, for a look.",
 			"There is a sealed tower out in the Smokewood, shut up years ago, and the machines inside it have never once fallen quiet. A villager will pay a little to have the company go and see who is still home.",
 		];
 	}
@@ -942,7 +942,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "Task",
 			Title = "The Choking Tower",
-			Text = "[img]gfx/ui/events/event_20.png[/img]{%employer% keeps his voice down, the way a man does when he would rather not be overheard wanting a thing done. %SPEECH_ON%There is a tower out in the deep wood -- black as a burnt pot, and taller than anything has a right to be. A man shut himself up in it before my father's time and was never seen to come out. Folk hoped he had died in there.%SPEECH_OFF%He turns his cup and does not drink from it. %SPEECH_ON%But the chimneys smoke. Every day, all these years, the smoke goes up, and if you stand near enough of a still night you can hear it working in there -- grinding, always grinding. Somebody is home, or something is, and the smoke is drifting our way and folk are frightened. Go up and see who keeps those fires. I have not got much, but I will pay you to bring back word.%SPEECH_OFF%He leans in, lower still. %SPEECH_ON%And whatever you drag out of that place -- coin, curios, the dead man's leavings -- it is yours. Every crown of it. I want none of it in my house, and no one hereabouts will say a word against your keeping it. Just bring me the word, and stop that smoke if you can.%SPEECH_OFF%}",
+			Text = "[img]gfx/ui/events/event_20.png[/img]{%employer% keeps his voice down, the way a man does when he would rather not be overheard wanting a thing done. %SPEECH_ON%There is a tower out in the deep wood - black as a burnt pot, and taller than anything has a right to be. A man shut himself up in it before my father's time and was never seen to come out. Folk hoped he had died in there.%SPEECH_OFF%He turns his cup and does not drink from it. %SPEECH_ON%But the chimneys smoke. Every day, all these years, the smoke goes up, and if you stand near enough of a still night you can hear it working in there - grinding, always grinding. Somebody is home, or something is, and the smoke is drifting our way and folk are frightened. Go up and see who keeps those fires. I have not got much, but I will pay you to bring back word.%SPEECH_OFF%He leans in, lower still. %SPEECH_ON%And whatever you drag out of that place - coin, curios, the dead man's leavings - it is yours. Every crown of it. I want none of it in my house, and no one hereabouts will say a word against your keeping it. Just bring me the word, and stop that smoke if you can.%SPEECH_OFF%}",
 			Image = "",
 			List = [],
 			ShowEmployer = true,
@@ -985,7 +985,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "Lore",
 			Title = "The Choking Tower",
-			Text = "[img]gfx/ui/events/event_23.png[/img]{%SKVNAME%%randombrother%%SKVNAME_OFF% answers slowly, like a man who would rather not. %SPEECH_ON%I know the country. That is %SKVLOC%Numeria%SKVLOC_OFF% -- where the stars fall. Great burning things come down out of the sky there and bury themselves in the ground, and the metal in them is like no metal a smith ever saw. Green stuff, they call noqual. There are men who spend their whole lives digging it out and learning what it wants to do.%SPEECH_OFF%%SKVNAME%%randombrother2%%SKVNAME_OFF% has stopped pretending not to listen. %SPEECH_ON%The %SKVLOC%Technic League%SKVLOC_OFF%. They keep it all for themselves and they answer to no lord. And the one who raised that tower was one of theirs -- a maker of golems, iron men that walk and work and have no soul in them. %SKVNAME%Furkas Xoud%SKVNAME_OFF%, his name was. They say he built one out of skyfall metal itself, and that after that he wanted no eyes on him, so he shut himself in the wood and sealed the door.%SPEECH_OFF%%SKVNAME%%randombrother%%SKVNAME_OFF% nods, once. %SPEECH_ON%Most reckon he is long dead in there. But nobody knows it. And an iron man does not need its master alive to keep working.%SPEECH_OFF%}",
+			Text = "[img]gfx/ui/events/event_23.png[/img]{%SKVNAME%%randombrother%%SKVNAME_OFF% answers slowly, like a man who would rather not. %SPEECH_ON%I know the country. That is %SKVLOC%Numeria%SKVLOC_OFF% - where the stars fall. Great burning things come down out of the sky there and bury themselves in the ground, and the metal in them is like no metal a smith ever saw. Green stuff, they call noqual. There are men who spend their whole lives digging it out and learning what it wants to do.%SPEECH_OFF%%SKVNAME%%randombrother2%%SKVNAME_OFF% has stopped pretending not to listen. %SPEECH_ON%The %SKVLOC%Technic League%SKVLOC_OFF%. They keep it all for themselves and they answer to no lord. And the one who raised that tower was one of theirs - a maker of golems, iron men that walk and work and have no soul in them. %SKVNAME%Furkas Xoud%SKVNAME_OFF%, his name was. They say he built one out of skyfall metal itself, and that after that he wanted no eyes on him, so he shut himself in the wood and sealed the door.%SPEECH_OFF%%SKVNAME%%randombrother%%SKVNAME_OFF% nods, once. %SPEECH_ON%Most reckon he is long dead in there. But nobody knows it. And an iron man does not need its master alive to keep working.%SPEECH_OFF%}",
 			Image = "",
 			List = [],
 			Options = [
@@ -1007,12 +1007,12 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "Entry",
 			Title = "The Iron Hatch",
-			Text = "[img]gfx/ui/events/event_108.png[/img]{The wood thins, and the tower is simply there -- sixty feet of soot-black stone streaked green where the skyfall metal has bled down it, windows no wider than arrow-slits, smoke standing straight up from its crown into the dead air. At its foot is a single iron hatch, damaged, sealed, with no handle and no hinge that shows. Behind it, felt more than heard, something turns over and over and does not stop. There is no other way in.}",
+			Text = "[img]gfx/ui/events/event_108.png[/img]{The wood thins, and the tower is simply there - sixty feet of soot-black stone streaked green where the skyfall metal has bled down it, windows no wider than arrow-slits, smoke standing straight up from its crown into the dead air. At its foot is a single iron hatch, damaged, sealed, with no handle and no hinge that shows. Behind it, felt more than heard, something turns over and over and does not stop. There is no other way in.}",
 			Image = "",
 			List = [],
 			Options = [
 				{
-					Text = "{Pick the lock -- get in clean.}",
+					Text = "{Pick the lock - get in clean.}",
 					function getResult()
 					{
 						return this.Contract.resolveEntry(true);
@@ -1026,7 +1026,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Turn back -- leave the tower sealed.}",
+					Text = "{Turn back - leave the tower sealed.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1039,7 +1039,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "NameWard",
 			Title = "Name Your Master",
-			Text = "[img]gfx/ui/events/legend_vala_inscribes_weapon.png[/img]{The stair opens onto a landing barred by a mask of pale green noqual set into the wall, mouth open on a dark throat. Cut deep around it, in a script that somehow you can read, are the words NAME YOUR MASTER. The stone on either side is scorched black in long lashes, layer on layer -- the marks of everyone who answered wrong, and there were many.}",
+			Text = "[img]gfx/ui/events/legend_vala_inscribes_weapon.png[/img]{The stair opens onto a landing barred by a mask of pale green noqual set into the wall, mouth open on a dark throat. Cut deep around it, in a script that somehow you can read, are the words NAME YOUR MASTER. The stone on either side is scorched black in long lashes, layer on layer - the marks of everyone who answered wrong, and there were many.}",
 			Image = "",
 			List = [],
 			Options = [],
@@ -1080,7 +1080,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 						}
 					},
 					{
-						Text = "{Leave the ward be -- climb past it.}",
+						Text = "{Leave the ward be - climb past it.}",
 						function getResult()
 						{
 							this.Contract.m.Floor = this.Contract.m.Floor + 1;
@@ -1088,7 +1088,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 						}
 					},
 					{
-						Text = "{Turn back -- climb down.}",
+						Text = "{Turn back - climb down.}",
 						function getResult()
 						{
 							return "Aborted";
@@ -1113,14 +1113,14 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Run it -- time it and go.}",
+					Text = "{Run it - time it and go.}",
 					function getResult()
 					{
 						return this.Contract.resolvePassage(false);
 					}
 				},
 				{
-					Text = "{Turn back -- climb down.}",
+					Text = "{Turn back - climb down.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1137,7 +1137,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "BarredDoor",
 			Title = "The Barred Door",
-			Text = "[img]gfx/ui/events/event_111.png[/img]{The way up is shut by a door of banded iron, jammed hard from the inside -- barred, or rusted, or both. It does not give to a shoulder tried once, in passing. Getting past it will take doing.}",
+			Text = "[img]gfx/ui/events/event_111.png[/img]{The way up is shut by a door of banded iron, jammed hard from the inside - barred, or rusted, or both. It does not give to a shoulder tried once, in passing. Getting past it will take doing.}",
 			Image = "",
 			List = [],
 			Options = [
@@ -1163,7 +1163,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Turn back -- climb down.}",
+					Text = "{Turn back - climb down.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1176,7 +1176,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "BrokenGantry",
 			Title = "The Broken Gantry",
-			Text = "[img]gfx/ui/events/event_167.png[/img]{The stair gives out over a pit of grinding machinery, and the only way across is a spine of iron gantry bridging the dark -- buckled in the middle, missing plates, groaning when the works below shudder. Or there is the long way, down through the low galleries where the smoke lies thickest, and up again on the far side.}",
+			Text = "[img]gfx/ui/events/event_167.png[/img]{The stair gives out over a pit of grinding machinery, and the only way across is a spine of iron gantry bridging the dark - buckled in the middle, missing plates, groaning when the works below shudder. Or there is the long way, down through the low galleries where the smoke lies thickest, and up again on the far side.}",
 			Image = "",
 			List = [],
 			Options = [
@@ -1195,7 +1195,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Turn back -- climb down.}",
+					Text = "{Turn back - climb down.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1213,7 +1213,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			List = [],
 			Options = [
 				{
-					Text = "{Try it -- draw the trap, then the lock.}",
+					Text = "{Try it - draw the trap, then the lock.}",
 					function getResult()
 					{
 						return this.Contract.resolveStrongbox();
@@ -1228,7 +1228,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Turn back -- climb down.}",
+					Text = "{Turn back - climb down.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1245,7 +1245,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "HiddenVault",
 			Title = "The Hidden Vault",
-			Text = "[img]gfx/ui/events/event_55.png[/img]{A stretch of wall here rings hollow under a knuckle -- there is a space behind it, and no honest reason for one. Finding the way in will mean reading the stone closely, in air that does not reward standing still.}",
+			Text = "[img]gfx/ui/events/event_55.png[/img]{A stretch of wall here rings hollow under a knuckle - there is a space behind it, and no honest reason for one. Finding the way in will mean reading the stone closely, in air that does not reward standing still.}",
 			Image = "",
 			List = [],
 			Options = [
@@ -1257,7 +1257,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Don't bother -- climb on.}",
+					Text = "{Don't bother - climb on.}",
 					function getResult()
 					{
 						this.Contract.m.Floor = this.Contract.m.Floor + 1;
@@ -1265,7 +1265,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Turn back -- climb down.}",
+					Text = "{Turn back - climb down.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1298,7 +1298,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Turn back -- climb down.}",
+					Text = "{Turn back - climb down.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1315,7 +1315,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "GolemSlab",
 			Title = "The Golem on the Slab",
-			Text = "[img]gfx/ui/events/event_116.png[/img]{A workshop, and on its central slab a golem half made -- iron and brass and pale green noqual, a man's height and a man's shape, its face not yet cut. Tools lie where a hand set them down mid-task, years ago. It is wired into the same pulse that beats through the whole tower, and now and then, very slightly, it seems to breathe.}",
+			Text = "[img]gfx/ui/events/event_116.png[/img]{A workshop, and on its central slab a golem half made - iron and brass and pale green noqual, a man's height and a man's shape, its face not yet cut. Tools lie where a hand set them down mid-task, years ago. It is wired into the same pulse that beats through the whole tower, and now and then, very slightly, it seems to breathe.}",
 			Image = "",
 			List = [],
 			Options = [
@@ -1335,7 +1335,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Turn back -- climb down.}",
+					Text = "{Turn back - climb down.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1348,7 +1348,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "StarChart",
 			Title = "The Star-Chart",
-			Text = "[img]gfx/ui/events/event_45.png[/img]{A domed room, its ceiling one great chart of the sky and the falling of stars over Numeria, worked in silver and dark glass. Instruments stand about under a film of dust. One point on the dome is marked, and marked again, and circled until the metal is worn -- and there is writing under it, in a proud and careful hand.}",
+			Text = "[img]gfx/ui/events/event_45.png[/img]{A domed room, its ceiling one great chart of the sky and the falling of stars over Numeria, worked in silver and dark glass. Instruments stand about under a film of dust. One point on the dome is marked, and marked again, and circled until the metal is worn - and there is writing under it, in a proud and careful hand.}",
 			Image = "",
 			List = [],
 			Options = [
@@ -1360,7 +1360,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Leave it -- climb on.}",
+					Text = "{Leave it - climb on.}",
 					function getResult()
 					{
 						this.Contract.m.Floor = this.Contract.m.Floor + 1;
@@ -1368,7 +1368,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Turn back -- climb down.}",
+					Text = "{Turn back - climb down.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1381,7 +1381,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "EmptyLanding",
 			Title = "An Empty Landing",
-			Text = "[img]gfx/ui/events/event_89.png[/img]{A bare landing. Nothing here -- no machine, no door of note, no reason for the room at all. Only the smoke, and the grinding going on above and below, and, on the stair beneath you, a slow dragging tread that was not there when you started up, and is nearer now than it was.}",
+			Text = "[img]gfx/ui/events/event_89.png[/img]{A bare landing. Nothing here - no machine, no door of note, no reason for the room at all. Only the smoke, and the grinding going on above and below, and, on the stair beneath you, a slow dragging tread that was not there when you started up, and is nearer now than it was.}",
 			Image = "",
 			List = [],
 			Options = [
@@ -1394,7 +1394,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Turn back -- climb down.}",
+					Text = "{Turn back - climb down.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1412,7 +1412,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			List = [],
 			Options = [
 				{
-					Text = "{Read the notes -- shut it down properly.}",
+					Text = "{Read the notes - shut it down properly.}",
 					function getResult()
 					{
 						return this.Contract.resolveTopRead();
@@ -1426,7 +1426,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Turn back -- leave it running.}",
+					Text = "{Turn back - leave it running.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1439,7 +1439,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "CannotRead",
 			Title = "Beyond You",
-			Text = "[img]gfx/ui/events/event_63.png[/img]{You bend over the desk, and the notes give up nothing. The hand is urgent, crabbed, certain -- and utterly closed, a script no one raised in these lands was ever taught to read. Whatever the man knew, whatever he meant to do and where he meant to do it, it stays his. There is no reading this. The grinding goes on under the floor, patient as ever, and there is only the one crude way left to make it stop.}",
+			Text = "[img]gfx/ui/events/event_63.png[/img]{You bend over the desk, and the notes give up nothing. The hand is urgent, crabbed, certain - and utterly closed, a script no one raised in these lands was ever taught to read. Whatever the man knew, whatever he meant to do and where he meant to do it, it stays his. There is no reading this. The grinding goes on under the floor, patient as ever, and there is only the one crude way left to make it stop.}",
 			Image = "",
 			List = [],
 			Options = [
@@ -1451,7 +1451,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 					}
 				},
 				{
-					Text = "{Turn back -- leave it running.}",
+					Text = "{Turn back - leave it running.}",
 					function getResult()
 					{
 						return "Aborted";
@@ -1493,11 +1493,11 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			Options = [],
 			function start()
 			{
-				local t = "[img]gfx/ui/events/event_57.png[/img]{The panel dies, the grinding stops, and on the stair below the tread stops too -- the half-made metal men gone still mid-climb, hands still lifted toward this room. And only now, in the silence, do you understand there is no one here to lift a hand back. No %SKVNAME%Xoud%SKVNAME_OFF%. No body. No bones. No grave. You climbed all this way to face whoever kept the fires lit, and there was never anyone at all -- only the machine, keeping a dead man's hours because no one ever came to tell it he was gone.";
+				local t = "[img]gfx/ui/events/event_57.png[/img]{The panel dies, the grinding stops, and on the stair below the tread stops too - the half-made metal men gone still mid-climb, hands still lifted toward this room. And only now, in the silence, do you understand there is no one here to lift a hand back. No %SKVNAME%Xoud%SKVNAME_OFF%. No body. No bones. No grave. You climbed all this way to face whoever kept the fires lit, and there was never anyone at all - only the machine, keeping a dead man's hours because no one ever came to tell it he was gone.";
 
 				if (this.Contract.m.ShutdownClean)
 				{
-					t += "\n\nYou read enough of the desk before the lights went out to know the shape of it. He did not die here. He went somewhere -- the notes are certain of the place, if not the reason -- and sealed the tower to grind on behind him, as though he meant to come back, and never did. Where he went is a thing you will keep to yourselves for now.";
+					t += "\n\nYou read enough of the desk before the lights went out to know the shape of it. He did not die here. He went somewhere - the notes are certain of the place, if not the reason - and sealed the tower to grind on behind him, as though he meant to come back, and never did. Where he went is a thing you will keep to yourselves for now.";
 					t += "\n\nWhere the panel was, a compartment has come open, and what it held is yours.";
 				}
 				else
@@ -1544,16 +1544,16 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			Options = [],
 			function start()
 			{
-				local t = "[img]gfx/ui/events/event_20.png[/img]{You come down out of the wood days later, and the smoke does not come with you -- for the first time in longer than anyone in %SKVLOC%%townname%%SKVLOC_OFF% has been alive, the sky over the trees stands clean. That alone brings folk to their doors as you come up the road.\n\nThe man who sent you out meets you at the edge of the green, and he does not so much ask for the tower's tale as brace himself for it. So you give it to him plainly: there was no one up there. No master, no monster, no watchman -- only a dead man's machine grinding away at nothing, and it grinds no longer. %SPEECH_ON%%SKVNAME%%randombrother%%SKVNAME_OFF% cannot help himself. All that smoke, he says, all these years, and nobody home to make it. Your bogeyman was a broken clock.%SPEECH_OFF% The man takes it the way men take a fear they have carried so long they had half made a friend of it -- part relieved, part robbed of something.";
+				local t = "[img]gfx/ui/events/event_20.png[/img]{You come down out of the wood days later, and the smoke does not come with you - for the first time in longer than anyone in %SKVLOC%%townname%%SKVLOC_OFF% has been alive, the sky over the trees stands clean. That alone brings folk to their doors as you come up the road.\n\nThe man who sent you out meets you at the edge of the green, and he does not so much ask for the tower's tale as brace himself for it. So you give it to him plainly: there was no one up there. No master, no monster, no watchman - only a dead man's machine grinding away at nothing, and it grinds no longer. %SPEECH_ON%%SKVNAME%%randombrother%%SKVNAME_OFF% cannot help himself. All that smoke, he says, all these years, and nobody home to make it. Your bogeyman was a broken clock.%SPEECH_OFF% The man takes it the way men take a fear they have carried so long they had half made a friend of it - part relieved, part robbed of something.";
 				if (this.Contract.m.ShutdownClean)
 				{
-					t += "\n\nWhat you do not tell him is the rest -- that the desk up there was certain the master had not died but GONE, and set down the place he went in a hand no soul in this village will ever read. It is not the sort of word that lets a man sleep. Better he keeps the broken clock.";
+					t += "\n\nWhat you do not tell him is the rest - that the desk up there was certain the master had not died but GONE, and set down the place he went in a hand no soul in this village will ever read. It is not the sort of word that lets a man sleep. Better he keeps the broken clock.";
 				}
 				if (this.Contract.m.DoomedCount > 0)
 				{
 					t += "\n\nHe counts your number, too, and sees it comes back short of what went up. He does not say anything to that. There is nothing to say.";
 				}
-				t += "\n\nHe counts out what he promised, and a little he did not, and swears the well already tastes sweeter -- though it cannot possibly yet.}";
+				t += "\n\nHe counts out what he promised, and a little he did not, and swears the well already tastes sweeter - though it cannot possibly yet.}";
 				this.Text = t;
 				this.Options = [
 					{
@@ -1575,7 +1575,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "Aborted",
 			Title = "Down and Out",
-			Text = "[img]gfx/ui/events/event_75.png[/img]{You have had enough of the tower. You go back the way you came -- down, always down, the smoke thinning as you descend, the dragging tread above falling silent behind you as though it had never been. You keep the little the employer paid to send you, and whatever you tore out of the tower's guts on the way up. Behind you the chimneys are still smoking. Someone else's worry now.}",
+			Text = "[img]gfx/ui/events/event_75.png[/img]{You have had enough of the tower. You go back the way you came - down, always down, the smoke thinning as you descend, the dragging tread above falling silent behind you as though it had never been. You keep the little the employer paid to send you, and whatever you tore out of the tower's guts on the way up. Behind you the chimneys are still smoking. Someone else's worry now.}",
 			Image = "",
 			List = [],
 			Options = [

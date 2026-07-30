@@ -1,5 +1,3 @@
-// ---- Reflavor noble-house archetype prose: keep Traits, swap Description + Mottos ----
-// Matched by a phrase per vanilla description; guarded so a mismatch can't crash the load.
 local golarionArch = {
 	"history of conquest": {
 		d = "House %noblehousename% remembers when Aroden walked the earth and the Inner Sea answered to one throne. Since the god's death broke that promise, they have sworn to Gorum that the sword will decide what prophecy no longer can. From %factionfortressname% they ride to reforge the old dominion in iron and blood, and their feud with house %othernoblehouse% has fed Our Lord in Iron for generations.",
@@ -62,28 +60,15 @@ try {
 	}
 } catch (e) { ::logInfo("Golarion archetype reflavor skipped: " + e); }
 
-// ==================== The pantheon: gods AS archetypes ====================
-// Houses are named for RUNELORDS (NobleHouseNames); the ARCHETYPE is the god that
-// house serves. This REPLACES FactionArchetypes (the phrase-match block above is now
-// inert, kept only for easy revert). Drawn WITHOUT replacement, N per world.
-//
-// !! ENTRY COUNT MUST BE >= the Legends "Factions" mod setting !! createNobleHouses
-// loops that many times doing houses.remove(rand(0, len-1)); too few archetypes indexes
-// an empty array. (Array LENGTH gates the setting.)
-//
-// Traits are DOCUMENTATION ONLY (only NobleHouse and OrientalCityState are ever read).
-// NO COLOUR TAGS here: the Factions panel renders them literally (contract/event screens parse them).
-// Placeholders %noblehousename% %factionfortressname% %othernoblehouse% are live.
-// %regionname% resolves to an EMPTY STRING (faction_manager stubs it) -- never use it.
 ::Const.FactionArchetypes = [
 	[
-		{	// ERASTIL -- Old Deadeye. LG. Longbow. Family, farming, hunting, trade.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.ManOfThePeople,
 				::Const.FactionTrait.Collector
 			],
-			Description = "When the prophecies broke the cities went mad with it, and House %noblehousename% went out to the fields as it had the year before. Erastil promised no age, so no age of his has ended -- Old Deadeye asks only what a village can give. His people still plant five seeds in the shape of an arrow, asking only that each has a chance, and still leave bread on the road where a stranger will find it.",
+			Description = "When the prophecies broke the cities went mad with it, and House %noblehousename% went out to the fields as it had the year before. Erastil promised no age, so no age of his has ended - Old Deadeye asks only what a village can give. His people still plant five seeds in the shape of an arrow, asking only that each has a chance, and still leave bread on the road where a stranger will find it.",
 			Mottos = [
 				"The hearth outlasts the throne",
 				"Old Deadeye asks nothing of you",
@@ -93,7 +78,7 @@ try {
 				"Let it burn. We have seed."
 			]
 		},
-		{	// IOMEDAE -- The Inheritor. LG. Longsword. Honor, justice, rulership, valor.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
@@ -109,13 +94,13 @@ try {
 				"Someone must"
 			]
 		},
-		{	// TORAG -- Father of Creation. LG. Warhammer. Forges, protection, strategy.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.Collector
 			],
-			Description = "House %noblehousename% keeps Torag's forges, and the Father of Creation teaches that anything worth having is worth building twice -- once in iron, and once in stone around the iron. Their smiths beat the anvil ten minutes at a stretch for the sound of it, and whoever the noise draws in is asked to join the work, or, if it comes to that, the fight. Since the shattering proved the world could break they have done little but thicken the walls of %factionfortressname%. They will sell you a hammer, a plan, or a siege you cannot win.",
+			Description = "House %noblehousename% keeps Torag's forges, and the Father of Creation teaches that anything worth having is worth building twice - once in iron, and once in stone around the iron. Their smiths beat the anvil ten minutes at a stretch for the sound of it, and whoever the noise draws in is asked to join the work, or, if it comes to that, the fight. Since the shattering proved the world could break they have done little but thicken the walls of %factionfortressname%. They will sell you a hammer, a plan, or a siege you cannot win.",
 			Mottos = [
 				"Build it twice",
 				"The wall is the prayer",
@@ -125,7 +110,7 @@ try {
 				"Strategy is patience with a hammer"
 			]
 		},
-		{	// SARENRAE -- The Dawnflower. NG. Scimitar. Healing, honesty, redemption, the sun.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.ManOfThePeople,
@@ -142,13 +127,13 @@ try {
 			]
 		}
 ,
-		{	// SHELYN -- The Eternal Rose. NG. Glaive. Art, beauty, love, music.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.ManOfThePeople,
 				::Const.FactionTrait.Collector
 			],
-			Description = "House %noblehousename% serves Shelyn, and the Eternal Rose asks nothing of her faithful except that they make something. A picture, a song, a few lines of verse -- it need not be large or clever, only honest and the best that was in them -- and then they must give it away to a stranger and say something kind while doing it. Where nobody will take it, they leave it on a bench with a note asking whoever finds it to keep it. From %factionfortressname% they have done this through two famines and a war, and no one has worked out how to make them stop.",
+			Description = "House %noblehousename% serves Shelyn, and the Eternal Rose asks nothing of her faithful except that they make something. A picture, a song, a few lines of verse - it need not be large or clever, only honest and the best that was in them - and then they must give it away to a stranger and say something kind while doing it. Where nobody will take it, they leave it on a bench with a note asking whoever finds it to keep it. From %factionfortressname% they have done this through two famines and a war, and no one has worked out how to make them stop.",
 			Mottos = [
 				"Make something. Give it away.",
 				"The Eternal Rose asks only your best",
@@ -158,13 +143,13 @@ try {
 				"Nobody has made us stop"
 			]
 		},
-		{	// CAYDEN CAILEAN -- The Drunken Hero. CG. Rapier. Ale, bravery, freedom, wine.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.ManOfThePeople,
 				::Const.FactionTrait.Warmonger
 			],
-			Description = "House %noblehousename% drinks to Cayden Cailean, who was mortal before he was a god and by every account not a careful one. His worship is a song about freedom and bravery and how well he wore both, sung loud enough that everyone nearby hears it -- friend or foe, no exceptions -- with a pull from the mug between stanzas. If the noise brings someone over, they are talked at about the Drunken Hero until they agree. If it brings a fight instead, that is also acceptable. From %factionfortressname% they have freed more slaves than they have won battles, which they consider the correct ratio.",
+			Description = "House %noblehousename% drinks to Cayden Cailean, who was mortal before he was a god and by every account not a careful one. His worship is a song about freedom and bravery and how well he wore both, sung loud enough that everyone nearby hears it - friend or foe, no exceptions - with a pull from the mug between stanzas. If the noise brings someone over, they are talked at about the Drunken Hero until they agree. If it brings a fight instead, that is also acceptable. From %factionfortressname% they have freed more slaves than they have won battles, which they consider the correct ratio.",
 			Mottos = [
 				"Sung loud enough for the enemy",
 				"Freedom, bravery, and a full mug",
@@ -174,13 +159,13 @@ try {
 				"The correct ratio"
 			]
 		},
-		{	// DESNA -- Song of the Spheres. CG. Starknife. Dreams, luck, stars, travelers.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.ManOfThePeople
 			],
-			Description = "House %noblehousename% keeps Desna, and the Song of the Spheres is worshipped by dancing beneath the stars in no pattern at all -- you are meant to stop thinking about where your feet are going and let them fall where chance wants them. When the dance ends you study where you stopped, and the steps behind you, and read what they meant. If there are no stars, you sing the names of the ones you know instead. From %factionfortressname% they have chosen wars, marriages and harvests this way for six generations, and are no worse off than House %othernoblehouse%, which uses maps.",
+			Description = "House %noblehousename% keeps Desna, and the Song of the Spheres is worshipped by dancing beneath the stars in no pattern at all - you are meant to stop thinking about where your feet are going and let them fall where chance wants them. When the dance ends you study where you stopped, and the steps behind you, and read what they meant. If there are no stars, you sing the names of the ones you know instead. From %factionfortressname% they have chosen wars, marriages and harvests this way for six generations, and are no worse off than House %othernoblehouse%, which uses maps.",
 			Mottos = [
 				"Let the steps fall where they will",
 				"Song of the Spheres knows the way",
@@ -190,13 +175,13 @@ try {
 				"Chance is not the same as nothing"
 			]
 		},
-		{	// ABADAR -- Master of the First Vault. LN. Light crossbow. Cities, laws,
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.Collector
 			],
-			Description = "House %noblehousename% serves Abadar, Master of the First Vault, whose worship is bookkeeping. Each morning a handful of gems, coins and keys -- coins from three kingdoms at least, and three keys, one of them to a vault -- is balanced on a scale until it sits level, and the handful must be different every day so that it never becomes a habit. From %factionfortressname% they hold that a city is only a very large scale, and that everything on it, laws included, can be brought level by someone patient enough to keep the ledger honest.",
+			Description = "House %noblehousename% serves Abadar, Master of the First Vault, whose worship is bookkeeping. Each morning a handful of gems, coins and keys - coins from three kingdoms at least, and three keys, one of them to a vault - is balanced on a scale until it sits level, and the handful must be different every day so that it never becomes a habit. From %factionfortressname% they hold that a city is only a very large scale, and that everything on it, laws included, can be brought level by someone patient enough to keep the ledger honest.",
 			Mottos = [
 				"Bring it level",
 				"The ledger is the prayer",
@@ -206,7 +191,7 @@ try {
 				"Master of the First Vault keeps count"
 			]
 		},
-		{	// IRORI -- Master of Masters. LN. Unarmed strike. History, knowledge,
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
@@ -222,7 +207,7 @@ try {
 				"The hands are enough"
 			]
 		},
-		{	// GOZREH -- The Wind and the Waves. N. Trident. Nature, the sea, weather.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Marauder,
@@ -239,13 +224,13 @@ try {
 			]
 		}
 ,
-		{	// NETHYS -- The All-Seeing Eye. N. Quarterstaff. Magic (that is the whole entry).
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Warmonger,
 				::Const.FactionTrait.Collector
 			],
-			Description = "House %noblehousename% serves Nethys, the All-Seeing Eye, who saw everything there is and came back wearing a mask that is white down one side and black down the other. Magic is his only concern and he holds no opinion whatever about what is done with it. His rite is to write a formula out on clean parchment and stop halfway -- never a whole spell, only enough of one that whoever finds it might be tempted to finish the working themselves. From %factionfortressname% they have been leaving these lying about for years.",
+			Description = "House %noblehousename% serves Nethys, the All-Seeing Eye, who saw everything there is and came back wearing a mask that is white down one side and black down the other. Magic is his only concern and he holds no opinion whatever about what is done with it. His rite is to write a formula out on clean parchment and stop halfway - never a whole spell, only enough of one that whoever finds it might be tempted to finish the working themselves. From %factionfortressname% they have been leaving these lying about for years.",
 			Mottos = [
 				"Never the whole spell",
 				"The All-Seeing Eye has no opinion",
@@ -255,13 +240,13 @@ try {
 				"Magic does not care either"
 			]
 		},
-		{	// PHARASMA -- Lady of Graves. N. Dagger. Birth, death, fate, prophecy.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.ManOfThePeople
 			],
-			Description = "House %noblehousename% keeps Pharasma, the Lady of Graves, who is owed every soul eventually and has never once hurried. Her people gather small bones as they come across them, lay them in a spiral, and set a slip of parchment at either end -- one named for somebody born that week, one for somebody dead -- then walk the coil chanting, trailing a black scarf along the ground behind them. She was the goddess of prophecy as well, once. From %factionfortressname% nobody has raised the subject in a hundred years.",
+			Description = "House %noblehousename% keeps Pharasma, the Lady of Graves, who is owed every soul eventually and has never once hurried. Her people gather small bones as they come across them, lay them in a spiral, and set a slip of parchment at either end - one named for somebody born that week, one for somebody dead - then walk the coil chanting, trailing a black scarf along the ground behind them. She was the goddess of prophecy as well, once. From %factionfortressname% nobody has raised the subject in a hundred years.",
 			Mottos = [
 				"The bones land in a spiral",
 				"She is owed, and she can wait",
@@ -271,7 +256,7 @@ try {
 				"Everyone arrives on her books"
 			]
 		},
-		{	// CALISTRIA -- The Savored Sting. CN. Whip. Lust, revenge, trickery.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Marauder,
@@ -287,13 +272,13 @@ try {
 				"It was always going to be us"
 			]
 		},
-		{	// GORUM -- Our Lord in Iron. CN. Greatsword. Battle, strength, weapons.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Warmonger,
 				::Const.FactionTrait.Tyrant
 			],
-			Description = "House %noblehousename% shouts for Gorum, Our Lord in Iron, and the worship is done in the heaviest armour you own: bellow the oath until the breath goes, beating your weapon on shield or breastplate at every pause, then kneel with the blade on your shoulder and recite your victories aloud until the hour is out. Anyone who interrupts is to be killed -- your men may help, but the last blow must be yours. From %factionfortressname% they have never once had to be asked twice.",
+			Description = "House %noblehousename% shouts for Gorum, Our Lord in Iron, and the worship is done in the heaviest armour you own: bellow the oath until the breath goes, beating your weapon on shield or breastplate at every pause, then kneel with the blade on your shoulder and recite your victories aloud until the hour is out. Anyone who interrupts is to be killed - your men may help, but the last blow must be yours. From %factionfortressname% they have never once had to be asked twice.",
 			Mottos = [
 				"The last blow must be yours",
 				"Our Lord in Iron cares not whose blood",
@@ -303,13 +288,13 @@ try {
 				"The sword is in the mountain"
 			]
 		},
-		{	// ASMODEUS -- Prince of Darkness. LE. Mace. Contracts, pride, slavery, tyranny.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Tyrant,
 				::Const.FactionTrait.Collector
 			],
-			Description = "House %noblehousename% holds its contract with Asmodeus, the Prince of Darkness, and pays it in blood: symmetrical cuts opened with a ruby blade in something that belongs to you, drained into a bowl cut from a human skull, the blood used to draw the pentagram they then kneel inside. The doctrine is precise about the quantity -- never so much that the creature is weakened, or left too useless to go on serving. From %factionfortressname% they will remind you the terms were written down, and that you signed.",
+			Description = "House %noblehousename% holds its contract with Asmodeus, the Prince of Darkness, and pays it in blood: symmetrical cuts opened with a ruby blade in something that belongs to you, drained into a bowl cut from a human skull, the blood used to draw the pentagram they then kneel inside. The doctrine is precise about the quantity - never so much that the creature is weakened, or left too useless to go on serving. From %factionfortressname% they will remind you the terms were written down, and that you signed.",
 			Mottos = [
 				"The terms were written down",
 				"You signed",
@@ -319,13 +304,13 @@ try {
 				"Read it again"
 			]
 		},
-		{	// ZON-KUTHON -- The Midnight Lord. LE. Spiked chain. Darkness, envy, loss, pain.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Tyrant,
 				::Const.FactionTrait.Schemer
 			],
-			Description = "House %noblehousename% belongs to Zon-Kuthon, the Midnight Lord -- but he was not always that, and the house knows the older name. In the first age he was Dou-Bral, son of the spirit-wolf Thron, a god of beauty and art and light, and he shared both a love of lovely things and a single golden glaive with his half-sister Shelyn. Then he grew envious of her, and went out into the dark places beyond and between the planes, and something out there in the truly outer dark unmade him and put him back together wrong. What came home was not Dou-Bral. When Shelyn saw what her brother had become she fought him -- and won from his fingers the glaive they had shared, the Whisperer of Souls, which she keeps to this day because she alone has never accepted that he is gone for good, and believes, still, that the brother can be called back out of the thing wearing him. The house exists, in a way, to prove her wrong. Their worship is pain, but pain asked for: the rite needs a creature persuaded to permit it -- the needle, the lash, the hook, whatever is agreed -- and the agreeing is the sacrament, for consent given is the sweeter to spoil. Where none will consent, they coil a spiked chain into a nest and kneel until their own weight drives it home, and flog their own backs in praise. From %factionfortressname% they are unfailingly gentle, unfailingly polite, and they will explain to you, patiently and at length, exactly why you want this -- because their god was talked out of the light once, in the dark, by something patient, and they have learned from him how it is done.",
+			Description = "House %noblehousename% belongs to Zon-Kuthon, the Midnight Lord - but he was not always that, and the house knows the older name. In the first age he was Dou-Bral, son of the spirit-wolf Thron, a god of beauty and art and light, and he shared both a love of lovely things and a single golden glaive with his half-sister Shelyn. Then he grew envious of her, and went out into the dark places beyond and between the planes, and something out there in the truly outer dark unmade him and put him back together wrong. What came home was not Dou-Bral. When Shelyn saw what her brother had become she fought him - and won from his fingers the glaive they had shared, the Whisperer of Souls, which she keeps to this day because she alone has never accepted that he is gone for good, and believes, still, that the brother can be called back out of the thing wearing him. The house exists, in a way, to prove her wrong. Their worship is pain, but pain asked for: the rite needs a creature persuaded to permit it - the needle, the lash, the hook, whatever is agreed - and the agreeing is the sacrament, for consent given is the sweeter to spoil. Where none will consent, they coil a spiked chain into a nest and kneel until their own weight drives it home, and flog their own backs in praise. From %factionfortressname% they are unfailingly gentle, unfailingly polite, and they will explain to you, patiently and at length, exactly why you want this - because their god was talked out of the light once, in the dark, by something patient, and they have learned from him how it is done.",
 			Mottos = [
 				"He was Dou-Bral once",
 				"We exist to prove his sister wrong",
@@ -335,13 +320,13 @@ try {
 				"Say yes"
 			]
 		},
-		{	// NORGORBER -- The Reaper of Reputation. NE. Short sword. Greed, murder, poison,
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.Collector
 			],
-			Description = "House %noblehousename% does not discuss Norgorber, the Reaper of Reputation, which is the point of him. The rite is a prayer said inside a crowd, so quietly that nobody hears it -- and if you suspect somebody did, you follow them out and prick them with a poisoned needle. Where there is no crowd you dig a hole six inches deep, whisper into it, and bury the sound. It finishes the same way every time: a needle dipped and left where a stranger will find it with their hand.",
+			Description = "House %noblehousename% does not discuss Norgorber, the Reaper of Reputation, which is the point of him. The rite is a prayer said inside a crowd, so quietly that nobody hears it - and if you suspect somebody did, you follow them out and prick them with a poisoned needle. Where there is no crowd you dig a hole six inches deep, whisper into it, and bury the sound. It finishes the same way every time: a needle dipped and left where a stranger will find it with their hand.",
 			Mottos = [
 				"Bury the sound",
 				"We do not discuss him",
@@ -351,13 +336,13 @@ try {
 				"The Reaper keeps his own ledger"
 			]
 		},
-		{	// URGATHOA -- The Pallid Princess. NE. Scythe. Disease, gluttony, undeath.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Tyrant,
 				::Const.FactionTrait.Marauder
 			],
-			Description = "House %noblehousename% feasts for Urgathoa, the Pallid Princess, whose concerns are disease, gluttony and undeath, and who has never seen much difference between them. Black velvet on the table, the best of everything laid on the cloth, and you eat past full and go on eating, wine between the courses and prayers between the mouthfuls. Then, at the end, one bite of something spoiled -- rotten fruit, rancid meat, cheese gone green -- swallowed on the understanding that she will not let it hurt you. From %factionfortressname% they are always hungry and never ill.",
+			Description = "House %noblehousename% feasts for Urgathoa, the Pallid Princess, whose concerns are disease, gluttony and undeath, and who has never seen much difference between them. Black velvet on the table, the best of everything laid on the cloth, and you eat past full and go on eating, wine between the courses and prayers between the mouthfuls. Then, at the end, one bite of something spoiled - rotten fruit, rancid meat, cheese gone green - swallowed on the understanding that she will not let it hurt you. From %factionfortressname% they are always hungry and never ill.",
 			Mottos = [
 				"Always hungry, never ill",
 				"Eat past full, and go on",
@@ -367,7 +352,7 @@ try {
 				"She will not let it hurt us"
 			]
 		},
-		{	// LAMASHTU -- Mother of Monsters. CE. Falchion. Madness, monsters, nightmares.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Marauder,
@@ -383,13 +368,13 @@ try {
 				"Ask, and they will show you"
 			]
 		},
-		{	// ROVAGUG -- The Rough Beast. CE. Greataxe. Destruction, disaster, wrath.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Warmonger,
 				::Const.FactionTrait.Marauder
 			],
-			Description = "House %noblehousename% is sworn to Rovagug, the Rough Beast, who is not at liberty and whose faithful regard that as a temporary condition. They buy beautiful things -- good wine, fine glass, old carving, anything holy to Sarenrae by preference -- and they buy them specifically in order to break them, then roll in the pieces howling praise and curses until the shards draw blood and the lungs give out. From %factionfortressname% they keep a treasury that exists to be destroyed, and about the rest of it they are patient.",
+			Description = "House %noblehousename% is sworn to Rovagug, the Rough Beast, who is not at liberty and whose faithful regard that as a temporary condition. They buy beautiful things - good wine, fine glass, old carving, anything holy to Sarenrae by preference - and they buy them specifically in order to break them, then roll in the pieces howling praise and curses until the shards draw blood and the lungs give out. From %factionfortressname% they keep a treasury that exists to be destroyed, and about the rest of it they are patient.",
 			Mottos = [
 				"A treasury that exists to be destroyed",
 				"Not at liberty. For now.",
@@ -400,14 +385,14 @@ try {
 			]
 		}
 ,
-		{	// ---- EXOTIC PANTHEON: gods reached for, past the Core 20 ----
-			// ACHAEKEK -- He Who Walks in Blood. LE. Sawtooth sabre. Assassinations, divine
+		{
+
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.Warmonger
 			],
-			Description = "House %noblehousename% belongs to Achaekek, He Who Walks in Blood, the Mantis God -- and to understand the house you must first understand exactly what he is for. The other gods made him, in the first age, as an impartial judge to stand sentinel over creation; and when Rovagug went rampaging through the young world Achaekek consumed his own impartiality and came out the far side a red thing, all claw and appetite. What they kept him for was one task above all: to kill anyone reaching for a divinity they were not granted. He can slay a demigod or a risen sorcerer-king or any mortal climbing toward godhood -- but the gods, cunningly, built him unable to touch a true deity, so that the blade they forged could never be turned on them. From this comes the one law his people will not break: they never kill a rightful ruler. A crowned and anointed king is, to them, the gods' own agent and untouchable; it is the graspers, the usurpers, the ones reaching past their station for power that was never given, on whom the sentence falls. His faithful are the Red Mantis of far Mediogalti, and their work is not called murder but sentence, carried out with the sawtooth sabre and a professional detachment that takes no joy and offers no mercy. The rite is done over a trophy cut from a marked target, anointed with a drop of the killer's own blood off the blade, then destroyed; lacking a contract, the killer opens their own right arm with the sabre and lets it bleed the hour through. From %factionfortressname% they take their contracts the way a court takes its cases, and in a shattered age crowded with sorcerer-kings and half-made powers all reaching for what they have not earned, a house that serves the god who kills the ambitious has picked, of everything it could fly, the flag the climbers fear most.",
+			Description = "House %noblehousename% belongs to Achaekek, He Who Walks in Blood, the Mantis God - and to understand the house you must first understand exactly what he is for. The other gods made him, in the first age, as an impartial judge to stand sentinel over creation; and when Rovagug went rampaging through the young world Achaekek consumed his own impartiality and came out the far side a red thing, all claw and appetite. What they kept him for was one task above all: to kill anyone reaching for a divinity they were not granted. He can slay a demigod or a risen sorcerer-king or any mortal climbing toward godhood - but the gods, cunningly, built him unable to touch a true deity, so that the blade they forged could never be turned on them. From this comes the one law his people will not break: they never kill a rightful ruler. A crowned and anointed king is, to them, the gods' own agent and untouchable; it is the graspers, the usurpers, the ones reaching past their station for power that was never given, on whom the sentence falls. His faithful are the Red Mantis of far Mediogalti, and their work is not called murder but sentence, carried out with the sawtooth sabre and a professional detachment that takes no joy and offers no mercy. The rite is done over a trophy cut from a marked target, anointed with a drop of the killer's own blood off the blade, then destroyed; lacking a contract, the killer opens their own right arm with the sabre and lets it bleed the hour through. From %factionfortressname% they take their contracts the way a court takes its cases, and in a shattered age crowded with sorcerer-kings and half-made powers all reaching for what they have not earned, a house that serves the god who kills the ambitious has picked, of everything it could fly, the flag the climbers fear most.",
 			Mottos = [
 				"Not murder. Sentence.",
 				"We do not touch a rightful crown",
@@ -417,7 +402,7 @@ try {
 				"The climbers fear us most"
 			]
 		},
-		{	// ARAZNI -- The Harlot Queen. NE. Rapier. Command of undeath, lichdom. Symbol:
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
@@ -433,13 +418,13 @@ try {
 				"Every wrong, in order"
 			]
 		},
-		{	// ZYPHUS -- The Grim Harvestman. NE. Heavy pick. Accidental death, graveyards,
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.Marauder
 			],
-			Description = "House %noblehousename% keeps Zyphus, the Grim Harvestman, god of the death that nobody intended -- the stair that gives way, the rope that parts, the ford that drowns a man on a calm day. Nobody is ever murdered in the lands of %factionfortressname%. There are only a great many accidents, more than the country roads elsewhere seem to suffer, and the faithful spend their devotions making certain of it: a sawn joist here, a loosened stone there, left for whoever comes next.",
+			Description = "House %noblehousename% keeps Zyphus, the Grim Harvestman, god of the death that nobody intended - the stair that gives way, the rope that parts, the ford that drowns a man on a calm day. Nobody is ever murdered in the lands of %factionfortressname%. There are only a great many accidents, more than the country roads elsewhere seem to suffer, and the faithful spend their devotions making certain of it: a sawn joist here, a loosened stone there, left for whoever comes next.",
 			Mottos = [
 				"Only a great many accidents",
 				"Nobody is ever murdered here",
@@ -449,7 +434,7 @@ try {
 				"The Grim Harvestman takes the calm days too"
 			]
 		},
-		{	// GROETUS -- God of the End Times. CN. Heavy flail. Empty places, oblivion, ruins.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
@@ -465,13 +450,13 @@ try {
 				"The End Times are not in a hurry"
 			]
 		},
-		{	// APSU -- The Waybringer. LG. Bite or quarterstaff. Good dragons, leadership, peace.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.ManOfThePeople
 			],
-			Description = "House %noblehousename% keeps Apsu, the Waybringer, the first of the good dragons, who made the roads and the peace to travel them on. Twice a day the faithful walk out in a straight line: once studying the ground for every advantage a fight might turn on, and once back over the same country seeing only how beautiful it is, and thanking him that any of it exists at all. From %factionfortressname% they are the rarest thing the shattering left -- a house that means you no harm and can prove it.",
+			Description = "House %noblehousename% keeps Apsu, the Waybringer, the first of the good dragons, who made the roads and the peace to travel them on. Twice a day the faithful walk out in a straight line: once studying the ground for every advantage a fight might turn on, and once back over the same country seeing only how beautiful it is, and thanking him that any of it exists at all. From %factionfortressname% they are the rarest thing the shattering left - a house that means you no harm and can prove it.",
 			Mottos = [
 				"Once for the fight, once for the beauty",
 				"The Waybringer made the roads",
@@ -481,13 +466,13 @@ try {
 				"Walk it twice"
 			]
 		},
-		{	// GRUHASTHA -- The Keeper. LG. Shortbow. The Vudrani holy book (the Vudra scripture).
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.Collector
 			],
-			Description = "House %noblehousename% follows Gruhastha, the Keeper, who lived inside a book until he understood every word of it and then became a god of the reading itself. His rite is an hour spent teaching someone their letters, and where there is no student, an hour making a primer to leave at a school. While the other houses answered the broken age with walls and knives, %factionfortressname% answered it with a schoolroom, and holds -- against most of the evidence -- that a world that can still read can still be argued out of the dark.",
+			Description = "House %noblehousename% follows Gruhastha, the Keeper, who lived inside a book until he understood every word of it and then became a god of the reading itself. His rite is an hour spent teaching someone their letters, and where there is no student, an hour making a primer to leave at a school. While the other houses answered the broken age with walls and knives, %factionfortressname% answered it with a schoolroom, and holds - against most of the evidence - that a world that can still read can still be argued out of the dark.",
 			Mottos = [
 				"A world that can still read",
 				"The Keeper lived inside the book",
@@ -497,13 +482,13 @@ try {
 				"Against most of the evidence"
 			]
 		},
-		{	// SIVANAH -- The Seventh Veil. N. Bladed scarf. Illusions, mystery, reflections.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.Marauder
 			],
-			Description = "House %noblehousename% is said to serve Sivanah, the Seventh Veil, goddess of illusion and reflection and the secret worth keeping -- though nobody outside its walls is entirely certain the house is there at all, or ever was. She wears seven veils, and the first six are each a different ancestry -- human, elf, halfling, and stranger things beneath -- while the seventh and last hides a face no worshipper has seen and lives; her true shape is that seventh, unknown thing, and she lets no one confirm it. She does not speak to her faithful in words but through mirrors, still water, and a person's own shadow, so that an instruction is never quite something anyone can prove was given. The rite honours this: veil the face, work an illusion beautiful enough to be believed, and then -- for her law forbids leaving a soul deceived forever -- let it fall, so the trick is known for a trick. From %factionfortressname%, if it is even called that, envoys arrive who are not quite the envoys who left, and treaties are signed that afterward no one can produce, and it is all, they assure you, exactly as it appears. They loathe Zon-Kuthon, who took the honest dark and made it a place of pain, and they alone keep faith with mad Razmir of Razmiran, the false god down the road -- for the Seventh Veil may be the only power in the world who looks at his imposture and sees, under the seventh veil of it, something real.",
+			Description = "House %noblehousename% is said to serve Sivanah, the Seventh Veil, goddess of illusion and reflection and the secret worth keeping - though nobody outside its walls is entirely certain the house is there at all, or ever was. She wears seven veils, and the first six are each a different ancestry - human, elf, halfling, and stranger things beneath - while the seventh and last hides a face no worshipper has seen and lives; her true shape is that seventh, unknown thing, and she lets no one confirm it. She does not speak to her faithful in words but through mirrors, still water, and a person's own shadow, so that an instruction is never quite something anyone can prove was given. The rite honours this: veil the face, work an illusion beautiful enough to be believed, and then - for her law forbids leaving a soul deceived forever - let it fall, so the trick is known for a trick. From %factionfortressname%, if it is even called that, envoys arrive who are not quite the envoys who left, and treaties are signed that afterward no one can produce, and it is all, they assure you, exactly as it appears. They loathe Zon-Kuthon, who took the honest dark and made it a place of pain, and they alone keep faith with mad Razmir of Razmiran, the false god down the road - for the Seventh Veil may be the only power in the world who looks at his imposture and sees, under the seventh veil of it, something real.",
 			Mottos = [
 				"Exactly as it appears",
 				"You must be mistaking us",
@@ -513,15 +498,15 @@ try {
 				"It is all a reflection"
 			]
 		},
-		{	// BESMARA -- The Pirate Queen. CN. Rapier. Piracy, sea monsters, strife.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Collector,
 				::Const.FactionTrait.Marauder
 			],
-			Description = "House %noblehousename% flies Besmara's colours, the Pirate Queen, the Sea Banshee, Sailor's Doom -- and lives every day in breach of her first and plainest law. She commands her own to never settle on land, to keep faith with captain and crew above all, and to take whatever is not lashed down; and here the house sits, behind stone walls, holding ground, apostate from the hour it laid the first foundation. They square it the only way the creed leaves open. They do not govern the land so much as raid it from a fortress that might as well have run aground -- loyal absolutely to their own, faithless to everyone else, keeping no treaty one hour past the moment it stops paying. Her rite is small and exact: take a coin or a cup by force or by trick, toast her name loud enough that the one you took it from can hear, and drop the prize into deep water as her share, since everything is finally hers. What should trouble the neighbours is not the raiding but the goddess behind it. Besmara was no god once, only a spirit of the water that could call the sea's monsters up from below; she climbed to divinity by making war on the spirits of battle and gold and wood and swallowing them whole, and she has never stopped being hungry -- she hunts smaller gods still, looking for the next to absorb. In a shattered age crowded with half-made and nascent powers, that is no idle flag to fly, and the house that flies it has picked, knowingly, the side of the thing that eats the others.",
+			Description = "House %noblehousename% flies Besmara's colours, the Pirate Queen, the Sea Banshee, Sailor's Doom - and lives every day in breach of her first and plainest law. She commands her own to never settle on land, to keep faith with captain and crew above all, and to take whatever is not lashed down; and here the house sits, behind stone walls, holding ground, apostate from the hour it laid the first foundation. They square it the only way the creed leaves open. They do not govern the land so much as raid it from a fortress that might as well have run aground - loyal absolutely to their own, faithless to everyone else, keeping no treaty one hour past the moment it stops paying. Her rite is small and exact: take a coin or a cup by force or by trick, toast her name loud enough that the one you took it from can hear, and drop the prize into deep water as her share, since everything is finally hers. What should trouble the neighbours is not the raiding but the goddess behind it. Besmara was no god once, only a spirit of the water that could call the sea's monsters up from below; she climbed to divinity by making war on the spirits of battle and gold and wood and swallowing them whole, and she has never stopped being hungry - she hunts smaller gods still, looking for the next to absorb. In a shattered age crowded with half-made and nascent powers, that is no idle flag to fly, and the house that flies it has picked, knowingly, the side of the thing that eats the others.",
 			Mottos = [
-				"Never settle on land -- and yet",
+				"Never settle on land - and yet",
 				"Faith to captain and crew, first and last",
 				"We do not hold the land, only bleed it",
 				"Apostates since the first foundation stone",
@@ -529,13 +514,13 @@ try {
 				"The Pirate Queen eats smaller gods"
 			]
 		},
-		{	// NOCTICULA -- The Redeemer Queen. CN. Dagger. Artists, exiles, midnight. Symbol:
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.ManOfThePeople
 			],
-			Description = "House %noblehousename% keeps Nocticula, the Redeemer Queen, who was a demon lord of murder and assassins for an age of the world and then did the thing no demon had ever done -- put it down, and walked out, and took up the exiles and the artists instead. Her rite is an hour making something beautiful, alone, at midnight. From %factionfortressname% they take in whoever the other houses have cast out, and they do not talk about what any of them were before, because she of all powers has earned the right not to ask.",
+			Description = "House %noblehousename% keeps Nocticula, the Redeemer Queen, who was a demon lord of murder and assassins for an age of the world and then did the thing no demon had ever done - put it down, and walked out, and took up the exiles and the artists instead. Her rite is an hour making something beautiful, alone, at midnight. From %factionfortressname% they take in whoever the other houses have cast out, and they do not talk about what any of them were before, because she of all powers has earned the right not to ask.",
 			Mottos = [
 				"She put it down and walked out",
 				"The Redeemer Queen does not ask what you were",
@@ -545,7 +530,7 @@ try {
 				"Come as you are now"
 			]
 		},
-		{	// GHLAUNDER -- The Gossamer King. CE. Spear. Infection, parasites, stagnation.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Marauder,
@@ -561,13 +546,13 @@ try {
 				"And more"
 			]
 		},
-		{	// GYRONNA -- The Angry Hag. CE. Dagger. Extortion, hatred, spite. Symbol: bloodshot
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.Warmonger
 			],
-			Description = "House %noblehousename% serves Gyronna, the Angry Hag, goddess of the grudge that never cools, worshipped by scorned women and bitter men at a single bloodshot eye scratched into a standing stone. Her rite is to spend an hour making one chosen life measurably worse -- ruin the crop, foul the medicine, lose the loan money -- then make sure the victim knows exactly who did it, and name a price to make it stop that does not have to be fair. From %factionfortressname% everything is for sale, especially mercy, and the rate is whatever hurts most.",
+			Description = "House %noblehousename% serves Gyronna, the Angry Hag, goddess of the grudge that never cools, worshipped by scorned women and bitter men at a single bloodshot eye scratched into a standing stone. Her rite is to spend an hour making one chosen life measurably worse - ruin the crop, foul the medicine, lose the loan money - then make sure the victim knows exactly who did it, and name a price to make it stop that does not have to be fair. From %factionfortressname% everything is for sale, especially mercy, and the rate is whatever hurts most.",
 			Mottos = [
 				"Especially mercy",
 				"The price need not be fair",
@@ -578,13 +563,13 @@ try {
 			]
 		}
 ,
-		{	// MAMMON -- The Argent Prince. LE. Shortspear. Avarice, watchfulness, wealth.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Collector,
 				::Const.FactionTrait.Tyrant
 			],
-			Description = "House %noblehousename% serves Mammon, the Argent Prince, who was a champion of Hell before avarice ate him hollow and left him a beautiful corpse in a diamond coffin at the centre of a vault nobody is permitted to spend. His rite is to shake a purse and account aloud for every coin in it -- earned, stolen, however it came -- then lay the coins in a pentagram on a mirror. From %factionfortressname% they keep the most exacting books in the world, and they will remind you that the Argent Prince watches his wealth even in death, and never once blinks.",
+			Description = "House %noblehousename% serves Mammon, the Argent Prince, who was a champion of Hell before avarice ate him hollow and left him a beautiful corpse in a diamond coffin at the centre of a vault nobody is permitted to spend. His rite is to shake a purse and account aloud for every coin in it - earned, stolen, however it came - then lay the coins in a pentagram on a mirror. From %factionfortressname% they keep the most exacting books in the world, and they will remind you that the Argent Prince watches his wealth even in death, and never once blinks.",
 			Mottos = [
 				"He watches it even in death",
 				"Account for every coin",
@@ -594,13 +579,13 @@ try {
 				"The books are exact"
 			]
 		},
-		{	// BELIAL -- The Pale Kiss / Duke of Many Forms / Lord of the Fourth. LE archdevil,
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.Tyrant
 			],
-			Description = "House %noblehousename% belongs to Belial, the Pale Kiss, the Duke of Many Forms, Lord of the Fourth -- and to know the house you must know how he was made. Before the great betrayal Asmodeus set out to build the most desirable being in all creation, and his first attempt, a thing that reshaped itself into the deepest wish of everyone who looked at it, came out a heaving insane horror he keeps locked away to this day. He tried again, and gave the second the power to command its own shape and a tongue that could talk anyone into anything, and named that success Belial. So the Duke of Many Forms is desire itself given control of its own face: he shifts form and species and gender to become whatever the one before him most wants, and leaves half-fiend children of every description behind him wherever he has been. His true shape no one but Asmodeus has seen; the face he wears among the other archdevils is split down the middle, one half shining and angelic, the other scarred and malformed as the ugliest thing in Hell. His rite fouls clean water with thirteen drops of the body, holds in the mind the single most desirable thing imaginable, and drinks the ruined cup to the bottom. From %factionfortressname% the envoys are charming, and beautiful, and never once the same face twice -- because that is precisely what their master is -- and every arrangement they offer is generous, and every one of them costs you something you did not know you had agreed to put on the table, for the house serves the god who becomes your wish in order to own you by it.",
+			Description = "House %noblehousename% belongs to Belial, the Pale Kiss, the Duke of Many Forms, Lord of the Fourth - and to know the house you must know how he was made. Before the great betrayal Asmodeus set out to build the most desirable being in all creation, and his first attempt, a thing that reshaped itself into the deepest wish of everyone who looked at it, came out a heaving insane horror he keeps locked away to this day. He tried again, and gave the second the power to command its own shape and a tongue that could talk anyone into anything, and named that success Belial. So the Duke of Many Forms is desire itself given control of its own face: he shifts form and species and gender to become whatever the one before him most wants, and leaves half-fiend children of every description behind him wherever he has been. His true shape no one but Asmodeus has seen; the face he wears among the other archdevils is split down the middle, one half shining and angelic, the other scarred and malformed as the ugliest thing in Hell. His rite fouls clean water with thirteen drops of the body, holds in the mind the single most desirable thing imaginable, and drinks the ruined cup to the bottom. From %factionfortressname% the envoys are charming, and beautiful, and never once the same face twice - because that is precisely what their master is - and every arrangement they offer is generous, and every one of them costs you something you did not know you had agreed to put on the table, for the house serves the god who becomes your wish in order to own you by it.",
 			Mottos = [
 				"He becomes your wish, then owns you by it",
 				"Never the same face twice",
@@ -610,7 +595,7 @@ try {
 				"You agreed to more than you knew"
 			]
 		},
-		{	// MAEHA -- The Father of False Words. LE. Net. Abduction, isolation, propaganda.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
@@ -626,7 +611,7 @@ try {
 				"Comfort, and poison"
 			]
 		},
-		{	// CHUGARRA -- The Guru of Butchers. LE. Handaxe. Blood, butchers, leather.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Collector,
@@ -643,8 +628,8 @@ try {
 			]
 		}
 ,
-		{	// ---- DAEMON HARBINGERS: Abaddon's advisor-daemons (all NE) ----
-			// AESDURATH -- The Pale Dowager. NE. Dagger. Immortality, liches, magical
+		{
+
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
@@ -660,7 +645,7 @@ try {
 				"Patiently, and forever"
 			]
 		},
-		{	// LAIVATINIEL -- The Chains and the Cradle. NE. Light crossbow. Anxiety, coddling,
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
@@ -676,7 +661,7 @@ try {
 				"Stay. Stay. Stay."
 			]
 		},
-		{	// SLANDRAIS -- The Watcher in the Walls. NE. Shortbow. Lechery, love potions,
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
@@ -693,14 +678,14 @@ try {
 			]
 		}
 ,
-		{	// ---- DEMON LORDS: the Abyssal aristocracy (all CE) ----
-			// BAPHOMET -- Lord of the Minotaurs. CE. Glaive. Beasts, labyrinths, minotaurs.
+		{
+
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.Tyrant
 			],
-			Description = "House %noblehousename% keeps Baphomet, Lord of the Minotaurs, demon of beasts and labyrinths and the mind that loses its own thread. His rite is to sit without moving for the better part of an hour and then speak fifty separate observations of the room around you into a hollowed bull's horn, so that the walls are numbered and cannot close on you. In %factionfortressname% the corridors do not go where you expect, the plan of the place is known to nobody living, and guests who wander are not always seen again -- which the house calls the god keeping what is his.",
+			Description = "House %noblehousename% keeps Baphomet, Lord of the Minotaurs, demon of beasts and labyrinths and the mind that loses its own thread. His rite is to sit without moving for the better part of an hour and then speak fifty separate observations of the room around you into a hollowed bull's horn, so that the walls are numbered and cannot close on you. In %factionfortressname% the corridors do not go where you expect, the plan of the place is known to nobody living, and guests who wander are not always seen again - which the house calls the god keeping what is his.",
 			Mottos = [
 				"The god keeps what is his",
 				"Number the walls before they close",
@@ -710,7 +695,7 @@ try {
 				"Some guests wander"
 			]
 		},
-		{	// DESKARI -- Lord of the Locust Host. CE. Scythe. Chasms, infestations, locusts.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Marauder,
@@ -726,7 +711,7 @@ try {
 				"The wells taste of something now"
 			]
 		},
-		{	// MESTAMA -- The Mother of Witches. CE. Punching dagger. Cruelty, deception, hags.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
@@ -742,13 +727,13 @@ try {
 				"Every coven, one purpose"
 			]
 		},
-		{	// NOCTICULA (ELDER) -- Our Lady in Shadow. CE. Hand crossbow. Assassins, darkness,
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.Marauder
 			],
-			Description = "House %noblehousename% keeps Nocticula as she was before she climbed out of it -- Our Lady in Shadow, demon of assassins and darkness and appetite, and every murder done unseen. Her rite mixes drugged visions, the acts of the body, and a pint of shed blood into one long dark hour. From %factionfortressname% the killers go out quiet and come back quieter, and somewhere on the same map, if the world has dealt it so, another house keeps the queen she managed to become -- and neither the Lady in Shadow nor the Redeemer will say which of them is the lie.",
+			Description = "House %noblehousename% keeps Nocticula as she was before she climbed out of it - Our Lady in Shadow, demon of assassins and darkness and appetite, and every murder done unseen. Her rite mixes drugged visions, the acts of the body, and a pint of shed blood into one long dark hour. From %factionfortressname% the killers go out quiet and come back quieter, and somewhere on the same map, if the world has dealt it so, another house keeps the queen she managed to become - and neither the Lady in Shadow nor the Redeemer will say which of them is the lie.",
 			Mottos = [
 				"Which of them is the lie",
 				"Our Lady in Shadow was here first",
@@ -758,13 +743,13 @@ try {
 				"She became something. This is what she left."
 			]
 		},
-		{	// ORCUS -- Prince of Undeath. CE. Heavy mace. Death, necromancy, wrath. Symbol:
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Tyrant,
 				::Const.FactionTrait.Warmonger
 			],
-			Description = "House %noblehousename% is sworn to Orcus, Prince of Undeath, demon of death and necromancy and the wrath that outlives the body. His rite grinds half a pound of bone from a thinking creature's skeleton, stirs it to grey paste with water, and eats it at the end of an hour's prayer. From %factionfortressname% the dead do not stay down and are not meant to -- they hold the walls, work the fields, and fill the ranks, and the living of the house are outnumbered by their own ancestors, which they consider only proper.",
+			Description = "House %noblehousename% is sworn to Orcus, Prince of Undeath, demon of death and necromancy and the wrath that outlives the body. His rite grinds half a pound of bone from a thinking creature's skeleton, stirs it to grey paste with water, and eats it at the end of an hour's prayer. From %factionfortressname% the dead do not stay down and are not meant to - they hold the walls, work the fields, and fill the ranks, and the living of the house are outnumbered by their own ancestors, which they consider only proper.",
 			Mottos = [
 				"Outnumbered by their own ancestors",
 				"The dead do not stay down",
@@ -774,13 +759,13 @@ try {
 				"Which they consider only proper"
 			]
 		},
-		{	// XOVERON -- The Horned Prince. CE. Ranseur. Gargoyles, gluttony, ruins. Symbol:
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.Tyrant
 			],
-			Description = "House %noblehousename% keeps Xoveron, the Horned Prince, demon of gargoyles and gluttony and the slow patience of ruins. His rite is to perch high over the land and hold perfectly still for an hour -- and in a town, where a watcher might be noticed, anyone who realises the gargoyle is alive must be dead before the hour is out. From %factionfortressname% they hold the high broken places nobody else wants, they wait without any sign of impatience, and they are always, always looking down at you.",
+			Description = "House %noblehousename% keeps Xoveron, the Horned Prince, demon of gargoyles and gluttony and the slow patience of ruins. His rite is to perch high over the land and hold perfectly still for an hour - and in a town, where a watcher might be noticed, anyone who realises the gargoyle is alive must be dead before the hour is out. From %factionfortressname% they hold the high broken places nobody else wants, they wait without any sign of impatience, and they are always, always looking down at you.",
 			Mottos = [
 				"Always looking down at you",
 				"The Horned Prince does not hurry",
@@ -791,8 +776,8 @@ try {
 			]
 		}
 ,
-		{	// ---- THE ELDEST: archfey lords of the First World ----
-			// THE LOST PRINCE -- The Melancholy Lord. N. Quarterstaff. Forgotten things,
+		{
+
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
@@ -808,7 +793,7 @@ try {
 				"Every memory, and then none"
 			]
 		},
-		{	// COUNT RANALC -- The Traitor. CN. Rapier. Betrayal, exiles, shadows. Symbol: eye
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
@@ -824,13 +809,13 @@ try {
 				"Nobody agrees the shape of it"
 			]
 		},
-		{	// THE LANTERN KING -- The Laughing Lie. CN. Dagger. Laughter, mischief,
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.Marauder
 			],
-			Description = "House %noblehousename% follows the Lantern King, the Laughing Lie, mightiest and least trustworthy of the Eldest, who finds the whole of creation funny and reserves the right to rearrange any part of it for a better joke. His rite is to light a small lantern and tell it a jest, or the tale of a prank you once played -- a new one every time, for he has heard the old ones. From %factionfortressname% the laughter carries a long way after dark, the envoys arrive wearing faces that are not their own, and nobody who has dealt with the house is entirely sure the deal has finished being funny.",
+			Description = "House %noblehousename% follows the Lantern King, the Laughing Lie, mightiest and least trustworthy of the Eldest, who finds the whole of creation funny and reserves the right to rearrange any part of it for a better joke. His rite is to light a small lantern and tell it a jest, or the tale of a prank you once played - a new one every time, for he has heard the old ones. From %factionfortressname% the laughter carries a long way after dark, the envoys arrive wearing faces that are not their own, and nobody who has dealt with the house is entirely sure the deal has finished being funny.",
 			Mottos = [
 				"Not sure the deal has finished being funny",
 				"A new joke every time",
@@ -841,14 +826,14 @@ try {
 			]
 		}
 ,
-		{	// ---- EMPYREAL LORDS: the celestial tier (good counterweight) ----
-			// NESHEN -- Knight of the Steel Lash. LG. Ranseur. Penitence, repentance,
+		{
+
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.ManOfThePeople
 			],
-			Description = "House %noblehousename% serves Neshen, the Knight of the Steel Lash, an angel of penitence who holds that a wrong is not undone by feeling sorry for it but by paying it back in full, in the open, where the wronged can see. His faithful keep the lash for their own backs and no one else's -- the suffering is owed, not inflicted -- and they will kneel in the square and name what they did before they ask any pardon. From %factionfortressname% they forgive freely and excuse nothing, least of all themselves.",
+			Description = "House %noblehousename% serves Neshen, the Knight of the Steel Lash, an angel of penitence who holds that a wrong is not undone by feeling sorry for it but by paying it back in full, in the open, where the wronged can see. His faithful keep the lash for their own backs and no one else's - the suffering is owed, not inflicted - and they will kneel in the square and name what they did before they ask any pardon. From %factionfortressname% they forgive freely and excuse nothing, least of all themselves.",
 			Mottos = [
 				"Pay it back in the open",
 				"The lash is for our own backs",
@@ -858,13 +843,13 @@ try {
 				"Sorry is not enough"
 			]
 		},
-		{	// RAGATHIEL -- General of Vengeance. LG. Bastard sword. Chivalry, duty, vengeance.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.Warmonger
 			],
-			Description = "House %noblehousename% swears to Ragathiel, the General of Vengeance, half-fiend son of a Horseman who chose the light and became an angel of wrath aimed only at the guilty. His rite requires a wrongdoer proven -- not merely evil-hearted but caught in the deed -- put to death in his name, and never one drop past what the crime is worth. From %factionfortressname% they hunt the deserving with terrible patience, take no innocent with the guilty, and hold that mercy and the sword are the same duty seen from two sides.",
+			Description = "House %noblehousename% swears to Ragathiel, the General of Vengeance, half-fiend son of a Horseman who chose the light and became an angel of wrath aimed only at the guilty. His rite requires a wrongdoer proven - not merely evil-hearted but caught in the deed - put to death in his name, and never one drop past what the crime is worth. From %factionfortressname% they hunt the deserving with terrible patience, take no innocent with the guilty, and hold that mercy and the sword are the same duty seen from two sides.",
 			Mottos = [
 				"Never past what the crime is worth",
 				"The guilty, and only the guilty",
@@ -874,7 +859,7 @@ try {
 				"Proven, then punished"
 			]
 		},
-		{	// SORALYON -- The Mystic Angel. NG. Heavy pick. Guardians, magic, monuments.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
@@ -890,7 +875,7 @@ try {
 				"Worth remembering"
 			]
 		},
-		{	// ASHAVA -- True Spark. CG. Bladed scarf. Dancers, lonely spirits, moonlight.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.ManOfThePeople,
@@ -906,13 +891,13 @@ try {
 				"For whoever is still out there"
 			]
 		},
-		{	// VALANI -- Fireshaker. CG. Club. Change, growth, primal forces. Symbol: volcano
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Marauder,
 				::Const.FactionTrait.ManOfThePeople
 			],
-			Description = "House %noblehousename% follows Valani, the Fireshaker, an azata of change and primal growth who teaches that nothing is ever truly lost, only turned into the next thing. His rite is to burn something of real worth, then roll in the cooling cinders to put out the last of it and grind the ash into the earth, so that the fire feeds what grows after. From %factionfortressname% they welcome the storm, plant in the burn-scar, and hold -- alone among the houses, and against everything the shattering seemed to prove -- that the world ending was only the world beginning again.",
+			Description = "House %noblehousename% follows Valani, the Fireshaker, an azata of change and primal growth who teaches that nothing is ever truly lost, only turned into the next thing. His rite is to burn something of real worth, then roll in the cooling cinders to put out the last of it and grind the ash into the earth, so that the fire feeds what grows after. From %factionfortressname% they welcome the storm, plant in the burn-scar, and hold - alone among the houses, and against everything the shattering seemed to prove - that the world ending was only the world beginning again.",
 			Mottos = [
 				"The world ending was the world beginning",
 				"Nothing is lost, only turned",
@@ -923,14 +908,14 @@ try {
 			]
 		}
 ,
-		{	// ---- Further fiends ----
-			// TREERAZER -- Lord of the Blasted Tarn. CE. Greataxe. Corruption of nature,
+		{
+
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Marauder,
 				::Const.FactionTrait.Tyrant
 			],
-			Description = "House %noblehousename% is sworn to Treerazer, the Lord of the Blasted Tarn, a demon squatting so long in one wood that the wood became him -- nature turned inside out, sap to poison, green to rot. His rite is to eat carrion riddled with hallucinogenic fungus and sit with the visions it brings. From %factionfortressname% the corruption spreads outward at the pace of a slow tide: the trees at the edge of their land die standing, the game comes back wrong, and the border can be found in the dark by the smell alone. They are not conquering the country. They are digesting it.",
+			Description = "House %noblehousename% is sworn to Treerazer, the Lord of the Blasted Tarn, a demon squatting so long in one wood that the wood became him - nature turned inside out, sap to poison, green to rot. His rite is to eat carrion riddled with hallucinogenic fungus and sit with the visions it brings. From %factionfortressname% the corruption spreads outward at the pace of a slow tide: the trees at the edge of their land die standing, the game comes back wrong, and the border can be found in the dark by the smell alone. They are not conquering the country. They are digesting it.",
 			Mottos = [
 				"They are digesting the country",
 				"Sap to poison, green to rot",
@@ -940,13 +925,13 @@ try {
 				"Not conquest. Digestion."
 			]
 		},
-		{	// NIGHTRIPPER -- The Promise of Pain. CE. Bastard sword. Botched executions, pits.
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.Tyrant
 			],
-			Description = "House %noblehousename% keeps Nightripper, the Promise of Pain, demon of the execution that goes wrong on purpose -- the drop that does not break the neck, the blade that stops halfway. Its rite is a patient series of cuts, breath held to the edge of blacking out between them. In %factionfortressname% there is a great deal of law and a great deal of sentencing, and the sentences are carried out slowly, in public, by people who are very good at making sure they take a long time, because the point was never the death.",
+			Description = "House %noblehousename% keeps Nightripper, the Promise of Pain, demon of the execution that goes wrong on purpose - the drop that does not break the neck, the blade that stops halfway. Its rite is a patient series of cuts, breath held to the edge of blacking out between them. In %factionfortressname% there is a great deal of law and a great deal of sentencing, and the sentences are carried out slowly, in public, by people who are very good at making sure they take a long time, because the point was never the death.",
 			Mottos = [
 				"The point was never the death",
 				"The drop that does not break the neck",
@@ -956,13 +941,13 @@ try {
 				"In public, and unhurried"
 			]
 		},
-		{	// NERGAL -- The Slow Death. LE. Spiked chain. Atrocity, pestilence, war. Symbol: sun
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Warmonger,
 				::Const.FactionTrait.Tyrant
 			],
-			Description = "House %noblehousename% serves Nergal, the Slow Death, an infernal duke whose sign is the sun coming up over a field of the dead, and whose concern is atrocity done properly and filed in triplicate. War, to Nergal, is not fury -- it is administration, and plague is only a slower campaign. From %factionfortressname% they wage their wars like clerks: the burned village is a line in a ledger, the poisoned well a scheduled task, and every horror is somebody's assigned duty, discharged on time and without malice, which is the worst of it.",
+			Description = "House %noblehousename% serves Nergal, the Slow Death, an infernal duke whose sign is the sun coming up over a field of the dead, and whose concern is atrocity done properly and filed in triplicate. War, to Nergal, is not fury - it is administration, and plague is only a slower campaign. From %factionfortressname% they wage their wars like clerks: the burned village is a line in a ledger, the poisoned well a scheduled task, and every horror is somebody's assigned duty, discharged on time and without malice, which is the worst of it.",
 			Mottos = [
 				"Every horror is somebody's duty",
 				"War is administration",
@@ -972,13 +957,13 @@ try {
 				"Filed in triplicate"
 			]
 		},
-		{	// FURCAS -- Knight of the Laurels. LE. Trident. Duty, flames, herbalism. Symbol:
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.Tyrant
 			],
-			Description = "House %noblehousename% keeps Furcas, the Knight of the Laurels, an infernal duke of duty and flame who is also, of all things, a healer -- and whose cures come with terms. His rite mixes a herbal draught, drinks half, and burns the rest. From %factionfortressname% the sick are genuinely made well: the physicians are skilled, the medicine works, and the price is written into the recovery, so that a man walks out cured and finds himself, by degrees he never quite agreed to, belonging to the house that saved him.",
+			Description = "House %noblehousename% keeps Furcas, the Knight of the Laurels, an infernal duke of duty and flame who is also, of all things, a healer - and whose cures come with terms. His rite mixes a herbal draught, drinks half, and burns the rest. From %factionfortressname% the sick are genuinely made well: the physicians are skilled, the medicine works, and the price is written into the recovery, so that a man walks out cured and finds himself, by degrees he never quite agreed to, belonging to the house that saved him.",
 			Mottos = [
 				"Cured, and accounted for",
 				"The medicine works. So do the terms.",
@@ -988,7 +973,7 @@ try {
 				"By degrees you never quite agreed to"
 			]
 		},
-		{	// MURNATH -- The Horned Rat. CE. Short sword. Rats, sewers. Symbol: horned rat with
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Collector,
@@ -1005,14 +990,14 @@ try {
 			]
 		}
 ,
-		{	// ---- MONITORS: outsiders of pure alignment ----
-			// KERKAMOTH -- The Waiting Void. LN. Warhammer. Emptiness, entropy, stillness.
+		{
+
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Sheriff,
 				::Const.FactionTrait.Collector
 			],
-			Description = "House %noblehousename% keeps Kerkamoth, the Waiting Void, an inevitable of stillness and entropy who is not cruel and not in any hurry, because everything comes to him in the end regardless. His rite is to take a cluttered place and empty it -- clear out half of everything, to keep or give or destroy, until what remains can be seen whole. From %factionfortressname% they govern by subtraction: fewer laws, fewer courtiers, fewer possessions each year, on the principle that the world is quietly returning to the empty and the wise meet it halfway.",
+			Description = "House %noblehousename% keeps Kerkamoth, the Waiting Void, an inevitable of stillness and entropy who is not cruel and not in any hurry, because everything comes to him in the end regardless. His rite is to take a cluttered place and empty it - clear out half of everything, to keep or give or destroy, until what remains can be seen whole. From %factionfortressname% they govern by subtraction: fewer laws, fewer courtiers, fewer possessions each year, on the principle that the world is quietly returning to the empty and the wise meet it halfway.",
 			Mottos = [
 				"Govern by subtraction",
 				"Everything comes to him regardless",
@@ -1022,13 +1007,13 @@ try {
 				"Clear it until it can be seen whole"
 			]
 		},
-		{	// NARRISEMINEK -- The Crownless, the Maker of Kings. CN. Handaxe. Ascendance,
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.ManOfThePeople
 			],
-			Description = "House %noblehousename% follows Narriseminek, the Crownless, the Maker of Kings, a protean of pure chaos and revelation who raises others to thrones and wears no crown of their own. Their rite is to stand inside a ring of fire and chant until it burns down to coals. From %factionfortressname% they crown and counsel and elevate, put other houses' heirs on other houses' seats and whisper the future in their ears, and hold nothing in their own name -- which makes them, in a shattered age hungry for a king, quietly the most dangerous house on the map.",
+			Description = "House %noblehousename% follows Narriseminek, the Crownless, the Maker of Kings, a protean of pure chaos and revelation who raises others to thrones and wears no crown of their own. Their rite is to stand inside a ring of fire and chant until it burns down to coals. From %factionfortressname% they crown and counsel and elevate, put other houses' heirs on other houses' seats and whisper the future in their ears, and hold nothing in their own name - which makes them, in a shattered age hungry for a king, quietly the most dangerous house on the map.",
 			Mottos = [
 				"He makes kings and wears no crown",
 				"We hold nothing in our own name",
@@ -1038,13 +1023,13 @@ try {
 				"Someone must make the king"
 			]
 		},
-		{	// PHLEGYAS -- The Consoler of Atheists. N. Longbow. Atheists, legacies,
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.ManOfThePeople,
 				::Const.FactionTrait.Collector
 			],
-			Description = "House %noblehousename% keeps Phlegyas, the Consoler of Atheists, an usher of the dead who tends especially to those who died believing in nothing at all, and asks only that the living make something lasting of them. His rite is an hour spent turning the dead into a thing that endures -- a ring woven from a loved one's hair, a name cut in stone, a law written to outlast its author. From %factionfortressname% they keep the memory of everyone who mattered and much of what they built, and hold that a person is not truly gone while the work still stands.",
+			Description = "House %noblehousename% keeps Phlegyas, the Consoler of Atheists, an usher of the dead who tends especially to those who died believing in nothing at all, and asks only that the living make something lasting of them. His rite is an hour spent turning the dead into a thing that endures - a ring woven from a loved one's hair, a name cut in stone, a law written to outlast its author. From %factionfortressname% they keep the memory of everyone who mattered and much of what they built, and hold that a person is not truly gone while the work still stands.",
 			Mottos = [
 				"Not gone while the work still stands",
 				"He consoles those who believed in nothing",
@@ -1055,20 +1040,20 @@ try {
 			]
 		}
 ,
-		{	// VEVELOR of the Broken Dream -- velstrac demagogue, demigod. LE. Whip. Illusion of
+		{
 			Traits = [
 				::Const.FactionTrait.NobleHouse,
 				::Const.FactionTrait.Schemer,
 				::Const.FactionTrait.ManOfThePeople
 			],
-			Description = "House %noblehousename% keeps Vevelor of the Broken Dream, a velstrac demagogue older than the shadow-kind's exile from Hell, whose realm of Cliffgrip sits at the lip of the same chasm the Midnight Lord climbed out of -- for Vevelor is Zon-Kuthon's neighbour, and his heretic. Where the Midnight Lord preaches an honest joy in servitude, Vevelor preaches freedom: he was mortal once and chose to be remade, and he will show you the path to your own perfection whether or not you ever asked to see it. His symbol is a broken chain, and that is the whole trick of him, because his concern is not freedom but the illusion of it -- the convert walks in believing they are casting off every bond and walks out having chosen, freely and gratefully, a heavier one. His rite is a wound taken willingly and dwelt in, the pain named aloud as a door rather than a hurt, until the flesh agrees. From %factionfortressname% they speak the language of liberation to everyone the age has broken -- the dispossessed, the enslaved, the ruined -- and they mean by it the exact opposite of what is heard, and where their preaching runs up against a house that keeps the Midnight Lord straight, the two cults of the shadow loathe each other with the particular venom kept only for a heresy, for they use the same needles and the same dark and cannot agree what any of it is for.",
+			Description = "House %noblehousename% keeps Vevelor of the Broken Dream, a velstrac demagogue older than the shadow-kind's exile from Hell, whose realm of Cliffgrip sits at the lip of the same chasm the Midnight Lord climbed out of - for Vevelor is Zon-Kuthon's neighbour, and his heretic. Where the Midnight Lord preaches an honest joy in servitude, Vevelor preaches freedom: he was mortal once and chose to be remade, and he will show you the path to your own perfection whether or not you ever asked to see it. His symbol is a broken chain, and that is the whole trick of him, because his concern is not freedom but the illusion of it - the convert walks in believing they are casting off every bond and walks out having chosen, freely and gratefully, a heavier one. His rite is a wound taken willingly and dwelt in, the pain named aloud as a door rather than a hurt, until the flesh agrees. From %factionfortressname% they speak the language of liberation to everyone the age has broken - the dispossessed, the enslaved, the ruined - and they mean by it the exact opposite of what is heard, and where their preaching runs up against a house that keeps the Midnight Lord straight, the two cults of the shadow loathe each other with the particular venom kept only for a heresy, for they use the same needles and the same dark and cannot agree what any of it is for.",
 			Mottos = [
 				"Freedom is the trick, not the offer",
 				"You will choose a heavier chain, and thank us",
 				"The Midnight Lord's neighbour, and his heretic",
 				"We speak liberation and mean its opposite",
 				"The broken chain is the whole of it",
-				"The same needles -- a different lie"
+				"The same needles - a different lie"
 			]
 		}
 	]

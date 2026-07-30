@@ -1,27 +1,3 @@
-// ============================================================================
-//  tactical.skv_ruin_floor -- a stone floor to fight on indoors.
-//
-//  WHY THIS EXISTS. Legends' "tactical.legend_cave" is the right LOOK for a fight
-//  inside a building -- dark stone, rubble, bones -- but it walls its arena by
-//  brute force:
-//
-//      if (d > 8 && x > (_rect.X / 4)) tile.Level = 4;
-//
-//  Every tile more than eight from the centre is raised to level FOUR, which is a
-//  cliff. In a cave that is the cave. In a monastery cell it is a thirty-foot
-//  escarpment through the middle of the wolf den, and it hands whichever side
-//  starts on top a height advantage nobody chose.
-//
-//  So: the same floor, the same patches, no cliff. Impassable borders still close
-//  the arena (that is what walls are), and the ground inside stays level, which is
-//  what a flagged floor is.
-//
-//  ⚠ "tactical.ruins" is NOT a terrain template -- it lives under
-//  mapgen/templates/tactical/locations/ and expects _properties.ShiftX, so passing
-//  it as TerrainTemplate throws "the index 'ShiftX' does not exist" in
-//  tactical_ruins.fill and takes the whole battle down with it. Locations go in
-//  LocationTemplate.Template[0]; only real terrain goes in TerrainTemplate.
-// ============================================================================
 this.tactical_skv_ruin_floor <- this.inherit("scripts/mapgen/tactical_template", {
 	m = {},
 
@@ -40,19 +16,6 @@ this.tactical_skv_ruin_floor <- this.inherit("scripts/mapgen/tactical_template",
 
 		this.addRoads(_rect, _properties);
 
-		// A ruin should be FULL of what fell off it -- but MORE patches means more
-		// chances to hit the one failure mode this whole family of templates has:
-		//
-		//   ⚠ A PATCH CAN DRAW OUTSIDE THE RECT IT IS GIVEN. patch_stone_circle lays a
-		//   ring by offsetting from its own centre, and near an edge those offsets run
-		//   off the map -- getTileSquare returns null and the fill throws "trying to
-		//   set 'null'", taking the battle down during initMap. Legends' cave template
-		//   has the same hole; it only survives because it rolls that patch at 10%.
-		//
-		// So: a margin of four tiles on every side, kept clear of the border, and the
-		// ring patch dropped entirely -- stone_sea and the cave patch give the same
-		// rubble without reaching outside themselves. And each fill is wrapped, because
-		// no cosmetic is worth a crash on the loading screen.
 		local templates = [];
 		local mainPatch = this.MapGen.get("tactical.patch.legend_cave");
 		local clearingPatch = this.MapGen.get("tactical.patch.bones");
@@ -101,12 +64,10 @@ this.tactical_skv_ruin_floor <- this.inherit("scripts/mapgen/tactical_template",
 			}
 			catch (e)
 			{
-				::logError("skv_ruin_floor: patch failed, skipped -- " + e);
+				::logError("skv_ruin_floor: patch failed, skipped - " + e);
 			}
 		}
 
-		// The floor. NO tile.Level is touched anywhere in here -- that is the whole
-		// point of the file.
 		for( local x = _rect.X; x < _rect.X + _rect.W; x = ++x )
 		{
 			for( local y = _rect.Y; y < _rect.Y + _rect.H; y = ++y )

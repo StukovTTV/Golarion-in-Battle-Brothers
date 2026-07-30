@@ -534,7 +534,7 @@ if (!("Skv" in ::getroottable()))
 	Types = [
 		"contract.skv_azari", "contract.skv_ambush", "contract.skv_metringer", "contract.skv_black_forks",
 		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing",
-		"contract.skv_carthica", "contract.skv_hollows"
+		"contract.skv_carthica", "contract.skv_hollows", "contract.skv_anvil"
 	],
 
 	function isMine( _type )
@@ -684,12 +684,15 @@ if (!("Skv" in ::getroottable()))
 		{
 			if (m.Home != null && !m.Home.isNull())
 			{
-				local a = m.Home.getPos();
-				local b = ::World.State.getPlayer().getPos();
-				d = ::Math.sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+
+				d = m.Home.getDistanceTo(::World.State.getPlayer());
 			}
 		}
-		catch (e) { d = -2; }
+		catch (e)
+		{
+			::logError("Skv.hollows: distance failed - " + e);
+			d = -2;
+		}
 
 		::logInfo("== Skv.Hollows ==");
 		::logInfo("  state=" + c.getState() + "  reported=" + m.Reported + "  failed=" + m.Failed);
@@ -748,9 +751,12 @@ if (!("Skv" in ::getroottable()))
 	stash.makeEmptySlots(1);
 	stash.add(item);
 
+	local mw = "n/a";
+	try { mw = item.isMasterwork() ? "true" : "false"; } catch (e) { mw = "n/a"; }
+
 	::logInfo("Skv.ench: " + item.getName() + "  value=" + item.getValue()
 		+ "  enchant=" + ::GolarionEnchant.get(item)
-		+ "  masterwork=" + (("isMasterwork" in item) ? item.isMasterwork() : "n/a"));
+		+ "  masterwork=" + mw);
 	return item;
 };
 
@@ -764,6 +770,195 @@ if (!("Skv" in ::getroottable()))
 	}
 	::logInfo("Skv.ench: seven copies of " + _path + " are in the stash.");
 	return true;
+};
+
+::Skv.Anvil <- {
+	Key     = "MasterOfTheAnvil",
+	Flag    = "SkvAnvil.NextDay",
+	Type    = "contract.skv_anvil",
+	Forges  = ["building.weaponsmith", "building.armorsmith",
+	           "building.weaponsmith_oriental", "building.armorsmith_oriental"],
+
+	function noblesAware()
+	{
+		try
+		{
+			local a = ::World.Ambitions.getAmbition("ambition.make_nobles_aware");
+			return a != null && a.isDone();
+		}
+		catch (e) { ::logError("Skv.anvil: make_nobles_aware lookup threw - " + e); }
+		return false;
+	}
+
+	function hasForge( _s )
+	{
+		foreach (b in this.Forges)
+		{
+			try { if (_s.hasBuilding(b)) return true; }
+			catch (e) { ::logError("Skv.anvil: hasBuilding('" + b + "') threw - " + e); }
+		}
+		return false;
+	}
+
+	function survey()
+	{
+		local out = [];
+
+		local p = ::World.State.getPlayer().getTile();
+
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			if (!this.hasForge(s)) continue;
+
+			local d = s.getTile().getDistanceTo(p);
+
+			local mil = false;
+			try { mil = s.isMilitary(); }
+			catch (e) { ::logError("Skv.anvil: isMilitary threw at " + s.getName() + " - " + e); }
+
+			local why = null;
+			if (s.isIsolated()) why = "isolated";
+			else if (mil && !::Skv.Anvil.noblesAware())
+				why = "military - waiting on the make_nobles_aware ambition";
+			else
+			{
+				local f = ::World.FactionManager.getFaction(s.getFaction());
+
+				local ready = false;
+				try
+				{
+					ready = f.getType() == ::Const.FactionType.Settlement
+						? f.isReadyForContract(::Const.Contracts.ContractCategoryMap.skv_anvil_contract)
+						: f.isReadyForContract();
+				}
+				catch (e) { ::logError("Skv.anvil: isReadyForContract threw at " + s.getName() + " - " + e); }
+				if (!ready) why = "no free Economy/Wildcard slot (or on contract cooldown)";
+			}
+
+			out.push({ S = s, D = d, Why = why, Mil = mil, Size = s.getSize() });
+		}
+		out.sort(@(x, y) x.D <=> y.D);
+		return out;
+	}
+
+	function live()
+	{
+		foreach (s in ::World.EntityManager.getSettlements())
+			foreach (k in s.getContracts())
+				if (k.getType() == this.Type) return { C = k, S = s };
+		return null;
+	}
+};
+
+::skvanvil <- function ( _force = false )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.anvil: not in a campaign.");
+		return null;
+	}
+	if (!("GolarionEnchant" in ::getroottable()))
+	{
+		::logInfo("Skv.anvil: the enhancement config is not loaded - the config chain died earlier.");
+		return null;
+	}
+
+	local A = ::Skv.Anvil;
+
+	if (_force)
+	{
+
+		if (::GolarionEnchant.findMostDamaged() == null)
+		{
+			local it = ::skvench("scripts/items/weapons/longsword", 2);
+			if (it != null)
+			{
+				it.setCondition(::Math.floor(it.getConditionMax() * 0.35));
+				::logInfo("Skv.anvil: seeded " + it.getName() + " at "
+					+ it.getCondition() + "/" + it.getConditionMax() + " condition.");
+			}
+		}
+
+		::World.Flags.remove(A.Flag);
+		::Skv.Once.release(A.Key);
+	}
+
+	local day  = ::World.getTime().Days;
+	local next = ::World.Flags.has(A.Flag) ? ::World.Flags.get(A.Flag) : null;
+	local worst = ::GolarionEnchant.findMostDamaged();
+	local sites = A.survey();
+	local open  = [];
+	foreach (e in sites) if (e.Why == null) open.push(e);
+	local existing = A.live();
+
+	::logInfo("== Skv.Anvil ==");
+	::logInfo("  day=" + day + "  cooldown=" + (next == null ? "not set" : "until day " + next
+		+ (day < next ? "  << BLOCKING (" + (next - day) + "d)" : "  (expired)")));
+	::logInfo("  once-lock=" + (::Skv.Once.isLocked(A.Key) ? "LOCKED << BLOCKING" : "free")
+		+ "  score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : ""));
+	::logInfo("  worst enhanced item = " + (worst == null
+		? "NONE << BLOCKING (nothing damaged and enhanced in roster or stash)"
+		: worst.getName() + "  condition " + worst.getCondition() + "/" + worst.getConditionMax()
+			+ "  fee " + ::Math.floor(worst.getValue() * 0.5)));
+	local civ = 0;
+	local civOpen = 0;
+	foreach (e in sites)
+	{
+		if (!e.Mil) civ = civ + 1;
+		if (!e.Mil && e.Why == null) civOpen = civOpen + 1;
+	}
+
+	::logInfo("  forge towns = " + sites.len() + " (" + civ + " civilian, " + (sites.len() - civ)
+		+ " military), of which " + open.len() + " can take a contract now (" + civOpen + " civilian)");
+	::logInfo("  make_nobles_aware = " + (A.noblesAware() ? "DONE (military boards open too)"
+		: "not done (military boards closed to this contract)"));
+	if (civ == 0)
+		::logInfo("  ⚠ NO CIVILIAN FORGE TOWN EXISTS IN THIS WORLD - the contract cannot post at all.");
+	else if (civOpen == 0)
+		::logInfo("  ⚠ Every civilian forge town has a full board right now. Normal on a fresh world"
+			+ " (civilian boards seed full, military ones do not); slots churn as contracts are taken.");
+	foreach (e in sites)
+		::logInfo("    " + (e.Why == null ? "OK  " : "--  ") + e.S.getName()
+			+ "  " + e.D + " tiles  size " + e.Size + (e.Mil ? "  MILITARY" : "  civilian")
+			+ (e.Why == null ? "" : "  [" + e.Why + "]"));
+	::logInfo("  live copy = " + (existing == null ? "none" : "at " + existing.S.getName()));
+
+	if (!_force)
+	{
+		return existing == null ? null : existing.C;
+	}
+
+	if (existing != null)
+	{
+		::logInfo("Skv.anvil: already posted at " + existing.S.getName() + " - not posting a second.");
+		return existing.C;
+	}
+	if (open.len() == 0)
+	{
+		::logInfo("Skv.anvil: no town can take it. Clear a contract from a forge town's board and retry.");
+		return null;
+	}
+
+	local s = open[0].S;
+	local f = ::World.FactionManager.getFaction(s.getFaction());
+
+	::Skv.Once.claim(A.Key);
+	local c = ::new("scripts/contracts/contracts/skv_anvil_contract");
+	c.setFaction(f.getID());
+	c.setHome(s);
+	c.setEmployerID(f.getRandomCharacter().getID());
+	::World.Contracts.addContract(c);
+
+	local posted = A.live();
+	if (posted == null)
+	{
+		::Skv.Once.release(A.Key);
+		::logError("Skv.anvil: addContract accepted nothing - Legends dropped it on the category slots.");
+		return null;
+	}
+
+	::logInfo("Skv.anvil: posted at " + posted.S.getName() + ", " + open[0].D + " tiles away.");
+	return posted.C;
 };
 
 ::skvitem <- function ( _path = null )

@@ -55,7 +55,7 @@
 			}
 			catch (e)
 			{
-				::Skv.dbg("Skv.kobold: scale failed on '" + layer + "' -- " + e);
+				::Skv.dbg("Skv.kobold: scale failed on '" + layer + "' - " + e);
 			}
 		}
 	}
@@ -63,7 +63,7 @@
 	local tint = _tint;
 	if (tint == null)
 	{
-		::Skv.dbg("Skv.kobold: no tint was passed in -- the caller could not make one");
+		::Skv.dbg("Skv.kobold: no tint was passed in - the caller could not make one");
 	}
 
 	foreach (layer in ["body", "head"])
@@ -84,7 +84,7 @@
 		}
 		catch (e)
 		{
-			::Skv.dbg("Skv.kobold: tint failed on '" + layer + "' -- " + e);
+			::Skv.dbg("Skv.kobold: tint failed on '" + layer + "' - " + e);
 		}
 	}
 };

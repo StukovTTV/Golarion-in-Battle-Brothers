@@ -53,12 +53,13 @@
 }
 
 ::GolarionEnchant.get <- function ( _item ) {
-	if (_item == null || !("getEnchant" in _item))
+	if (_item == null)
 		return 0;
-	return _item.getEnchant();
+	try { return _item.getEnchant(); }
+	catch (e) { return 0; }
 }
 
-::GolarionEnchant.repairMostDamaged <- function () {
+::GolarionEnchant.findMostDamaged <- function () {
 	local candidates = [];
 
 	foreach ( bro in ::World.getPlayerRoster().getAll() ) {
@@ -93,7 +94,13 @@
 			worst = item;
 		}
 	}
+	return worst;
+}
 
+::GolarionEnchant.repairMostDamaged <- function () {
+	local worst = ::GolarionEnchant.findMostDamaged();
+	if (worst == null)
+		return null;
 	worst.setCondition(worst.getConditionMax());
 	return worst;
 }

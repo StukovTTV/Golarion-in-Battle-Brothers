@@ -10,6 +10,39 @@ All notable changes to **Golarion Localization** are recorded here. The format l
   are in place, but the categories themselves — and the contract-display cap that keeps the noticeboard
   within its slot limit — are not yet wired up.
 
+## [0.95] - playtest
+
+Adds the mod's first repeatable contract, and with it the only answer in the world to a broken magic weapon.
+
+### Contracts
+- **Master of the Anvil** (contract #11, repeatable, Economy). An enhanced weapon cannot be taken to an
+  ordinary armourer, so a masterwork blade that has been fought with is a blade on its way to being scrap.
+  One smith is willing to try, and men have come to burn his forge down over it.
+
+  The job only exists **while something of yours is actually damaged**, and only in a settlement that has a
+  **weaponsmith or an armoursmith** (the southern forges count). Nothing on the board means nothing in your
+  stash needs mending.
+
+  A **one-skull fight** on the smith's doorstep, small enough to take with a young company and paid for up
+  front: the town hands you **100 crowns** to help the man defend himself. Who turns up is rolled fresh each
+  time, so the same contract is not the same fight twice, and the smith himself is only ever spoken of, never
+  a body on the field for you to lose.
+
+  Win, and you pay him **half the worth of the item** and he brings the worst-damaged enhanced piece in your
+  company back to full, whether it was on a brother's belt or buried in the stash. Lose, and the contract is
+  gone with no repair, and you have paid nothing but the butcher's bill.
+
+  Repeatable, but not a living: **one item per contract**, a fee that scales with what you are asking him to
+  save, and a **cooldown of thirty to forty-five days** before anyone will post it again. Only ever one copy
+  on offer in the world at a time.
+
+### Fixed
+- Carrying an enhanced weapon no longer breaks the **camp repair list**. The hook that hides unrepairable
+  magic from the repair building read the list in one shape and Legends hands it back in another.
+- Master of the Anvil no longer throws an error in the **southern city-states**. The job is posted there as
+  well as in the north, and the offer check was written for northern towns only, so any passing hour (camping
+  most visibly) tripped over it.
+
 ## [0.94] - playtest
 
 Adds the tenth contract: a plague village, a forest vale with three places to search, and an abandoned

@@ -1,16 +1,3 @@
-// ============================================================================
-//  THE DEN HUNT -- CONTRACT
-//
-//  Bounty on a location the contract did not create. Three consequences:
-//  1. Target is persistent -> serialized as a WeakTableRef; every read guards
-//     isNull() (a WeakTableRef does NOT keep the entity alive).
-//  2. The player can kill the Den without us, so completion is "the Den is dead,
-//     however that happened" -- update() watching !isAlive(), not a callback.
-//     setOnCombatWithPlayerCallback is deliberately NOT used: an unwarned Den
-//     sits at faction 0 (counts as allied), so no combat exists to hook.
-//  3. Everything done to the location is reversible and undone in onClear (claim
-//     flag, selection sprite). Never touches faction, IsVisited, or garrison.
-// ============================================================================
 this.skv_den_hunt_contract <- this.inherit("scripts/contracts/contract", {
 	m = {},
 
@@ -26,7 +13,6 @@ this.skv_den_hunt_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Name = "The Wolves of the Green";
 		this.m.TimeOut = this.World.getTime().SecondsPerDay * 14;
 
-		// Set directly: Legends' category-hook loop already ran and won't stamp ours.
 		this.m.Category = this.Const.Contracts.Categories.Legendary;
 
 		this.m.DescriptionTemplates = [
@@ -38,9 +24,7 @@ this.skv_den_hunt_contract <- this.inherit("scripts/contracts/contract", {
 
 	function start()
 	{
-		// Hand-set pay tier: top band (biggest fixed roster in the mod, named site).
-		// The large advance is the non-refundable floor that makes walking away a
-		// choice rather than a punishment.
+
 		this.m.DifficultyMult = this.Math.rand(150, 175) * 0.01;
 
 		this.m.Payment.Pool = 1500 * (this.Math.rand(70, 110) * 0.01)
@@ -51,10 +35,6 @@ this.skv_den_hunt_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Payment.Completion = 0.6;
 		this.m.Payment.Advance = 0.4;
 
-		// !! REQUIRED: the parent start() runs the state machine (setState("Offer")
-		// -> setScreen("Task") -> sets m.ActiveScreen). Skip chaining and the
-		// contract renders on the board but dies the instant you click it
-		// ("the index 'Text' does not exist"), taking the town screen down with it.
 		this.contract.start();
 	}
 
@@ -102,10 +82,11 @@ this.skv_den_hunt_contract <- this.inherit("scripts/contracts/contract", {
 					Text = "{Take the pay.}",
 					function getResult()
 					{
-						this.Contract.collectReward();
+
+						this.World.Assets.addMoney(this.Contract.m.Payment.getOnCompletion());
 						this.World.Assets.addBusinessReputation(this.Const.World.Assets.ReputationOnContractSuccess);
 						this.World.FactionManager.getFaction(this.Contract.getFaction()).addPlayerRelation(this.Const.World.Assets.RelationCivilianContractSuccess, "cleared the green");
-						this.Contract.finishActiveContract();
+						this.World.Contracts.finishActiveContract();
 						return 0;
 					}
 				}
@@ -131,8 +112,7 @@ this.skv_den_hunt_contract <- this.inherit("scripts/contracts/contract", {
 
 			function end()
 			{
-				// ACCEPT/reveal: lift the fog, claim it (IsEventLocation), discover
-				// it, fly the camera to it (stollwurms:497-501). onClear releases the claim.
+
 				if (this.Contract.m.Den != null && !this.Contract.m.Den.isNull())
 				{
 					local den = this.Contract.m.Den;
@@ -162,8 +142,7 @@ this.skv_den_hunt_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
-				// The only completion check; doesn't care how the Den died. isNull()
-				// first -- a WeakTableRef can go hollow before we look.
+
 				if (this.Contract.m.Den == null || this.Contract.m.Den.isNull() || !this.Contract.m.Den.isAlive())
 				{
 					this.Contract.setScreen("Cleared");
@@ -179,8 +158,6 @@ this.skv_den_hunt_contract <- this.inherit("scripts/contracts/contract", {
 		});
 	}
 
-	// If the Den is gone before you accept (or between load and tick), the contract
-	// invalidates itself instead of sitting on the board pointing at nothing.
 	function onIsValid()
 	{
 		if (this.m.Den == null || this.m.Den.isNull() || !this.m.Den.isAlive())
@@ -191,9 +168,6 @@ this.skv_den_hunt_contract <- this.inherit("scripts/contracts/contract", {
 		return true;
 	}
 
-	// REQUIRED on every contract (Legends' contract_decendants hook reads o.onClear;
-	// a missing one fails registration). Also undoes what we did to the Den -- miss
-	// this and a cancelled contract leaves it permanently claimed, silently.
 	function onClear()
 	{
 		if (this.m.Den != null && !this.m.Den.isNull())

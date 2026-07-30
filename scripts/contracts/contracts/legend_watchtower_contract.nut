@@ -1,13 +1,9 @@
 this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 	m = {
 		Destination = null,
-		// ---- FIGHT DIALS -----------------------------------------------------
-		// Three independent resource budgets, all fixed (no campaign scaling) so the
-		// fight stays predictable. The alp budget is kept LOW on purpose: the cost-105
-		// DemonAlp boss (mass-sleep + nightmare summons) can never roll below ~105, so
-		// a small budget always yields the ordinary, fair alp. Raise/lower each freely.
-		CultistBudget = 75,   // ~8 cultists. Ghosts are a fixed 2 (pushed by hand below); no alp.
-		// ---------------------------------------------------------------------
+
+		CultistBudget = 75,
+
 	},
 	function create()
 	{
@@ -29,12 +25,9 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 
 	function start()
 	{
-		// A real fight (cult + swarm + an alp), so a standard difficulty rating rather
-		// than the easy tier. Feeds both the payout (via DIFF^POW) and the rating.
+
 		this.m.DifficultyMult = this.Math.rand(90, 105) * 0.01;
 
-		// Base 500, times a village-wealth roll (0.60-1.10): a poor frontier town posts
-		// less than a well-off one for the same job. Then the standard engine multipliers.
 		this.m.Payment.Pool = 400 * (this.Math.rand(60, 110) * 0.01) * this.getPaymentMult() * this.Math.pow(this.getDifficultyMult(), this.Const.World.Assets.ContractRewardPOW) * this.getReputationToPaymentMult();
 
 		if (this.Math.rand(1, 100) <= 33)
@@ -95,8 +88,7 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 				this.Contract.m.Destination = this.WeakTableRef(this.World.spawnLocation("scripts/entity/world/locations/undead_ruins_location", tile.Coords));
 				this.Contract.m.Destination.onSpawned();
 				this.Contract.m.Destination.setName("The Abandoned Watchtower");
-				// Bandits faction: cultists are bandit-faction in combat (per the native
-				// cultist contract), and we run our own scripted fight regardless.
+
 				this.Contract.m.Destination.setFaction(this.World.FactionManager.getFactionOfType(this.Const.FactionType.Bandits).getID());
 				this.Contract.m.Destination.setBanner(this.World.FactionManager.getFaction(this.Const.FactionType.Bandits).getPartyBanner());
 				this.Contract.m.Destination.setDiscovered(true);
@@ -152,18 +144,15 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 				p.TerrainTemplate = ::Const.World.TerrainTacticalTemplate[tile.TacticalType];
 				p.Tile = tile;
 				p.CombatID = "Watchtower";
-				// Dress the battlefield as a ruin (broken walls + rubble) instead of open field.
+
 				p.LocationTemplate = clone this.Const.Tactical.LocationTemplate;
 				p.LocationTemplate.Template[0] = "tactical.ruins";
 				p.LocationTemplate.Fortification = this.Const.Tactical.FortificationType.Walls;
 				p.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Circle;
 
-				// Everything on one side (Bandits), per the native cultist contract.
 				local fac = ::World.FactionManager.getFactionOfType(this.Const.FactionType.Bandits).getID();
 				::Const.World.Common.addUnitsToCombat(p.Entities, ::Const.World.Spawn.Cultists, this.Contract.m.CultistBudget, fac);
 
-				// Ghosts as a FIXED count (2). The Ghosts spawn list has an 80-resource MinR
-				// threshold that collapses any small budget to 4, so we place them by hand.
 				for (local i = 0; i < 2; i = i + 1)
 				{
 					local g = clone ::Const.World.Spawn.Troops.Ghost;
@@ -171,9 +160,6 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 					p.Entities.push(g);
 				}
 
-				// --- Bespoke named boss: the warrior leading the cult -------------------
-				// Spawned as a single hand-built actor at deployment (the legendary-location
-				// pattern). Fat HP + morale aura anchor the swarm; kill him and the cult wobbles.
 				p.BeforeDeploymentCallback = function ()
 				{
 					local tile = null;
@@ -194,14 +180,13 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 					local boss = this.Tactical.spawnEntity("scripts/entity/tactical/enemies/legend_bandit_raider", tile.Coords);
 					boss.setFaction(this.World.FactionManager.getFactionOfType(this.Const.FactionType.Bandits).getID());
 					boss.setName(names[this.Math.rand(0, names.len() - 1)]);
-					boss.getBaseProperties().Hitpoints = 105;   // fat HP: he is the anchor (tune here)
-					boss.getBaseProperties().Bravery = 55;      // hard to rout, but not a hero
-					boss.getItems().equip(this.new("scripts/items/weapons/two_handed_mace"));         // two-handed mace
-					boss.getSkills().add(this.new("scripts/skills/actives/legend_inspire_skill"));  // morale-anchor aura
+					boss.getBaseProperties().Hitpoints = 105;
+					boss.getBaseProperties().Bravery = 55;
+					boss.getItems().equip(this.new("scripts/items/weapons/two_handed_mace"));
+					boss.getSkills().add(this.new("scripts/skills/actives/legend_inspire_skill"));
 					boss.getSkills().update();
 					boss.setHitpoints(105);
 				};
-				// -----------------------------------------------------------------------
 
 				::World.Contracts.startScriptedCombat(p, false, false, true);
 			}
@@ -247,7 +232,7 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 					Text = "{This is not for us.}",
 					function getResult()
 					{
-						this.World.Contracts.removeContract(this.Contract);   // pre-accept decline -> NOT retired (can re-offer)
+						this.World.Contracts.removeContract(this.Contract);
 						return 0;
 					}
 
@@ -293,7 +278,7 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "Cleared",
 			Title = "The Tower Falls Silent",
-			Text = "[img]gfx/ui/events/event_123.png[/img]{The chant is broken, the fire scattered, and the cold shapes unravel into nothing among the stones with the last of those who called them. A stillness settles over the ruin that has not been felt in years. Among the scattered ritual gear you find what they came for -- small carvings of rare bone the strangers had hauled up here and hidden in the broken stones. The town's landward flank is quiet again. You gather your company and what you found, and turn back down the slope.}",
+			Text = "[img]gfx/ui/events/event_123.png[/img]{The chant is broken, the fire scattered, and the cold shapes unravel into nothing among the stones with the last of those who called them. A stillness settles over the ruin that has not been felt in years. Among the scattered ritual gear you find what they came for - small carvings of rare bone the strangers had hauled up here and hidden in the broken stones. The town's landward flank is quiet again. You gather your company and what you found, and turn back down the slope.}",
 			Image = "",
 			List = [],
 			Options = [
@@ -303,9 +288,7 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 					{
 						this.World.Assets.addBusinessReputation(this.Const.World.Assets.ReputationOnContractSuccess);
 						this.World.Assets.addMoney(this.Contract.m.Payment.getOnCompletion());
-						// The cult came to claim something here - you leave with it. Found in the
-						// ruins on completion, not looted off the boss. Granted here on confirm; the
-						// screen's start() shows it as an iconed row. Swap the item path to taste.
+
 						::Skv.Loot.haul(::Skv.Loot.make(["scripts/items/loot/bone_figurines_item"]), 0);
 						this.World.FactionManager.getFaction(this.Contract.getFaction()).addPlayerRelation(this.Const.World.Assets.RelationCivilianContractSuccess, "Cleared the haunted watchtower");
 						this.World.Contracts.finishActiveContract();
@@ -316,7 +299,7 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 			],
 			function start()
 			{
-				// Preview the completion reward as an iconed row (granted on confirm above).
+
 				this.List = [];
 				foreach (r in ::Skv.Loot.previewRows(["scripts/items/loot/bone_figurines_item"])) this.List.push(r);
 			}
@@ -326,10 +309,10 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 
 	function onClear()
 	{
-		::Skv.Once.release("Watchtower");   // always free the live-offer slot (any removal)
+		::Skv.Once.release("Watchtower");
 		if (this.m.IsActive)
 		{
-			::Skv.Once.retire("Watchtower");   // accepted then concluded (completed/aborted) -> retire
+			::Skv.Once.retire("Watchtower");
 			if (!::MSU.isNull(this.m.Destination))
 			{
 				this.m.Destination.getSprite("selection").Visible = false;
