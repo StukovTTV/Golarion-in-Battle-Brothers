@@ -7,13 +7,13 @@ All notable changes to **Golarion Localization** are recorded here. The format l
 ## [Unreleased]
 
 - Org-flavored contract categories (Pathfinder, Sczarni, Church, Druid, …): the settlement-board icons
-  are in place, but the categories themselves — and the contract-display cap that keeps the noticeboard
-  within its slot limit — are not yet wired up.
+  are in place, but the categories themselves, and the contract-display cap that keeps the noticeboard
+  within its slot limit, are not yet wired up.
 
-## [0.96] — playtest
+## [0.96] - playtest
 
-Adds the twelfth contract — a three-act job in the southern city-states that changes what it is about
-halfway through — and rebuilds how every contract in the mod hands out experience.
+Adds the twelfth contract, a three-act job in the southern city-states that changes what it is about
+halfway through, and rebuilds how every contract in the mod hands out experience.
 
 ### Contracts
 - **Threshold of Knowledge** (contract #12, once-per-campaign, Hunt) adapted from Paizo's *Threshold of
@@ -27,7 +27,7 @@ halfway through — and rebuilds how every contract in the mod hands out experie
   **The first act is a building and a chase.** A ransacked office with beetles in the spilled ichor, two
   different searches that answer two different questions, and a sixteen-year-old going out over the
   rooftops with five streets to run her down in. Behind a reshelving door that asks you to tell the time
-  on a mirrored clock — a puzzle *you* solve, not one your roster rolls for — is a practice rune, and
+  on a mirrored clock (a puzzle *you* solve, not one your roster rolls for) is a practice rune, and
   knowing how one comes apart is worth more later than anything else in the act.
 
   **The second act is the canal.** Something made of bark standing in the doorway that can simply be
@@ -35,21 +35,21 @@ halfway through — and rebuilds how every contract in the mod hands out experie
   large thing asleep on a beach, and a sea hag in a grotto with three prisoners. Every obstacle can be
   gone around rather than through. Two of your brothers argue about whether to take her at all, and the
   case for walking away is assembled line by line out of the advantages you actually earned on the way
-  down — the only moment in the contract where that ledger is read out loud.
+  down, the only moment in the contract where that ledger is read out loud.
 
   **And then the job changes.** The man you came for tells you he was never the point. The last act is a
   race back to the archive against a rising canal: four rune rooms, a clock, and a company that paid
   attention in the first act working at twice the speed of one that did not. Whatever you left alive in
   the grotto comes up the stairs after you.
 
-  **No renown, win or lose.** A house that cannot be seen hiring armed men cannot advertise a success —
+  **No renown, win or lose.** A house that cannot be seen hiring armed men cannot advertise a success,
   and cannot complain about a failure either. **300 crowns, all of it on completion and nothing up
   front**; miss the clock and you have done the whole job for nothing.
 
 ### Changed
 - **Skill checks pay much less experience, and they pay it by a rule instead of a number somebody typed.**
-  Every check in every contract now derives its award from what the check actually was: a scout check —
-  one brother reading a ring, spotting a snare, creeping ahead to look — is worth **75** to the company,
+  Every check in every contract now derives its award from what the check actually was: a scout check
+  (one brother reading a ring, spotting a snare, creeping ahead to look) is worth **75** to the company,
   with about a third to the man who did it and the rest shared. A check every brother has to make for
   himself is worth **50 to each of them**, so it no longer gets thinner as your company grows. Nobody
   present ever earns less than 5.
@@ -61,10 +61,10 @@ halfway through — and rebuilds how every contract in the mod hands out experie
 - **Golarion's contracts appear far less often.** The chance of one turning up was between 12 and 17 %
   per opportunity depending on the contract; it is now **3 % at a northern settlement, 7 % at a noble
   house and 9 % at a southern city-state.** The south keeps the highest rate and will still be the rarest
-  place to see one — there are only three city-states in a world and the game caps them at three
+  place to see one: there are only three city-states in a world and the game caps them at three
   contracts apiece.
 - **The Choking Tower pays for the climb.** Eleven floors of smoke, traps and a thing on the stairs, and
-  no fight at the end of it to earn anything from — so finishing it now grants **100 experience to every
+  no fight at the end of it to earn anything from, so finishing it now grants **100 experience to every
   brother, or 200 if you shut the machine down by reading it rather than smashing the panel.** The panel
   always works; the careful route is now worth taking.
 - Its ending also **shows the crowns it pays you**, which it never did.
@@ -168,70 +168,70 @@ and adds masterwork and magical weapon enhancement that any contract can hand ou
   standing beside you.
 - A shrine in the monastery that will heal the whole company, once, if you find both halves of what wakes it.
 
-## [0.93] — playtest
+## [0.93] - playtest
 
-Adds the ninth contract — a whole city-intrigue adventure that plays out in town, with no dungeon and one
-fight — and rounds the shared skill-check engine out across all six character attributes plus a social axis.
+Adds the ninth contract, a whole city-intrigue adventure that plays out in town, with no dungeon and one
+fight, and rounds the shared skill-check engine out across all six character attributes plus a social axis.
 
 ### Contracts
-- **Carthica's Pride** (contract #9, once-per-campaign, noble-house Hunt) — adapted from BlackStar Studios'
+- **Carthica's Pride** (contract #9, once-per-campaign, noble-house Hunt). Adapted from BlackStar Studios'
   *Carthica's Pride*. A spoiled young noble hires the company through his fixer **Natasha Corvina** to run
-  down two **Sczarni** cutpurses — **Atharius & Jhaari** — who lifted his family signet, recover the ring,
+  down two **Sczarni** cutpurses, **Atharius & Jhaari**, who lifted his family signet, recover the ring,
   humiliate the pair in public, and keep his name out of it. An entirely **in-town** job that begins the
   moment you accept: barter with the information-broker **Lady Lilianna** (pay a fee, or give up a *true*
-  secret — her charm reddens at a lie), catch the **Sczarni tail** shadowing you, wade a filthy back-alley
+  secret; her charm reddens at a lie), catch the **Sczarni tail** shadowing you, wade a filthy back-alley
   (a sickness that follows you into the fight), the one scripted **ambush** by the retained executioner
-  **Urie** — with the option to **betray the noble** for a ransom — then find the hidden thieves'-tavern
+  **Urie** (with the option to **betray the noble** for a ransom), then find the hidden thieves'-tavern
   door and a **five-contest tavern showdown**: arm-wrestle, rail-walk, dagger-toss, courage-hang, and
   cards, each with a crowd-working flourish, on a popularity meter. Win three games for the ring, win the
   room (7 points) to leave in triumph; lose the games or sell the man out and the job fails. Reports back
   to the noble for goal-scaled experience and a bonus for warning him of the Sczarni plot.
 
 ### Shared engine (`::Skv`)
-- `::Skv.Check` gains four more **composition flavors** — **`brawn`** (raw strength), **`handEye`** (a
+- `::Skv.Check` gains four more **composition flavors**: **`brawn`** (raw strength), **`handEye`** (a
   steady hand and true eye), **`nerve`** (courage / Will), and **`guile`** vs **`charm`** (cold cunning at
-  cards vs. warm social showmanship) — so a check now exists for every character axis. The **gambler's
+  cards vs. warm social showmanship), so a check now exists for every character axis. The **gambler's
   gamble** turns the Gambler background into a wildcard: a random ±5 swing on the roll instead of a flat
   bonus, while the Lucky trait stays a dependable +5.
 - New **in-town / no-travel crawl** pattern (a contract that plays as a chain of screens where you stand,
   with no world marker to walk to), and a **per-brother hazard** beat that applies a real injury which
   carries into the following battle.
-- **Debug logging** is now gated behind an in-game setting (off by default) — turn on *Debug logging
+- **Debug logging** is now gated behind an in-game setting (off by default). Turn on *Debug logging
   (log.html)* in the mod's MSU settings to capture diagnostics for a bug report.
 
-## [0.92] — playtest
+## [0.92] - playtest
 
 Adds the eighth contract, brings Golarion's organizations into the world by name, and grows the shared
 engine with character-composition skill checks, experience for passing them, and a mid-contract loadout
 screen.
 
 ### Contracts
-- **Ambush in _<City>_** (contract #8, once-per-campaign) — a courier-rescue-and-delivery job adapted
+- **Ambush in _<City>_** (contract #8, once-per-campaign). A courier-rescue-and-delivery job adapted
   from the Pathfinder Society Quest *Ambush in Absalom*. **Venture-Captain Ambrus Valsin** hires the
-  company to find an agent lost in a city's undercity drains: follow the trail through a goblin warren —
-  a covered pit-trap, a picket, and the chief's escort led by a champion boss — recover the sealed
+  company to find an agent lost in a city's undercity drains: follow the trail through a goblin warren
+  (a covered pit-trap, a picket, and the chief's escort led by a champion boss), recover the sealed
   parcel, and carry it to the Sczarni fence **Guaril Karela** in a neighbouring city, where the
   temptation to break the seal decides the ending (deliver it sealed and be paid, or pry it open, find a
   cookery book the man already owns with a coded line hidden in one recipe, and be refused). A one-skull
   starter; hosted only at towns and cities; both fights mandatory. Offered north and south.
 
 ### Golarion organizations
-- Reversed the earlier "generic hire" framing — **Golarion's organizations now appear by name.** The
+- Reversed the earlier "generic hire" framing: **Golarion's organizations now appear by name.** The
   Ambush is a **Pathfinder Society** job with a **Sczarni** recipient, both written as recurring figures.
 - New settlement-board **contract-type icons**: a redesigned Legendary plus **Pathfinder, Church,
   Druid, and Sczarni** (each with a greyscale variant), groundwork for org-flavored contract categories.
 
 ### Shared engine (`::Skv`)
-- `::Skv.Check` gains **stat-free composition checks** — `agility` and `perception` pick the
+- `::Skv.Check` gains **stat-free composition checks**: `agility` and `perception` pick the
   best-suited *active* brother by his traits, background, and perks (no combat stats), and `scaledBase`
   makes a check's difficulty track the contract's skull rating (with an in-game toggle). First use: the
   ambush's two-stage spot-then-cross pit-trap, which can split its reward between two brothers.
-- **`::Skv.XP`** — a brother now earns **experience for passing a skill check**: a base award split
+- **`::Skv.XP`**: a brother now earns **experience for passing a skill check**: a base award split
   between the one who did it and the watching company, difficulty-scaled, wired across every checking
   contract.
 - **Reusable goblin rosters** (`GolarionKobolds` / `GolarionKoboldsCasters`) so small scripted-fight
   budgets buy an appropriately sized warband instead of being floored up to a crowd.
-- **Loadout from a contract** — open your company's inventory and gear screen from inside a contract
+- **Loadout from a contract**: open your company's inventory and gear screen from inside a contract
   (a breather between fights, say) and return to the job afterwards, rather than being dropped back to
   the world map.
 
@@ -242,24 +242,24 @@ screen.
 - Packaging guardrails: every build ships its artwork and is archived for one-click rollback.
 
 ### Settings
-- Two new dials on the Contracts page: **Check XP — actor share (%)** and **Scale skill checks with
+- Two new dials on the Contracts page: **Check XP - actor share (%)** and **Scale skill checks with
   difficulty**.
 
-## [0.91] — playtest
+## [0.91] - playtest
 
 Adds the seventh contract and the scripted-combat tech behind it.
 
 ### Contracts
-- **The Azari Palace** (contract #7, once-per-campaign) — a retrieval-heist under cover of an honest
+- **The Azari Palace** (contract #7, once-per-campaign). A retrieval-heist under cover of an honest
   admission fee. Pay the steward to walk a dead god's relic-halls; work a shuffled crawl of two-page
-  **lore rooms** (a reading moves a brother's mood — the devout and brave shrug off the grim ones) and
+  **lore rooms** (a reading moves a brother's mood; the devout and brave shrug off the grim ones) and
   **moral-cost loot rooms** (rob a shrine for an iconed haul at a hit to your standing); breach an
-  optional **Ancient Dead crypt** — pick the lock (a background-ladder check) or force it (louder, a
+  optional **Ancient Dead crypt**: pick the lock (a background-ladder check) or force it (louder, a
   bigger fight) → a **budget-scaled skeleton fight** with a ~15% chance of a **named champion** that
   drops a named weapon → a random honour-guard **trophy** (a bardiche or a plate cuirass), an optional
   blessed-water rite, and the steward's **2500 buy-back** of its counterpart on the way out. Learn at
   the door that your employer is the buyer the house already refused, then choose the Tome's fate at
-  home — give it to the agent, donate it to a temple, fence it, or courier it back — each with iconed
+  home (give it to the agent, donate it to a temple, fence it, or courier it back), each with iconed
   coin, renown, moral, and mood outcomes, and background-aware reactions (pious vs. criminal brothers).
   Offered in the north and the southern city-states.
 
@@ -272,9 +272,9 @@ Adds the seventh contract and the scripted-combat tech behind it.
 
 ### Tuning
 - Azari release values: offer rate **13%**, door fee **620**, base pay pool **1000**, per-room loot
-  moral cost **1–6**, crypt fight budget **117 × company scaling** (force **×1.3**, champion **15%**).
+  moral cost **1-6**, crypt fight budget **117 × company scaling** (force **×1.3**, champion **15%**).
 
-## [0.90] — playtest
+## [0.90] - playtest
 
 First tracked release. The mod is playable and stable; ongoing work is tuning, not structure.
 
@@ -282,22 +282,22 @@ First tracked release. The mod is playable and stable; ongoing work is tuning, n
 - Reflavors Legends' world generation into Golarion: settlement names, city-states (as fiend-ruled
   southern powers) with titles, noble houses (as legacy claims on the Runelords of Thassilon), and
   the pantheon (Golarion's gods expressed as the faction archetypes the houses serve). Naming-and-
-  story layer only — no mechanical changes to Legends.
+  story layer only; no mechanical changes to Legends.
 
 ### Contracts (six, each once-per-campaign)
-- **The Madwoman of Metringer** — investigation → night ambush → assault → descent → moral fork.
-- **The Fires at Black Forks** — wait-for-dark approach on a cult-held monastery, then a fight.
-- **The Choking Tower** — room-by-room descent with skill checks, traps, and a technomancer's tower.
-- **The Wolves of the Green** — a noble bounty on great wolves that is not the hunt it looks like.
-- **Skull's Crossing** — a world-reactive job that appears only when a town is in real drought.
-- **Shadows on the Frontier** — a highland watchtower defense.
+- **The Madwoman of Metringer**: investigation → night ambush → assault → descent → moral fork.
+- **The Fires at Black Forks**: wait-for-dark approach on a cult-held monastery, then a fight.
+- **The Choking Tower**: room-by-room descent with skill checks, traps, and a technomancer's tower.
+- **The Wolves of the Green**: a noble bounty on great wolves that is not the hunt it looks like.
+- **Skull's Crossing**: a world-reactive job that appears only when a town is in real drought.
+- **Shadows on the Frontier**: a highland watchtower defense.
 
 ### Shared engine (`::Skv`)
-- `::Skv.Once` — once-per-campaign offer gate (one live offer at a time; retires on accept-and-conclude).
-- `::Skv.Loot` — iconed loot rendered as Legends' own reward rows (item icons, quality frames, "+N" stacks).
-- `::Skv.Check` — roster skill-checks by background ladder.
-- `::Skv.Cfg` — MSU settings integration.
-- `::Skv.Debug` — dev-console helper (`::skvc()` lists where the mod's contracts have posted).
+- `::Skv.Once`: once-per-campaign offer gate (one live offer at a time; retires on accept-and-conclude).
+- `::Skv.Loot`: iconed loot rendered as Legends' own reward rows (item icons, quality frames, "+N" stacks).
+- `::Skv.Check`: roster skill-checks by background ladder.
+- `::Skv.Cfg`: MSU settings integration.
+- `::Skv.Debug`: dev-console helper (`::skvc()` lists where the mod's contracts have posted).
 
 ### Settings
 - One shared **Contract frequency (weight)** dial in MSU (`m.Score`, 0 = off, default 2), applied to
