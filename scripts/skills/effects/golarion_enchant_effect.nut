@@ -15,14 +15,6 @@ this.golarion_enchant_effect <- this.inherit("scripts/skills/skill", {
 		this.m.IsRemovedAfterBattle = false;
 	}
 
-	// A WEAPON's bonus is scoped by instance ID to attacks made with that weapon
-	// rather than every swing the wielder takes -- it matters under Legends dual
-	// wield, where two enchanted blades would otherwise both apply.
-	//
-	// AMMO cannot be scoped that way: the skill being used belongs to the BOW, not
-	// to the quiver, so the instance IDs never match. Enchanted ammo instead applies
-	// to any ranged attack the wielder makes while it is in his ammo slot -- which
-	// is exactly what "+1 bolts" means, and it cannot leak onto his melee swings.
 	function onAnySkillUsed( _skill, _targetEntity, _properties )
 	{
 		local item = this.getItem();
@@ -42,7 +34,6 @@ this.golarion_enchant_effect <- this.inherit("scripts/skills/skill", {
 				return;
 		}
 
-
 		local acc = item.getEnchantAccuracy();
 		if (acc != 0)
 		{
@@ -50,16 +41,6 @@ this.golarion_enchant_effect <- this.inherit("scripts/skills/skill", {
 			_properties.RangedSkill += acc;
 		}
 
-		// Damage is added in POINTS to the attack's own band -- the same field
-		// weapon.onUpdateProperties adds the weapon's damage to -- rather than applied
-		// as a multiplier. The bonus is a percentage of the base band WITH A FLOOR of
-		// one point per tier, and a floor cannot be expressed as a multiplier.
-		//
-		// ⚠ AMMO GETS THE FLAT FLOOR, and it gets it by having no band to pass. A bolt
-		// has no damage of its own, so getEnchantDamageBonus falls through to one point
-		// per tier -- deliberately, not as a degenerate case: the crossbow behind the
-		// shot is already a big number and may carry an enhancement of its own, so a
-		// percentage here would compound one percentage onto another.
 		if (item.getEnchant() > 0)
 		{
 			local add = ("RegularDamage" in item.m) && item.m.RegularDamage > 0

@@ -1,9 +1,3 @@
-// ============================================================================
-//  BLACK FORKS -- ACTION (offer gate)
-//  An "investigate the fires" job posted by a forest village near the old
-//  monastery of Black Forks. Cultists (the Tenders) have taken the ruin and
-//  driven off the druids who once haunted its roof.
-// ============================================================================
 this.skv_black_forks_action <- this.inherit("scripts/factions/faction_action", {
 	m = {},
 	function create()
@@ -17,14 +11,13 @@ this.skv_black_forks_action <- this.inherit("scripts/factions/faction_action", {
 
 	function onUpdate( _faction )
 	{
-		// Shared frequency dial (::Skv.Cfg): 0 = all Golarion contracts off.
+
 		local sc = ::Skv.Cfg.score();
 		if (sc <= 0)
 		{
 			return;
 		}
 
-		// Once per campaign (::Skv.Once).
 		if (::Skv.Once.isLocked("BlackForks"))
 		{
 			return;
@@ -42,14 +35,11 @@ this.skv_black_forks_action <- this.inherit("scripts/factions/faction_action", {
 			return;
 		}
 
-		// Any village (lumber villages inherit legends_village). Forts excluded.
 		if (!this.isKindOf(v, "legends_village"))
 		{
 			return;
 		}
 
-		// Green forest within 3 tiles -- guarantees a spawnable tile for the monastery.
-		// SnowyForest excluded on purpose (Black Forks is a temperate wood).
 		if (v.getSurroundingTilesOfType([
 				this.Const.World.TerrainType.Forest,
 				this.Const.World.TerrainType.LeaveForest,
@@ -64,13 +54,11 @@ this.skv_black_forks_action <- this.inherit("scripts/factions/faction_action", {
 			return;
 		}
 
-		// Rarity dial (~15% of eligible ticks).
-		if (::Math.rand(1, 100) > 15)
+		if (::Math.rand(1, 100) > ::Skv.Cfg.rarity(_faction))
 		{
 			return;
 		}
 
-		// Selection weight (shared ::Skv.Cfg dial).
 		this.m.Score = sc;
 	}
 

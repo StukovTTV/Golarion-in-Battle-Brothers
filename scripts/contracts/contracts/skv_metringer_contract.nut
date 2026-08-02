@@ -12,6 +12,7 @@ this.skv_metringer_contract <- this.inherit("scripts/contracts/contract", {
 
 		MeetBudget  = 70,
 		KeeperBudget= 95,
+
 	},
 
 	function create()
@@ -294,30 +295,6 @@ this.skv_metringer_contract <- this.inherit("scripts/contracts/contract", {
 					p.LocationTemplate.Template[0] = "tactical.ruins";
 					p.LocationTemplate.Fortification = this.Const.Tactical.FortificationType.Walls;
 					::Const.World.Common.addUnitsToCombat(p.Entities, ::Const.World.Spawn.Mercenaries, this.Contract.m.KeeperBudget * mult, fac);
-					p.BeforeDeploymentCallback = function ()
-					{
-						local t = null;
-						for (local i = 0; i < 60 && t == null; i = i + 1)
-						{
-							local c = this.Tactical.getTileSquare(this.Math.rand(10, 28), this.Math.rand(6, 26));
-							if (c.IsEmpty) t = c;
-						}
-						if (t == null) return;
-						local boss = this.Tactical.spawnEntity("scripts/entity/tactical/enemies/legend_bandit_raider", t.Coords);
-						boss.setFaction(fac);
-						boss.setName("The Head Keeper");
-						boss.getBaseProperties().Hitpoints = 120;
-						boss.getBaseProperties().Bravery = 55;
-						boss.getBaseProperties().MeleeSkill = 65;
-						boss.getBaseProperties().MeleeDefense = 18;
-
-						boss.getItems().equip(this.new("scripts/items/legend_armor/chain/legend_armor_mail_shirt"));
-						boss.getItems().equip(this.new("scripts/items/helmets/nasal_helmet"));
-						boss.getItems().equip(this.new("scripts/items/shields/wooden_shield"));
-						boss.getItems().equip(this.new("scripts/items/weapons/longsword"));
-						boss.getSkills().update();
-						boss.setHitpoints(120);
-					};
 				}
 
 				::World.Contracts.startScriptedCombat(p, false, false, true);
@@ -447,7 +424,7 @@ this.skv_metringer_contract <- this.inherit("scripts/contracts/contract", {
 				{ Text = "{Pick the lock.}", function getResult() {
 					local c = ::Skv.Check.lockpick(this.Contract, ::Skv.Check.scaledBase(this.Contract, 40));
 
-					if (c.ok) this.Contract.m.PickXPRows = (c.actor != null && ("XP" in ::Skv)) ? ::Skv.XP.grant(c.actor, 200) : [];
+					if (c.ok) this.Contract.m.PickXPRows = (c.actor != null && ("XP" in ::Skv)) ? ::Skv.XP.check(c) : [];
 					return c.ok ? "DescentCells" : "ForcedEntry";
 				} },
 				{ Text = "{Force it - never mind quiet.}", function getResult() { return "ForcedEntry"; } }

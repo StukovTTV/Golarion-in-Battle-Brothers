@@ -10,6 +10,75 @@ All notable changes to **Golarion Localization** are recorded here. The format l
   are in place, but the categories themselves — and the contract-display cap that keeps the noticeboard
   within its slot limit — are not yet wired up.
 
+## [0.96] — playtest
+
+Adds the twelfth contract — a three-act job in the southern city-states that changes what it is about
+halfway through — and rebuilds how every contract in the mod hands out experience.
+
+### Contracts
+- **Threshold of Knowledge** (contract #12, once-per-campaign, Hunt) adapted from Paizo's *Threshold of
+  Knowledge*. A magic school's outpost has lost an instructor to the canals under the city, and the woman
+  who runs it will pay quietly to have him found. Offered **only by southern city-states**, and only once
+  in a campaign.
+
+  **There is no marker on the map and nowhere to travel to.** The whole thing happens inside the city: go
+  in, come back out, and the next scene is waiting for you.
+
+  **The first act is a building and a chase.** A ransacked office with beetles in the spilled ichor, two
+  different searches that answer two different questions, and a sixteen-year-old going out over the
+  rooftops with five streets to run her down in. Behind a reshelving door that asks you to tell the time
+  on a mirrored clock — a puzzle *you* solve, not one your roster rolls for — is a practice rune, and
+  knowing how one comes apart is worth more later than anything else in the act.
+
+  **The second act is the canal.** Something made of bark standing in the doorway that can simply be
+  talked round, a collapsed vault with half a kobold warren behind it, forty feet of black water, a very
+  large thing asleep on a beach, and a sea hag in a grotto with three prisoners. Every obstacle can be
+  gone around rather than through. Two of your brothers argue about whether to take her at all, and the
+  case for walking away is assembled line by line out of the advantages you actually earned on the way
+  down — the only moment in the contract where that ledger is read out loud.
+
+  **And then the job changes.** The man you came for tells you he was never the point. The last act is a
+  race back to the archive against a rising canal: four rune rooms, a clock, and a company that paid
+  attention in the first act working at twice the speed of one that did not. Whatever you left alive in
+  the grotto comes up the stairs after you.
+
+  **No renown, win or lose.** A house that cannot be seen hiring armed men cannot advertise a success —
+  and cannot complain about a failure either. **300 crowns, all of it on completion and nothing up
+  front**; miss the clock and you have done the whole job for nothing.
+
+### Changed
+- **Skill checks pay much less experience, and they pay it by a rule instead of a number somebody typed.**
+  Every check in every contract now derives its award from what the check actually was: a scout check —
+  one brother reading a ring, spotting a snare, creeping ahead to look — is worth **75** to the company,
+  with about a third to the man who did it and the rest shared. A check every brother has to make for
+  himself is worth **50 to each of them**, so it no longer gets thinner as your company grows. Nobody
+  present ever earns less than 5.
+
+  In practice a six-man company that finishes a long contract now comes out around **level 2 with part of
+  level 3 banked**, where the old numbers took the same six to level 3 outright.
+- **Two new settings** under Contracts in the MSU menu let you set both awards yourself, alongside the
+  existing share-to-the-doer dial. Set them to 0 if you want no experience from skill checks at all.
+- **Golarion's contracts appear far less often.** The chance of one turning up was between 12 and 17 %
+  per opportunity depending on the contract; it is now **3 % at a northern settlement, 7 % at a noble
+  house and 9 % at a southern city-state.** The south keeps the highest rate and will still be the rarest
+  place to see one — there are only three city-states in a world and the game caps them at three
+  contracts apiece.
+- **The Choking Tower pays for the climb.** Eleven floors of smoke, traps and a thing on the stairs, and
+  no fight at the end of it to earn anything from — so finishing it now grants **100 experience to every
+  brother, or 200 if you shut the machine down by reading it rather than smashing the panel.** The panel
+  always works; the careful route is now worth taking.
+- Its ending also **shows the crowns it pays you**, which it never did.
+
+### Fixed
+- A stack of medical supplies found in a contract could **add twice what the screen said it did**, if two
+  stacks of the same thing turned up together. The stash was right and the screen was wrong.
+- **Paragraph breaks were printing as raw text** through the whole final act of Threshold of Knowledge,
+  turning several screens into one unbroken wall with `\n` in the middle of it.
+- The end of a contract could **hand you your pay without ever showing it as a reward**, because the
+  figure was written as part of the prose instead of as a proper crowns line.
+- Experience is no longer awarded for a **failed** skill check. This was fixed once before and came back
+  in a second form; it is now structurally impossible rather than fixed case by case.
+
 ## [0.95] - playtest
 
 Adds the mod's first repeatable contract, and with it the only answer in the world to a broken magic weapon.

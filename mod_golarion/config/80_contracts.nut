@@ -34,3 +34,6 @@
 ::Const.Contracts.ContractCategoryMap.skv_anvil_contract <- ::Const.Contracts.Categories.Economy;
 ::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_anvil_action");
 ::Const.FactionTrait.Actions[::Const.FactionTrait.OrientalCityState].push("scripts/factions/contracts/skv_anvil_action");
+
+::Const.Contracts.ContractCategoryMap.skv_threshold_contract <- ::Const.Contracts.Categories.Hunt;
+::Const.FactionTrait.Actions[::Const.FactionTrait.OrientalCityState].push("scripts/factions/contracts/skv_threshold_action");

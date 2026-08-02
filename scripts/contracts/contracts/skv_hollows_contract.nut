@@ -368,7 +368,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 			local spot = ::Skv.Check.perception(this, ::Skv.Check.scaledBase(this, 50));
 			if (spot.ok)
 			{
-				local rows = ("XP" in ::Skv) ? ::Skv.XP.grant(spot.actor, 150) : [];
+				local rows = ("XP" in ::Skv) ? ::Skv.XP.check(spot) : [];
 				return this.result(rows, img + "{%actor% stops the column with a raised fist. Along an overgrown deer trail ahead, a rabbit lies dead in the leaf litter - too neatly, too openly, and with no mark on it. The ground a pace short of it gives back the wrong sound. Under a lattice of sticks and leaves is a pit as deep as a man is tall. Somebody out here lays traps for things bigger than rabbits.}", next, "Darkmoon Vale");
 			}
 			local bro = this.pickVictim("injury.bruised_leg");
@@ -405,7 +405,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 			if (r.ok)
 			{
 				this.m.HasLight = true;
-				local rows = ("XP" in ::Skv) ? ::Skv.XP.grant(r.actor, 150) : [];
+				local rows = ("XP" in ::Skv) ? ::Skv.XP.check(r) : [];
 				return this.result(rows, img + "{The undersides of a cluster of great rocks off the path are furred with something that is quietly, steadily giving off light - a cold green that does not flicker. %actor% works a good sheet of it free without tearing the growth, packs it in a helm lined with moss, and reports that in his experience the stuff keeps burning for days once it is off the stone. Wherever you are going, you will not be going into it blind.}", next, "Darkmoon Vale");
 			}
 			return this.result([], img + "{The undersides of a cluster of great rocks off the path are furred with something giving off a cold green light. It comes away from the stone in wet handfuls and dies in the palm within a minute, every time, no matter how carefully it is lifted. Eventually the company gives up and moves on, with nothing to show for it but green hands.}", next, "Darkmoon Vale");
@@ -416,7 +416,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 			local r = ::Skv.Check.tracking(this, ::Skv.Check.scaledBase(this, 45));
 			if (r.ok)
 			{
-				local rows = ("XP" in ::Skv) ? ::Skv.XP.grant(r.actor, 150) : [];
+				local rows = ("XP" in ::Skv) ? ::Skv.XP.check(r) : [];
 				return this.result(rows, img + "{%actor% crouches over a line of prints pressed deep into the soft ground and does not say anything for a while. They are cloven, like a goat's, and far too large, and they are set one in front of the other in a way no goat has ever walked - upright, and unhurried, and heavy. He follows them fifty feet to where they stop. Not fade. Stop, mid-stride, in open ground, with nothing overhead and nowhere to go.\n\nHe stands up, looks at the trees for a moment, and suggests the company keep moving.}", next, "Darkmoon Vale");
 			}
 			return this.result([], img + "{There are marks in the soft ground where something heavy crossed the path. Nobody can make anything of them beyond that, though a couple of the men keep glancing back at them long after the company has moved on.}", next, "Darkmoon Vale");
@@ -427,7 +427,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 			local r = ::Skv.Check.wits(this, ::Skv.Check.scaledBase(this, 40));
 			if (r.ok)
 			{
-				local rows = ("XP" in ::Skv) ? ::Skv.XP.grant(r.actor, 150) : [];
+				local rows = ("XP" in ::Skv) ? ::Skv.XP.check(r) : [];
 				return this.result(rows, img + "{A dead tree beside the path is streaked from crown to root with something that has dried the colours of a spilled rainbow. Three small shapes are pinned to the trunk, arms out. They were people, more or less, once - a hand's length each, wings like a dragonfly's, and every drop of them drawn out, so that what is left has gone hard and grey and grained, like knots of wood.\n\n%actor% has heard of this. Not the killing - the harvest. There is an old story in the low countries that fairy blood, taken fresh and taken all at once, will turn lead into gold, and that the men who believe it never stay believers long, because something always comes looking for them.}", next, "Darkmoon Vale");
 			}
 			return this.result([], img + "{Three small dead things are pinned to a dead tree beside the path, arms out, dried to grey wood, with something iridescent streaked down the trunk beneath them. Nobody in the company can say what they were, and nobody wants to touch them to find out.}", next, "Darkmoon Vale");
@@ -436,7 +436,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		local r = ::Skv.Check.perception(this, ::Skv.Check.scaledBase(this, 55));
 		if (r.ok)
 		{
-			local rows = ("XP" in ::Skv) ? ::Skv.XP.grant(r.actor, 150) : [];
+			local rows = ("XP" in ::Skv) ? ::Skv.XP.check(r) : [];
 			return this.result(rows, img + "{The wood goes quiet all at once - not gradually, the way it does for men, but between one step and the next. %actor% is the only one who looks up in time: a shadow crossing the canopy, going fast and low, wings the blue-black of a beetle's back and a tail behind it with a hook on the end. It does not slow and it does not turn. It is hunting something that is not you.\n\nThe birds start again a good while later.}", next, "Darkmoon Vale");
 		}
 		return this.result([], img + "{For no reason anybody can name, the wood goes completely silent for a count of ten, and then starts up again. The horses would have known what it was. You do not have horses.}", next, "Darkmoon Vale");
@@ -749,7 +749,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 			foreach (row in ::Skv.Loot.haul(items, 0)) rows.push(row);
 
 			extra = "\n\n%actor% reads the ground where the grass is bent and gets two answers, not one. Something long and low goes in and out by the main doors and away into the wild - it does not live here. Something four-legged and heavy uses the main doors AND the hole in the east wall, and it lives here, and there are a great many of it.\n\nHe goes back to the dead man afterwards and turns out the rest of the pack properly, which nobody had thought to do: under the bedroll, wrapped against the damp, is half a surgeon's kit - gut, needles, a stoppered vial and clean linen, carried by a man who expected to need it.";
-			local xp = ::Skv.XP.grant(r.actor, 150);
+			local xp = ::Skv.XP.check(r);
 			foreach (row in xp) rows.push(row);
 			this.m.KnowsNorth = true;
 		}
@@ -766,7 +766,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		if (r.ok)
 		{
 			this.m.RuinMapped = true;
-			local rows = ::Skv.XP.grant(r.actor, 150);
+			local rows = ::Skv.XP.check(r);
 			return this.result(rows, "[img]gfx/ui/events/event_98.png[/img]{%actor% goes up the stair a tread at a time with his weight where the wall is, and it holds him, and he puts his head out of the trapdoor into the wind.\n\nFrom up there the whole building lies open like a drawing of itself: the yard and its well, the long hall running east off the double doors and the rooms hung along it, and - through the fallen roof on the north side - a corridor running the length of the building with four more chambers off it, one of them very large, its floor black with something that has been dragged in and eaten there. He is a while coming down, and he takes the shape of the place down with him.}", "Ruin", "The Watchtower");
 		}
 
@@ -797,7 +797,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		}
 
 		this.m.KnowsNorth = true;
-		local rows = ::Skv.XP.grant(r.actor, 150);
+		local rows = ::Skv.XP.check(r);
 		return this.result(rows, "[img]gfx/ui/events/event_89.png[/img]{%actor% squats in the middle of the hall and puts his hand flat on the leaf-mould without disturbing it.%SPEECH_ON%Two sorts. Something with claws and a long tail that comes in the front and goes out the front, and does not stay. And dogs - wolves - and they do stay, and every one of them turns north out of this hall. That is where they live. Whatever else is in this building, that is where the most of it is.%SPEECH_OFF%}", "Ruin", "The Entry Hall");
 	}
 
@@ -814,7 +814,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		if (r.ok)
 		{
 			this.m.KnowsTorag = true;
-			local xp = ::Skv.XP.grant(r.actor, 150);
+			local xp = ::Skv.XP.check(r);
 			foreach (row in xp) rows.push(row);
 			extra = "\n\n%actor% turns the hammer over twice and does not much like it. %SPEECH_ON%This is a smith's god, and it is not the smith's god you are thinking of. The good one takes an anvil and a hammer laid crossed. This one is a hammer alone, with a whip beside it. Toil, and nothing at the end of the toil. Whoever kept this house changed gods at some point, and they did not change to a better one.%SPEECH_OFF%";
 		}
@@ -834,7 +834,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		}
 
 		this.m.Mushrooms = this.m.Mushrooms + 1;
-		local rows = ::Skv.XP.grant(r.actor, 150);
+		local rows = ::Skv.XP.check(r);
 		rows.push({ id = 11, icon = "ui/icons/asset_supplies.png", text = "[color=" + this.Const.UI.Color.PositiveEventValue + "]One ironbloom mushroom[/color]" });
 		return this.result(rows, "[img]gfx/ui/events/event_74.png[/img]{%actor% is the one who thinks to look under the table rather than on it, in the corner where the damp comes through the outside wall and the stone is dark with it.\n\nIt is the size of a thumb-joint, dull orange, and heavier than a mushroom has any business being - it weighs in the hand like a musket ball. Laurel's book wants seven. This is one.}", "Ruin", "The Cloak Room");
 	}
@@ -855,7 +855,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		if (spot.ok)
 		{
 
-			local rows = ::Skv.XP.grant(spot.actor, 150);
+			local rows = ::Skv.XP.check(spot);
 			local items = ::Skv.Loot.make(["scripts/items/tools/throwing_net"]);
 			local haul = ::Skv.Loot.haul(items, 0);
 			foreach (row in haul) rows.push(row);
@@ -884,7 +884,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		local dodge = ::Skv.Check.agility(this, ::Skv.Check.scaledBase(this, dc));
 		if (dodge.ok)
 		{
-			local safe = ::Skv.XP.grant(dodge.actor, 150);
+			local safe = ::Skv.XP.check(dodge);
 			return this.result(safe, "[img]gfx/ui/events/event_178.png[/img]{The lamps go out. Not blown out - out, all of them together, and the dark that replaces them is thicker than the dark outside, and it is only in this room.\n\n%actor% does not wait to be told what that means. He has the second man through the arch by the collar and off his feet before the ceiling finishes letting go, and the thing that was meant for that man's head hits the flags instead and lies there for a moment looking like a dropped cloak.\n\nAfter that it is butcher's work, done by men who can see it coming: they are the size of cloaks, they have no faces, and they are unbelievably strong, but a thing that has missed its drop is only strong. It is over in half a minute. The lamps come back on their own as what is left of the pair goes up into the roof and stops moving.}", "Ruin", "The Desecrated Shrine");
 		}
 
@@ -901,7 +901,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		local r = ::Skv.Check.lockpick(this, ::Skv.Check.scaledBase(this, 40));
 		if (r.ok)
 		{
-			local rows = ::Skv.XP.grant(r.actor, 150);
+			local rows = ::Skv.XP.check(r);
 			return this.result(rows, "[img]gfx/ui/events/event_63.png[/img]{The lock is old enough that it barely deserves the name, and %actor% has it over in under a minute with the door held hard against its frame so the tongue does not snap back and announce itself.\n\nIt comes open on a black room that smells of bird.}", "Ruin", "The Guest Quarters");
 		}
 
@@ -962,7 +962,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		{
 			local items = ::Skv.Loot.make(["scripts/items/loot/ornate_tome_item"]);
 			rows = ::Skv.Loot.haul(items, 0);
-			local xp = ::Skv.XP.grant(r.actor, 150);
+			local xp = ::Skv.XP.check(r);
 			foreach (row in xp) rows.push(row);
 			return this.result(rows, "[img]gfx/ui/events/event_15.png[/img]{%actor% stops the first man with a hand on his wrist before the book is off the shelf. The grey fur on the spines is not mould. Looked at closely it is fruiting - the whole shelf is furred with little grey heads all turned the same way, into the room.\n\nSo it is done at arm's length, with cloth over every face and the shutters broken out for the draught, and the puffs that come off the books go up and out instead of into anybody. Nobody breathes properly until they are back in the hall." + prize + "}", "Ruin", "The Ruined Library");
 		}
@@ -987,7 +987,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		}
 
 		this.m.KnowsTorag = true;
-		rows = ::Skv.XP.grant(r.actor, 150);
+		rows = ::Skv.XP.check(r);
 		return this.result(rows, "[img]gfx/ui/events/event_178.png[/img]{%actor% gets down on his heels in front of it with a thumb on the scoring. %SPEECH_ON%This was a smith-god's house, and the anvil IS the altar - that is how they do it. Somebody has hammered the mark off the face of it and left the thing standing, which is not what you do to a god you have stopped believing in. That is what you do to one you have taken up against.%SPEECH_OFF%Set into the top are five small round depressions. All five are empty, and one of them is a different colour underneath.}", "Ruin", "The Desecrated Shrine");
 	}
 
@@ -1104,7 +1104,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		local spot = ::Skv.Check.perception(this, ::Skv.Check.scaledBase(this, 45));
 		if (spot.ok)
 		{
-			local rows = ::Skv.XP.grant(spot.actor, 150);
+			local rows = ::Skv.XP.check(spot);
 			return this.result(rows, "[img]gfx/ui/events/event_89.png[/img]{%actor% has the column stopped before the second man is off the rubble, and points up without saying anything. The ceiling is not black with soot.\n\nThe module for crossing a floor under four hundred sleeping bats is not stealth, it is FOOTING: what wakes them is a slab going over. So it is done one man at a time, weight tested on every stone before it is trusted, nothing dropped, nothing kicked, and no armoured man allowed to jump the last yard - the better part of an hour to cross a room eight paces wide. The roof shifts once, resettles, and stays where it is.}", "Ruin", "The Infested Ruins");
 		}
 
@@ -1137,7 +1137,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		}
 
 		this.m.SecretFound = true;
-		local rows = ::Skv.XP.grant(r.actor, 150);
+		local rows = ::Skv.XP.check(r);
 		return this.result(rows, "[img]gfx/ui/events/event_98.png[/img]{%actor% is not looking for a door. He is looking at the cobwebs - at the north-east corner, where thirty years of them hang in a straight vertical line and not a spider in the world would build them that way.\n\nThere is a draught coming through. The stone swings inward on a pivot when the right block is leaned on, and behind it is a passage that was cut after this building was finished, by someone who did not want it found.}", "Ruin", "The Armory");
 	}
 
@@ -1168,7 +1168,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		local items = ::Skv.Loot.make(["scripts/items/weapons/hand_axe", "scripts/items/loot/ornate_tome_item"]);
 		if (items.len() > 0) this.enhance(items[0], 1);
 		local rows  = ::Skv.Loot.haul(items, 240);
-		local xp = ::Skv.XP.grant(r.actor, 150);
+		local xp = ::Skv.XP.check(r);
 		foreach (row in xp) rows.push(row);
 
 		return this.result(rows, "[img]gfx/ui/events/event_25.png[/img]{%actor% takes the middle drawer all the way out and turns it over, which is how you find the ones with false backs.\n\nCoin - good coin, the heavy old kind. A hand-axe wrapped in oiled leather, which comes out of the wrapping cold and stays cold, and which puts a nick in the stone desk-top when somebody sets it down too hard. And a prayer book, dwarven, describing the worship of the Dark Smith in a careful hand. Inside the cover somebody has written a single line, and it is not scripture: TORAG IS NO LONGER WORTHY OF OUR DEVOTION. ONLY DROSKAR CAN DELIVER US FROM THE FAILINGS OF KING GARBOLD.\n\nSo that is what happened here. Not a conquest. A vote.}", "Ruin", "The Wolf Den");
@@ -1252,7 +1252,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		{
 			this.m.Bargain = 3;
 
-			local rows = ::Skv.XP.grant(r.actor, 150);
+			local rows = ::Skv.XP.check(r);
 			return this.result(rows, "[img]gfx/ui/events/event_178.png[/img]{%actor% is not listening to the words. He is watching the feet.%SPEECH_ON%It has not moved off that column,%SPEECH_OFF% he says, quietly, in the way a man does when he does not want to be the reason a thing starts. %SPEECH_ON%All this talk and it has kept its weight on the front paws the whole time. It is not bargaining with us. It is waiting for us to be tired.%SPEECH_OFF%So the company does not go and do its errand, and does not turn its back. It picks its ground in that doorway, in its own time, with its shields where it wants them - and lets the grey thing find out that the talking is over.}", "Ruin", "Graypelt's Chamber");
 		}
 
@@ -2177,7 +2177,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 								this.Contract.m.RoadNext = "ElderSite";
 
 								this.Contract.m.Sites.Elder.Step = this.Contract.m.Sites.Elder.Step | 2;
-								local rows = ::Skv.XP.grant(r.actor, 150);
+								local rows = ::Skv.XP.check(r);
 								return this.Contract.result(rows, "{%actor% goes up the low branches easily enough and then keeps going, and keeps going, until the men below stop watching and start listening. When he comes down he is grey in the face and certain of one thing: from up there the whole vale lies open, and there is a way through the northern woods to the crag - a thin line of older trees running north-west, and the ruin sitting grey at the end of it. He also saw what is hanging in the high limbs on the far side of the trunk.}", "RoadNorth", "The Forest Elder");
 							}
 
@@ -2196,7 +2196,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 							this.Contract.m.Sites.Elder.Step = this.Contract.m.Sites.Elder.Step | 1;
 
 							local rows = ::Skv.Loot.haul([], 40);
-							rows.extend(::Skv.XP.party(200));
+							rows.extend(::Skv.XP.partyEach(20));
 
 							return this.Contract.result(rows, "{They are three, and they have been up there a long while. Wedged into a fork forty feet from the ground, one across another, and what the weather and the birds have left of them is held together mostly by their own clothing. Bringing them down takes an hour, a rope, and a certain amount of quiet swearing.\n\nThey were hunters - good ones, by their gear, which is not the gear of men who were careless. The oldest of the company turns one of them over and does not say anything for a moment.\n\nThe wounds are not a fall. Something took each of them low, at the back of the leg, and then took them UP: the clothing is torn downward from the shoulders where they were carried, and there is not a mark on any of them made by a thing standing on the ground. A hunter looks up the trunk, and then at the trees around it, and then rather carefully at the branches over his own head.\n\nWhatever hunts this vale does not chase. It waits above the trail and it drops. The purse comes out of the youngest one's coat, and everybody is very glad to be walking away from that tree.}", "ElderSite", "The Forest Elder");
 						}
@@ -2346,7 +2346,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 							}
 
 							this.Contract.m.KnowsTorag = true;
-							local rows = ::Skv.XP.grant(r.actor, 150);
+							local rows = ::Skv.XP.check(r);
 							return this.Contract.result(rows, "[img]gfx/ui/events/event_108.png[/img]{%actor% gets the creeper off in handfuls and reads what is cut into the base, slowly, the way a man does when he has been taught letters he does not often use.%SPEECH_ON%ALL PRAISE - and then nothing. There was a name here and somebody has taken it off the stone with a chisel and taken their time about it. This is old work, mind. Kings' work. That is a smith holding a hammer up, and there is only one of those worth building a house for.%SPEECH_OFF% He puts the creeper back over it, which nobody asks him to do.}", "CrucibleSite", "Droskar's Crucible");
 						}
 					});

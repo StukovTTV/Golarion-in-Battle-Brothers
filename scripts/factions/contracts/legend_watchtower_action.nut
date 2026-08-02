@@ -11,14 +11,13 @@ this.legend_watchtower_action <- this.inherit("scripts/factions/faction_action",
 
 	function onUpdate( _faction )
 	{
-		// Shared frequency dial (::Skv.Cfg): 0 = all Golarion contracts off.
+
 		local sc = ::Skv.Cfg.score();
 		if (sc <= 0)
 		{
 			return;
 		}
 
-		// Once per campaign (::Skv.Once).
 		if (::Skv.Once.isLocked("Watchtower"))
 		{
 			return;
@@ -36,9 +35,6 @@ this.legend_watchtower_action <- this.inherit("scripts/factions/faction_action",
 			return;
 		}
 
-		// CANONICAL HOST -- Pezzack. If on the map AND able to host, ONLY Pezzack offers it.
-		// Otherwise fall through: any settlement passing canHost() may offer instead
-		// (the canHost() check on the canon town is what prevents a dead campaign).
 		local canon = null;
 		foreach (s in ::World.EntityManager.getSettlements())
 		{
@@ -59,18 +55,14 @@ this.legend_watchtower_action <- this.inherit("scripts/factions/faction_action",
 			return;
 		}
 
-		// Rarity dial (~17% of eligible ticks).
-		if (::Math.rand(1, 100) > 17)
+		if (::Math.rand(1, 100) > ::Skv.Cfg.rarity(_faction))
 		{
 			return;
 		}
 
-		// Selection weight (shared ::Skv.Cfg dial).
 		this.m.Score = sc;
 	}
 
-	// Can this settlement host the watchtower? Used TWICE (ticked settlement + canon
-	// host test) so the two paths can never drift apart.
 	function canHost( _s )
 	{
 		if (_s.isIsolated())
@@ -78,13 +70,11 @@ this.legend_watchtower_action <- this.inherit("scripts/factions/faction_action",
 			return false;
 		}
 
-		// Any village. Forts inherit legends_fort (not legends_village), excluded.
 		if (!this.isKindOf(_s, "legends_village"))
 		{
 			return false;
 		}
 
-		// Hills within 3 tiles -- also guarantees a spawnable tile for the ruined tower.
 		if (_s.getSurroundingTilesOfType([::Const.World.TerrainType.Hills], 3).len() == 0)
 		{
 			return false;

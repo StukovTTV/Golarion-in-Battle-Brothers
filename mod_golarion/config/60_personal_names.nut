@@ -1,6 +1,3 @@
-// ==================== Personal names (Golarion, weighted) ====================
-// Names sorted by Kodi Arfer's Pathfinder compilation (Inner Sea World Guide +
-// Archives of Nethys). Humans up-weighted vs non-humans via HSHARE below.
 local gNMale = [
 	"Aerodus", "Akorian", "Akrem", "Alamander", "Alexite", "Alezandaru", "Andrezi", "Arioch",
 	"Barek", "Belor", "Birger", "Dines", "Dolok", "Doritian", "Dortlin", "Dron", "Eilif",
@@ -120,7 +117,7 @@ local gNHFemale = [
 	"Zakkar", "Zarrnyl", "Zathra", "Zeljka", "Zelkekek", "Zetaya", "Zheit", "Zibini",
 	"Zokaratz"
 ];
-local HSHARE = 0.8;   // fraction of recruits with human names (tune this)
+local HSHARE = 0.8;
 local function gBlend(human, nonhuman) {
 	local k = 1;
 	if (human.len() > 0)
@@ -136,4 +133,3 @@ local function gBlend(human, nonhuman) {
 ::Const.Strings.CharacterNamesFemaleNorse= gBlend(gNorseF,  gNHFemale);
 ::Const.Strings.SouthernNames            = gBlend(gSMale,   gNHMale);
 ::Const.Strings.SouthernFemaleNames      = gBlend(gSFemale, gNHFemale);
-// ==========================================================================

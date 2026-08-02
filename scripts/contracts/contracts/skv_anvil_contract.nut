@@ -560,16 +560,8 @@ this.skv_anvil_contract <- this.inherit("scripts/contracts/contract", {
 				local pick = c.m.Pick != null ? c.m.Pick : c.attackers();
 				local fac = ::World.FactionManager.getFactionOfType(this.Const.FactionType.Bandits).getID();
 
-				::Const.World.Common.addUnitsToCombat(p.Entities, pick.List, budget, fac);
-
-				if (p.Entities.len() == 0)
-				{
-					::Skv.dbg("Skv.Anvil: '" + pick.Name + "' spawned nothing at budget "
-						+ budget + " - falling back to bandit raiders");
-					::Const.World.Common.addUnitsToCombat(p.Entities, ::Const.World.Spawn.BanditRaiders, budget, fac);
-				}
-
-				::Skv.dbg("Skv.Anvil: " + pick.Name + " budget=" + budget + " units=" + p.Entities.len());
+				::Skv.Spawn.fill(p.Entities, pick.List, budget, fac, "Anvil/" + pick.Name,
+					::Const.World.Spawn.BanditRaiders);
 				::World.Contracts.startScriptedCombat(p, false, true, true);
 			}
 

@@ -775,7 +775,7 @@ this.skv_azari_contract <- this.inherit("scripts/contracts/contract", {
 							if (r.ok)
 							{
 
-								this.Contract.m.RoomRows = (r.actor != null && ("XP" in ::Skv)) ? ::Skv.XP.grant(r.actor, 200) : [];
+								this.Contract.m.RoomRows = (r.actor != null && ("XP" in ::Skv)) ? ::Skv.XP.check(r) : [];
 								this.Contract.m.RoomText = "[img]gfx/ui/events/event_89.png[/img]{%SKVNAME%" + this.Contract.m.ActorName + "%SKVNAME_OFF% kneels to the old iron and works it the way a good thief works anything - patient, listening, feeling for the give. The %SKVLOC%Azari%SKVLOC_OFF% built even the locks on their tombs to outlast the men who made them, and this one argues back through a dozen dead men's rust. Then something deep in it turns over, soft as a sigh, and the gate swings inward without a sound. Whatever keeps the dead down here will not hear you come. He rocks back on his heels, quietly pleased, and a shade the wiser for it.}";
 								return "CryptPicked";
 							}

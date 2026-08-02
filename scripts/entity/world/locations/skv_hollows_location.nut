@@ -1,15 +1,3 @@
-// ============================================================================
-//  skv_hollows_location -- the Consortium Lumber Camp (Darkmoon Vale hub).
-//
-//  Pure decoration: the contract spawns it, sets it non-attackable, and runs its
-//  own screens off it. Passive|Lair so it never joins a faction's settlement
-//  bookkeeping. Same shape as skv_azari_location / skv_den_location, both of
-//  which deserialize cleanly in this mod.
-//
-//  Brush: world_homestead_01 -- a working steading. (The lumber-camp art,
-//  world_forest_needle_02, is NOT in the world_entity_0 atlas, so it is not
-//  confirmed referenceable; homestead is, and reads correctly at map scale.)
-// ============================================================================
 this.skv_hollows_location <- this.inherit("scripts/entity/world/location", {
 	m = {},
 	function create()

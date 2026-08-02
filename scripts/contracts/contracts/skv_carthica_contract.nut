@@ -227,7 +227,7 @@ this.skv_carthica_contract <- this.inherit("scripts/contracts/contract", {
 		{
 			this.m.Points = this.m.Points + 2;
 			this.m.Wins = this.m.Wins + 1;
-			if (_res.actor != null && ("XP" in ::Skv)) rows = ::Skv.XP.grant(_res.actor, 150);
+			if ("XP" in ::Skv) rows = ::Skv.XP.check(_res);
 			text = _winText;
 		}
 		else
@@ -417,7 +417,7 @@ this.skv_carthica_contract <- this.inherit("scripts/contracts/contract", {
 							if (res.ok)
 							{
 								this.Contract.m.SpottedTail = true;
-								local rows = (res.actor != null && ("XP" in ::Skv)) ? ::Skv.XP.grant(res.actor, 150) : [];
+								local rows = (res.actor != null && ("XP" in ::Skv)) ? ::Skv.XP.check(res) : [];
 								return this.Contract.resolveRoom(rows, "[img]gfx/ui/events/event_84.png[/img]{%SKVNAME%" + who + "%SKVNAME_OFF% makes them without breaking stride - two men in the press, wasp-marks half-hid at the collar, matching the company step for step. Sczarni. You do not let on. You drift the way they would rather you did not, toward ground of your own choosing, and quietly get your hands near your hilts. Whatever they meant to spring, they will not spring it clean.}");
 							}
 							return this.Contract.resolveRoom([], "[img]gfx/ui/events/event_84.png[/img]{Nothing but the ordinary press of the low quarter - washing overhead, a hawker crying figs, a dog nosing the gutter. If anyone is on you, they are better at it than your sharpest eye. You walk on into the narrowing streets, none the wiser.}");
@@ -573,7 +573,7 @@ this.skv_carthica_contract <- this.inherit("scripts/contracts/contract", {
 							local who = (res.actor != null) ? res.actor.getName() : this.Contract.m.ActorName;
 							if (res.ok)
 							{
-								local rows = (res.actor != null && ("XP" in ::Skv)) ? ::Skv.XP.grant(res.actor, 150) : [];
+								local rows = (res.actor != null && ("XP" in ::Skv)) ? ::Skv.XP.check(res) : [];
 								return this.Contract.resolveRoom(rows, "[img]gfx/ui/events/event_74.png[/img]{%SKVNAME%" + who + "%SKVNAME_OFF% works the soot with two fingers until it smears wrong - a hairline, then a whole door's worth of hairline, then the ghost of a latch under a false brick. A push, and the wall gives inward onto a stair going down, and warm noise, and lamplight. The Urgent Messenger.}");
 							}
 

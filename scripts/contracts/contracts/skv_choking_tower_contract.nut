@@ -285,7 +285,8 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 	function checkXP( _r )
 	{
-		if (_r.ok && _r.actor != null && ("XP" in ::Skv)) this.pushRows(::Skv.XP.grant(_r.actor, 200));
+
+		if ("XP" in ::Skv) this.pushRows(::Skv.XP.check(_r));
 		return _r;
 	}
 
@@ -699,6 +700,11 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			return "Reveal";
 		}
 		return "CannotRead";
+	}
+
+	function towerXP()
+	{
+		return this.m.ShutdownClean ? 200 : 100;
 	}
 
 	function resolveTopSmash()
@@ -1555,11 +1561,22 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 				}
 				t += "\n\nHe counts out what he promised, and a little he did not, and swears the well already tastes sweeter - though it cannot possibly yet.}";
 				this.Text = t;
+
+				this.List = ::Skv.Loot.previewRows([], this.Contract.m.Payment.getOnCompletion());
+				foreach (r in ::Skv.XP.previewEach(this.Contract.towerXP()))
+					this.List.push(r);
+
 				this.Options = [
 					{
 						Text = "{Take your pay.}",
 						function getResult()
 						{
+							if (!this.Contract.m.ClimbDone)
+							{
+								::Skv.XP.partyEach(this.Contract.towerXP());
+								::Skv.dbg("CT: completion XP " + this.Contract.towerXP()
+									+ "/man, clean=" + this.Contract.m.ShutdownClean);
+							}
 							this.World.Assets.addBusinessReputation(this.Const.World.Assets.ReputationOnContractSuccess);
 							this.World.Assets.addMoney(this.Contract.m.Payment.getOnCompletion());
 							this.World.FactionManager.getFaction(this.Contract.getFaction()).addPlayerRelation(this.Const.World.Assets.RelationCivilianContractSuccess, "Silenced the Choking Tower");

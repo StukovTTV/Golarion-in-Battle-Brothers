@@ -539,7 +539,7 @@ this.skv_ambush_contract <- this.inherit("scripts/contracts/contract", {
 								local actors = [];
 								if (cross.actor != null) actors.push(cross.actor);
 								if (spot.ok && spotter != null) actors.push(spotter);
-								local rows = (actors.len() > 0 && ("XP" in ::Skv)) ? ::Skv.XP.grant(actors, 200) : [];
+								local rows = (actors.len() > 0 && ("XP" in ::Skv)) ? ::Skv.XP.grant(actors, ::Skv.Cfg.checkXPSolo() * actors.len()) : [];
 								local text = spot.ok
 									? "[img]gfx/ui/events/event_89.png[/img]{%SKVNAME%" + spotterName + "%SKVNAME_OFF% catches the seam of the false floor before a boot ever finds it, and on his word %SKVNAME%" + crosserName + "%SKVNAME_OFF% threads the company past the covered pit one man at a time - each boot set where his was. No sound, no fall. Whoever dug it will not know a soul crossed.}"
 									: "[img]gfx/ui/events/event_89.png[/img]{No one marks the floor for what it is - but %SKVNAME%" + crosserName + "%SKVNAME_OFF% feels it give a hair too easy underfoot, freezes the whole line with a hiss, and picks the way across the covered pit on instinct alone. Quick feet and quicker luck, and the company is over dry.}";

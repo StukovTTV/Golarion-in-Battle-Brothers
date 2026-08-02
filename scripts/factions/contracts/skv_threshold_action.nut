@@ -1,10 +1,13 @@
-this.legend_skulls_crossing_action <- this.inherit("scripts/factions/faction_action", {
+this.skv_threshold_action <- this.inherit("scripts/factions/faction_action", {
 	m = {},
+
 	function create()
 	{
-		this.m.ID = "legend_skulls_crossing_action";
+		this.m.ID = "skv_threshold_action";
+
 		this.m.Cooldown = this.World.getTime().SecondsPerDay * 14;
 		this.m.IsStartingOnCooldown = false;
+
 		this.m.IsSettlementsRequired = true;
 		this.faction_action.create();
 	}
@@ -18,12 +21,17 @@ this.legend_skulls_crossing_action <- this.inherit("scripts/factions/faction_act
 			return;
 		}
 
-		if (::Skv.Once.isLocked("SkullsCrossing"))
+		if (::Skv.Once.isLocked("Threshold"))
 		{
 			return;
 		}
 
-		if (!_faction.isReadyForContract(this.Const.Contracts.ContractCategoryMap.legend_skulls_crossing_contract))
+		if (!_faction.isReadyForContract())
+		{
+			return;
+		}
+
+		if (_faction.hasContractExclusion("contract.skv_threshold"))
 		{
 			return;
 		}
@@ -35,17 +43,12 @@ this.legend_skulls_crossing_action <- this.inherit("scripts/factions/faction_act
 			return;
 		}
 
-		if (!v.hasSituation("situation.draught"))
+		if (v.getSize() < 2)
 		{
 			return;
 		}
 
-		if (v.getSurroundingTilesOfType([this.Const.World.TerrainType.Shore], 12).len() == 0)
-		{
-			return;
-		}
-
-		if (_faction.hasContractExclusion("contract.legend_skulls_crossing"))
+		if (::Math.rand(1, 100) > ::Skv.Cfg.rarity(_faction))
 		{
 			return;
 		}
@@ -59,11 +62,14 @@ this.legend_skulls_crossing_action <- this.inherit("scripts/factions/faction_act
 
 	function onExecute( _faction )
 	{
-		::Skv.Once.claim("SkullsCrossing");
-		local contract = this.new("scripts/contracts/contracts/legend_skulls_crossing_contract");
+
+		::Skv.Once.claim("Threshold");
+
+		local contract = this.new("scripts/contracts/contracts/skv_threshold_contract");
 		contract.setFaction(_faction.getID());
 		contract.setHome(_faction.getSettlements()[0]);
 		contract.setEmployerID(_faction.getRandomCharacter().getID());
+
 		this.World.Contracts.addContract(contract);
 	}
 

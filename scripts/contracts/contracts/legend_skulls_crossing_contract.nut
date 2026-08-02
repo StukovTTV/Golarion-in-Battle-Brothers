@@ -1,12 +1,3 @@
-// =============================================================================
-// SKULL'S CROSSING - the Economy mechanism-gamble contract
-// A drought town hires you to work the ancient Thassilonian dam's skull-jaw
-// mechanism to send the diverted river back to the hinterland. Arrive -> choose
-// to work the mechanism -> weighted roll: 40 works / 20 ambush / 40 breaks.
-// An inventor OR a LegendScholar-perk brother shifts the odds toward "works".
-// Advance is the floor (kept either way); renown (*2 base) is the real stake.
-// =============================================================================
-
 this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract", {
 	m = {
 		Destination = null,
@@ -32,14 +23,13 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 	function start()
 	{
 		this.m.DifficultyMult = this.Math.rand(90, 105) * 0.01;
-		// Big advance (50/50): they pay half up front just for the attempt.
+
 		this.m.Payment.Pool = 600 * (this.Math.rand(60, 110) * 0.01) * this.getPaymentMult() * this.Math.pow(this.getDifficultyMult(), this.Const.World.Assets.ContractRewardPOW) * this.getReputationToPaymentMult();
 		this.m.Payment.Advance = 0.5;
 		this.m.Payment.Completion = 0.5;
 		this.contract.start();
 	}
 
-	// Shallow water somewhere in a wide ring; the remote dam spawns on it.
 	function pickSpawnTile()
 	{
 		local candidates = this.m.Home.getSurroundingTilesOfType([this.Const.World.TerrainType.Shore], 12);
@@ -58,7 +48,6 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 		return valid[this.Math.rand(0, valid.len() - 1)];
 	}
 
-	// The heart: weighted 3-outcome roll, tilted by an inventor/scholar, logged for tuning.
 	function resolveMechanism()
 	{
 		local hasSpecialist = false;
@@ -72,9 +61,6 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 			}
 		}
 
-		// Base 45 works / 35 break / 20 ambush. A specialist (inventor/scholar) tilts only
-		// WORKS vs BREAK — the machinery uncertainty they can influence. Ambush stays a flat
-		// 20 (a clever engineer can't stop rivals racing you to the dam).
 		local wWorks  = hasSpecialist ? 60 : 45;
 		local wAmbush = 20;
 		local wBreak  = hasSpecialist ? 20 : 35;
@@ -82,11 +68,6 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 		local roll = this.Math.rand(1, wWorks + wAmbush + wBreak);
 		local outcome = roll <= wWorks ? "works" : (roll <= wWorks + wAmbush ? "ambush" : "break");
 
-		// ::logInfo("SkullsCrossing: specialist=" + hasSpecialist + " weights=" + wWorks + "/" + wAmbush + "/" + wBreak + " roll=" + roll + " -> " + outcome);
-
-		// Return the next screen's ID so the calling option's getResult can return it.
-		// (Returning "" from getResult would close; the ambush launches combat directly
-		// and returns "" because the tactical battle takes over the UI.)
 		if (outcome == "works")
 		{
 			return "Works";
@@ -159,11 +140,6 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 					return;
 				}
 
-				// Post-combat outcome screens are shown HERE, from a flag set by the combat
-				// callback — NOT inside the callback itself. Showing a contract screen from
-				// inside onCombatVictory/onRetreatedFromCombat collides with the engine's
-				// end-of-combat (loot/XP) screen still tearing down, and the window can't be
-				// closed. This deferred flag-then-update pattern is what restore_location does.
 				if (this.Contract.isPlayerAt(this.Contract.m.Destination))
 				{
 					if (this.Flags.get("AmbushWon"))
@@ -194,10 +170,6 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 				}
 			}
 
-			// The ambush branch: mirrors restore_location's fight (BanditScouts, scaled budget,
-			// Line deployment). Uses the tile's OWN natural terrain as the backdrop — no
-			// LocationTemplate. (tactical.quarry crashes here: its addRoads step needs a Tile
-			// context scripted combats don't provide — "the index 'Tile' does not exist".)
 			function onCombat()
 			{
 				local tile = this.Contract.m.Destination.getTile();
@@ -215,8 +187,6 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 				::World.Contracts.startScriptedCombat(p, false, true, true);
 			}
 
-			// Callbacks set a FLAG ONLY — the screen is shown from update() next tick, after the
-			// engine's own end-of-combat screen has closed (restore_location pattern).
 			function onCombatVictory( _combatID )
 			{
 				if (_combatID == "SkullsCrossing")
@@ -250,9 +220,7 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 			ShowEmployer = true,
 			ShowDifficulty = true,
 			Options = [],
-			// Options are rebuilt WHOLESALE each time this screen is shown (start() re-runs
-			// when returning from "Lore", so pushing would duplicate). The lore option is
-			// hidden with a roster under 2, because %randombrother2% renders "unknown" then.
+
 			function start()
 			{
 				this.Options = [
@@ -277,21 +245,13 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 					Text = "{Ancient machinery is no work for us.}",
 					function getResult()
 					{
-						this.World.Contracts.removeContract(this.Contract);   // pre-accept decline -> NOT retired (can re-offer)
+						this.World.Contracts.removeContract(this.Contract);
 						return 0;
 					}
 				});
 			}
 		});
 
-		// ---------------------------------------------------------------------------
-		// LORE SCREEN — the reusable template. Opt-in (the player must click for it),
-		// delivered as a conversation between %randombrother% and %randombrother2%
-		// (VERIFIED: those are the only two, contract.nut:319-326 guarantees they're
-		// different men; repeating %randombrother% gives the SAME man, and a roster
-		// under 2 renders "unknown"). ACCURATE lore — the point is that people learn
-		// the world. Returns to "Task" so the offer is untouched. Copy this shape.
-		// ---------------------------------------------------------------------------
 		this.m.Screens.push({
 			ID = "Lore",
 			Title = "Skull's Crossing",
@@ -365,11 +325,10 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 					Text = "{Take what we can and go.}",
 					function getResult()
 					{
-						// Contract FAILS (valves smashed) — keep advance, lose renown. But the
-						// fight's XP + drops were automatic, and here's a small guaranteed spoil.
+
 						if (this.World.Assets.getStash().hasEmptySlot())
 						{
-							this.World.Assets.getStash().add(this.new("scripts/items/loot/ancient_gold_coins_item"));  // VERIFY path on first load
+							this.World.Assets.getStash().add(this.new("scripts/items/loot/ancient_gold_coins_item"));
 						}
 						this.World.Assets.addBusinessReputation(this.Const.World.Assets.ReputationOnContractFail * 2);
 						this.World.FactionManager.getFaction(this.Contract.getFaction()).addPlayerRelation(this.Const.World.Assets.RelationCivilianContractFail, "Arrived too late at Skull's Crossing");
@@ -426,10 +385,10 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 
 	function onClear()
 	{
-		::Skv.Once.release("SkullsCrossing");   // always free the live-offer slot (any removal)
+		::Skv.Once.release("SkullsCrossing");
 		if (this.m.IsActive)
 		{
-			::Skv.Once.retire("SkullsCrossing");   // accepted then concluded (completed/aborted) -> retire
+			::Skv.Once.retire("SkullsCrossing");
 			if (!::MSU.isNull(this.m.Destination))
 			{
 				this.m.Destination.getSprite("selection").Visible = false;
@@ -444,13 +403,7 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 
 	function onPrepareVariables( _vars )
 	{
-		// Location + person colour marks -- see skv_black_forks_contract.nut for the full
-		// reasoning. Short version: BB spends one warm hue (body 35 / speech 41 / OOC 42) in
-		// three brightness steps, so a mark must LEAVE the hue. Names take blue-grey #9dbccb
-		// (200); places take violet-grey #b39dbc (283) -- the other far point, and BB spends no
-		// violet anywhere, so neither collides. Brothers AND canon figures both take the person
-		// mark; the one-screen procgen employer is left unmarked.
-		// >>> The two colours to change live here. <<<
+
 		local nameColor = "#9dbccb";
 
 		_vars.push(["SKVNAME", "[color=" + nameColor + "]"]);

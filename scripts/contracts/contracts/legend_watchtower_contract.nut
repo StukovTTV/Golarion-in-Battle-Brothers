@@ -2,9 +2,31 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 	m = {
 		Destination = null,
 
-		CultistBudget = 75,
+		CultistBudget = 60,
+
+		GhostThreshold = 1.15,
 
 	},
+
+	function cultistBudget()
+	{
+		local b = (this.m.CultistBudget * this.getScaledDifficultyMult()).tointeger();
+		return b < 15 ? 15 : b;
+	}
+
+	function cultistCount()
+	{
+		local b = this.cultistBudget();
+		local n = b / 15;
+		if (n * 15 < b) n = n + 1;
+		return n;
+	}
+
+	function ghostCount()
+	{
+		return this.getScaledDifficultyMult() >= this.m.GhostThreshold ? 2 : 1;
+	}
+
 	function create()
 	{
 		this.contract.create();
@@ -148,12 +170,12 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 				p.LocationTemplate = clone this.Const.Tactical.LocationTemplate;
 				p.LocationTemplate.Template[0] = "tactical.ruins";
 				p.LocationTemplate.Fortification = this.Const.Tactical.FortificationType.Walls;
-				p.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Circle;
 
 				local fac = ::World.FactionManager.getFactionOfType(this.Const.FactionType.Bandits).getID();
-				::Const.World.Common.addUnitsToCombat(p.Entities, ::Const.World.Spawn.Cultists, this.Contract.m.CultistBudget, fac);
+				::Const.World.Common.addUnitsToCombat(p.Entities, ::Const.World.Spawn.Cultists, this.Contract.cultistBudget(), fac);
 
-				for (local i = 0; i < 2; i = i + 1)
+				local ghosts = this.Contract.ghostCount();
+				for (local i = 0; i < ghosts; i = i + 1)
 				{
 					local g = clone ::Const.World.Spawn.Troops.Ghost;
 					g.Faction <- fac;
@@ -247,7 +269,7 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "Approach",
 			Title = "The Abandoned Watchtower",
-			Text = "[img]gfx/ui/events/event_108.png[/img]{You climb the last of the slope to the broken tower, the black peaks looming above it. A fire burns among the fallen stones, and around it robed figures stand at some patient, droning work - and above them the air is wrong. At the center of it a hard-faced man in dull mail directs the work, a great two-handed mace across his back. Pale, half-seen shapes drift and swarm between the blocks around them, winged and cold, thickening as the chant goes on. Whatever he came here to raise, it is most of the way through the door.}",
+			Text = "[img]gfx/ui/events/event_108.png[/img]{You climb the last of the slope to the broken tower, the black peaks looming above it. A fire burns among the fallen stones, and around it robed figures stand at some patient, droning work - and above them the air is wrong. At the center of it a hard-faced man in dull mail directs the work, a great two-handed mace across his back. Something pale and half-seen drifts between the blocks around them, winged and cold, thickening as the chant goes on. Whatever he came here to raise, it is most of the way through the door.\n\nYou are close enough to count them, and far enough to turn around.}",
 			Image = "",
 			List = [],
 			Options = [
@@ -261,16 +283,50 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 
 				},
 				{
-					Text = "{Hold back for now.}",
+					Text = "{Hold back for now - we can come back to this.}",
 					function getResult()
 					{
 						return 0;
 					}
 
+				},
+				{
+					Text = "{This is beyond us. We go back and say so.}",
+					function getResult()
+					{
+
+						this.World.Assets.addBusinessReputation(this.Const.World.Assets.ReputationOnContractFail);
+						this.World.FactionManager.getFaction(this.Contract.getFaction()).addPlayerRelation(this.Const.World.Assets.RelationCivilianContractFail, "Turned back from the abandoned watchtower");
+						this.World.Contracts.finishActiveContract(true);
+						return 0;
+					}
+
 				}
 			],
+
 			function start()
 			{
+				this.List = [];
+
+				local c = this.Contract.cultistCount();
+				this.List.push({
+					id = 1,
+					icon = "ui/icons/special.png",
+					text = c == 1 ? "One robed figure at the fire" : c + " robed figures at the fire"
+				});
+
+				local g = this.Contract.ghostCount();
+				this.List.push({
+					id = 2,
+					icon = "ui/icons/special.png",
+					text = g == 1 ? "A pale winged shape among the stones - one of the restless dead" : g + " pale winged shapes among the stones - the restless dead"
+				});
+
+				this.List.push({
+					id = 3,
+					icon = "ui/icons/special.png",
+					text = "Their leader, mailed, with a two-handed mace - he will not break easily"
+				});
 			}
 
 		});

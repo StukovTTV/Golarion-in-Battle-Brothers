@@ -1,14 +1,3 @@
-// ==================== Mercenary companies: the nations that fell ====================
-// Reuse of the 41 Inner Sea NATIONS displaced from NobleHouseNames (now runelords).
-// In a post-cataclysm Inner Sea a mercenary band named for a nation is what's LEFT
-// when that nation dies -- the company IS the country now. Two variants per nation:
-// a remnant (the people) and an outfit (the business). 82 total, all unique, no clash
-// with the runelord house names.
-//
-// LOAD-ORDER NOTE: Legends does `FreeCompanyNames <- clone MercenaryCompanyNames` in
-// !config/strings.nut BEFORE our mod runs, so the clone is already taken. We must set
-// BOTH pools explicitly, or roaming Free Companies keep the old Legends names.
-// Both are EXISTING keys by the time we run -> assign with `=`.
 ::Const.Strings.MercenaryCompanyNames = [
 	"The Last Legion of Cheliax",
 	"Company of Cheliax",

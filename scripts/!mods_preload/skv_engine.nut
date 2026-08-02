@@ -82,19 +82,27 @@ if (!("Skv" in ::getroottable()))
 
 			local grouped = [];
 			local index = {};
+
 			foreach (it in _items)
 			{
 				stash.add(it);
-				if (it.getID() in index) { grouped[index[it.getID()]].count = grouped[index[it.getID()]].count + 1; continue; }
+				local a = it.isAmountShown() ? it.getAmount() : 0;
+				if (it.getID() in index)
+				{
+					local g = grouped[index[it.getID()]];
+					g.count = g.count + 1;
+					g.amount = g.amount + a;
+					continue;
+				}
 				index[it.getID()] <- grouped.len();
-				grouped.push({ item = it, count = 1 });
+				grouped.push({ item = it, count = 1, amount = a });
 			}
 			foreach (g in grouped)
 			{
 				local it = g.item;
 
 				local qty = "";
-				local amt = it.isAmountShown() ? it.getAmount() : 0;
+				local amt = g.amount;
 				if (amt > 0)
 					qty = ::MSU.Text.color(::Const.UI.Color.PositiveEventValue, "+" + amt) + " ";
 				else if (g.count > 1)
@@ -152,6 +160,72 @@ if (!("Skv" in ::getroottable()))
 	function isRetired( _key ) { return ::World.Flags.has(this.retiredFlag(_key)); }
 };
 
+::Skv.Spawn <- {
+
+	function fill( _into, _list, _budget, _fac, _label = "fight", _fallback = null, _minibossify = 0 )
+	{
+		local before = _into.len();
+		::Const.World.Common.addUnitsToCombat(_into, _list, _budget, _fac, _minibossify);
+		local got = _into.len() - before;
+
+		if (got == 0)
+		{
+			if (_fallback != null)
+			{
+				::logError("Skv.Spawn: '" + _label + "' bought NOTHING at budget " + _budget
+					+ " - falling back. EVERY ENTRY WAS FILTERED OUT: budget above every entry MaxR,"
+					+ " or below every entry MinR before dateToSkip. NOT an affordability problem.");
+				::Const.World.Common.addUnitsToCombat(_into, _fallback, _budget, _fac, _minibossify);
+				got = _into.len() - before;
+				if (got == 0)
+					::logError("Skv.Spawn: '" + _label + "' FALLBACK ALSO BOUGHT NOTHING at budget "
+						+ _budget + " - the player is about to walk onto an EMPTY BATTLEFIELD.");
+			}
+			else
+			{
+				::logError("Skv.Spawn: '" + _label + "' bought NOTHING at budget " + _budget
+					+ " and no fallback was given - EMPTY BATTLEFIELD.");
+			}
+		}
+
+		::Skv.dbg("Skv.Spawn: " + _label + " budget=" + _budget + " units=" + _into.len());
+		return _into.len();
+	}
+
+	function check( _into, _label = "fight" )
+	{
+		if (_into.len() == 0)
+		{
+			::logError("Skv.Spawn: '" + _label + "' has NO units at combat start - EMPTY BATTLEFIELD.");
+			return false;
+		}
+		::Skv.dbg("Skv.Spawn: " + _label + " starts with " + _into.len() + " unit(s).");
+		return true;
+	}
+};
+
+::Skv.Town <- {
+	LastEnteredID = -1,
+
+	function enter( _id )
+	{
+		this.LastEnteredID = _id;
+		::Skv.dbg("Skv.Town: entered settlement id=" + _id);
+	}
+
+	function consume( _id )
+	{
+		if (this.LastEnteredID != _id)
+		{
+			return false;
+		}
+		this.LastEnteredID = -1;
+		return true;
+	}
+};
+
+::Skv.CheckVerbose <- false;
+
 ::Skv.Check <- {
 
 	function resolve( _contract, _ladder, _plusTraits, _minusTraits, _plusPerks, _injuries, _floorBase )
@@ -180,6 +254,34 @@ if (!("Skv" in ::getroottable()))
 		return { ok = roll <= chance, actor = actor, chance = chance, roll = roll };
 	}
 
+	function scoreBrother( _bro, _base, _traitMods, _bgMods, _perkMods, _injuries )
+	{
+		local sk = _bro.getSkills();
+		local c = _base;
+		foreach (id, d in _traitMods) if (sk.hasSkill(id)) c = c + d;
+		local bg = _bro.getBackground();
+		if (bg != null && (bg.getID() in _bgMods)) c = c + _bgMods[bg.getID()];
+		foreach (id, d in _perkMods) if (sk.hasPerk(id)) c = c + d;
+		foreach (inj in _injuries) if (sk.hasSkill(inj)) { c = c - 15; break; }
+		return c;
+	}
+
+	function finalChance( _bro, _raw, _bgMods )
+	{
+		local c = _raw;
+		if (_bro != null && ("background.gambler" in _bgMods))
+		{
+			local bg = _bro.getBackground();
+			if (bg != null && bg.getID() == "background.gambler")
+			{
+				local swing = ::Math.rand(-5, 5);
+				c = c + swing;
+				::Skv.dbg("Skv.Check gambler's-gamble swing=" + swing + " actor=" + _bro.getName());
+			}
+		}
+		return ::Math.max(5, ::Math.min(95, c));
+	}
+
 	function bestByComposition( _contract, _base, _traitMods, _bgMods, _perkMods, _injuries )
 	{
 		local best = null;
@@ -187,31 +289,84 @@ if (!("Skv" in ::getroottable()))
 		foreach (bro in ::World.getPlayerRoster().getAll())
 		{
 			if (bro.isInReserves()) continue;
-			local sk = bro.getSkills();
-			local c = _base;
-			foreach (id, d in _traitMods) if (sk.hasSkill(id)) c = c + d;
-			local bg = bro.getBackground();
-			if (bg != null && (bg.getID() in _bgMods)) c = c + _bgMods[bg.getID()];
-			foreach (id, d in _perkMods) if (sk.hasPerk(id)) c = c + d;
-			foreach (inj in _injuries) if (sk.hasSkill(inj)) { c = c - 15; break; }
+			local c = this.scoreBrother(bro, _base, _traitMods, _bgMods, _perkMods, _injuries);
+
+			if (::Skv.CheckVerbose)
+			{
+				local bgd = bro.getBackground();
+				::Skv.dbg("   " + bro.getName() + "  [" + (bgd != null ? bgd.getID() : "no-background") + "]  score=" + c);
+			}
 			if (c > bestChance) { bestChance = c; best = bro; }
 		}
 		if (best == null) bestChance = _base;
-
-		if (best != null && ("background.gambler" in _bgMods))
-		{
-			local bg2 = best.getBackground();
-			if (bg2 != null && bg2.getID() == "background.gambler")
-			{
-				local swing = ::Math.rand(-5, 5);
-				bestChance = bestChance + swing;
-				::Skv.dbg("Skv.Check gambler's-gamble swing=" + swing + " actor=" + best.getName());
-			}
-		}
-		local chance = ::Math.max(5, ::Math.min(95, bestChance));
+		local chance = this.finalChance(best, bestChance, _bgMods);
 		local roll = ::Math.rand(1, 100);
 		_contract.m.ActorName = (best != null ? best.getName() : "one of the company");
 		return { ok = roll <= chance, actor = best, chance = chance, roll = roll };
+	}
+
+	function countByComposition( _contract, _base, _traitMods, _bgMods, _perkMods, _injuries, _needFraction = 0.5 )
+	{
+		local rows = [];
+		local passed = 0;
+		local total = 0;
+		local sum = 0;
+		local star = null;   local starChance = -9999;  local starRoll = 9999;
+		local worst = null;  local worstChance = 9999;  local worstRoll = -9999;
+
+		foreach (bro in ::World.getPlayerRoster().getAll())
+		{
+			if (bro.isInReserves()) continue;
+			local raw = this.scoreBrother(bro, _base, _traitMods, _bgMods, _perkMods, _injuries);
+			local chance = this.finalChance(bro, raw, _bgMods);
+			local roll = ::Math.rand(1, 100);
+			local ok = roll <= chance;
+			local bg = bro.getBackground();
+
+			total = total + 1;
+			sum = sum + chance;
+			if (ok) passed = passed + 1;
+
+			if (ok && (star == null || chance > starChance || (chance == starChance && roll < starRoll)))
+			{ starChance = chance;  starRoll = roll;  star = bro; }
+			if (!ok && (worst == null || chance < worstChance || (chance == worstChance && roll > worstRoll)))
+			{ worstChance = chance; worstRoll = roll; worst = bro; }
+
+			rows.push({
+				name = bro.getName(),
+				bg = (bg != null ? bg.getID() : ""),
+				chance = chance,
+				roll = roll,
+				ok = ok
+			});
+
+			if (::Skv.CheckVerbose)
+				::Skv.dbg("   " + bro.getName() + "  [" + (bg != null ? bg.getID() : "no-background")
+					+ "]  chance=" + chance + " roll=" + roll + (ok ? "  through" : "  CAUGHT"));
+		}
+
+		if (total == 0)
+		{
+			_contract.m.ActorName = "the company";
+			return { ok = false, actor = null, worst = null, passed = 0, needed = 0, total = 0, avg = _base, rows = rows };
+		}
+
+		local want = total * _needFraction;
+		local needed = want.tointeger();
+		if (needed < want) needed = needed + 1;
+		if (needed < 1) needed = 1;
+		if (needed > total) needed = total;
+
+		local ok = passed >= needed;
+
+		local face = ok ? star : worst;
+		_contract.m.ActorName = (face != null ? face.getName() : "the company");
+
+		return {
+			ok = ok, actor = face, worst = worst,
+			passed = passed, needed = needed, total = total,
+			avg = 1.0 * sum / total, rows = rows
+		};
 	}
 
 	function agility( _contract, _base )
@@ -408,6 +563,42 @@ if (!("Skv" in ::getroottable()))
 		return r;
 	}
 
+	function stealth( _contract, _base, _need = null )
+	{
+		local traits =
+			{ ["trait.legend_light"] = 12, ["trait.tiny"] = 10, ["trait.dexterous"] = 8,
+			  ["trait.paranoid"] = 5, ["trait.quick"] = 2, ["trait.swift"] = 2,
+			  ["trait.legend_heavy"] = -12, ["trait.fat"] = -12, ["trait.clumsy"] = -12,
+			  ["trait.huge"] = -10, ["trait.asthmatic"] = -8, ["trait.clubfooted"] = -8,
+			  ["trait.legend_prosthetic_leg"] = -8, ["trait.legend_prosthetic_foot"] = -8,
+			  ["trait.drunkard"] = -5 };
+		local bgs =
+			{ ["background.poacher"] = 16,
+			  ["background.thief"] = 14, ["background.thief_southern"] = 14,
+			  ["background.assassin"] = 12, ["background.assassin_southern"] = 12,
+			  ["background.ratcatcher"] = 8, ["background.hunter"] = 8,
+			  ["background.killer_on_the_run"] = 8,
+			  ["background.graverobber"] = 6, ["background.vagabond"] = 5,
+			  ["background.cripple"] = -12, ["background.cripple_southern"] = -12,
+			  ["background.hedge_knight"] = -8, ["background.flagellant"] = -5,
+			  ["background.brawler"] = -4 };
+		local perks = { [::Legends.Perk.LegendHidden] = 15, [::Legends.Perk.LegendLurker] = 8,
+			  [::Legends.Perk.Nimble] = 3 };
+		local inj = this.stealthInjuries();
+
+		if (_need == null)
+		{
+			local rs = this.bestByComposition(_contract, _base, traits, bgs, perks, inj);
+			::Skv.dbg("Skv.Check.stealth[scout] chance=" + rs.chance + " roll=" + rs.roll + (rs.ok ? " PASS" : " FAIL") + " actor=" + _contract.m.ActorName);
+			return rs;
+		}
+
+		local rp = this.countByComposition(_contract, _base, traits, bgs, perks, inj, _need);
+		::Skv.dbg("Skv.Check.stealth[party] " + rp.passed + "/" + rp.total + " through, needed " + rp.needed
+			+ ", avg=" + rp.avg + (rp.ok ? "  PASS" : "  FAIL -- " + _contract.m.ActorName + " gave you away"));
+		return rp;
+	}
+
 	function scaledBase( _contract, _base, _slope = 50 )
 	{
 		local on = true;
@@ -419,7 +610,12 @@ if (!("Skv" in ::getroottable()))
 	function handInjuries() { return ["injury.smashed_hand", "injury.split_hand", "injury.pierced_hand", "injury.fractured_hand", "injury.burnt_hands", "injury.crushed_finger", "injury.missing_hand", "injury.missing_finger"]; }
 	function eyeInjuries()  { return ["injury.grazed_eye_socket", "injury.missing_eye"]; }
 	function handEyeInjuries() { local a = this.handInjuries(); a.extend(this.eyeInjuries()); return a; }
-	function legInjuries()  { return ["injury.pierced_leg_muscles", "injury.injured_knee_cap", "injury.broken_leg", "injury.burnt_legs", "injury.cut_leg_muscles", "injury.bruised_leg", "injury.sprained_ankle", "injury.broken_knee", "injury.maimed_foot"]; }
+
+	function legInjuries()  { return ["injury.pierced_leg_muscles", "injury.injured_knee_cap", "injury.broken_leg", "injury.burnt_legs", "injury.cut_leg_muscles", "injury.bruised_leg", "injury.sprained_ankle", "injury.broken_knee", "injury.maimed_foot", "injury.cut_achilles_tendon"]; }
+
+	function breathInjuries() { return ["injury.pierced_lung", "injury.collapsed_lung_part", "injury.crushed_windpipe", "injury.inhaled_flames", "injury.broken_ribs", "injury.fractured_ribs", "injury.exposed_ribs", "injury.cut_throat"]; }
+
+	function stealthInjuries() { local a = this.legInjuries(); a.extend(this.breathInjuries()); return a; }
 };
 
 ::Skv.Cfg <- {
@@ -431,6 +627,16 @@ if (!("Skv" in ::getroottable()))
 	ActorShareID = "GolarionCheckActorShare",
 	DefaultActorShare = 35,
 
+	CheckXPSoloID = "GolarionCheckXPSolo",
+	DefaultCheckXPSolo = 75,
+	CheckXPTeamID = "GolarionCheckXPTeam",
+	DefaultCheckXPTeam = 50,
+
+	MinOnlookerXP = 5,
+
+	NorthRarity = 3,
+	NobleRarity = 7,
+	SouthRarity = 9,
 	ScaleChecksID = "GolarionScaleChecks",
 	DefaultScaleChecks = true,
 
@@ -453,6 +659,12 @@ if (!("Skv" in ::getroottable()))
 			page.addRangeSetting(this.ActorShareID, this.DefaultActorShare, 0, 100, 5,
 				"Check XP — actor share (%)",
 				"When a brother passes a skill check (a lockpick, a trapped passage, a reading), the contract awards a bit of experience.\n\nThis sets how much of it goes to the brother who actually did it; the rest is split evenly across the whole active company (everyone learns a little from watching).\n\n[b]35[/b] = default (about a third to the doer, the rest shared).\n[b]100[/b] = all to the doer.\n[b]0[/b] = split evenly across everyone.");
+			page.addRangeSetting(this.CheckXPSoloID, this.DefaultCheckXPSolo, 0, 200, 5,
+				"Check XP — one man's award",
+				"Experience for a skill check that ONE brother makes on everyone's behalf — reading a ring, spotting a snare, picking a lock, creeping ahead to look.\n\nThis is the whole award for that check. How much of it goes to the brother who did it rather than to the company is the setting below.\n\n[b]75[/b] = default.\n[b]0[/b] = no experience from skill checks.");
+			page.addRangeSetting(this.CheckXPTeamID, this.DefaultCheckXPTeam, 0, 200, 5,
+				"Check XP — team effort, per brother",
+				"Experience for a skill check EVERY brother has to make for himself — moving quietly past something asleep, crossing a market without being marked.\n\nThis is paid PER ACTIVE BROTHER and split evenly, so each man earns this much and the award does not get thinner as the company grows.\n\n[b]50[/b] = default. Deliberately lower than one man's award above: carrying a job for the whole company is worth more than doing your own share of one.");
 			page.addBooleanSetting(this.ScaleChecksID, this.DefaultScaleChecks,
 				"Scale skill checks with contract difficulty",
 				"When ON, skill checks that scale (spotting a trap, reading a tome, picking a lock) get harder on higher-skull contracts and easier on low ones.\n\nWhen OFF, every such check sits at its own standard-difficulty value regardless of the contract's skull rating — predictable mode.\n\nPhysical checks like crossing a pit are never affected either way.\n\n[b]On[/b] = default.");
@@ -500,6 +712,56 @@ if (!("Skv" in ::getroottable()))
 		}
 	}
 
+	function checkXPSolo()
+	{
+		if (this.Mod == null) return this.DefaultCheckXPSolo;
+		try
+		{
+			local s = this.Mod.ModSettings.getSetting(this.CheckXPSoloID);
+			if (s == null) return this.DefaultCheckXPSolo;
+			return s.getValue();
+		}
+		catch (e)
+		{
+			::logError("Skv.Cfg.checkXPSolo failed (using default): " + e);
+			return this.DefaultCheckXPSolo;
+		}
+	}
+
+	function checkXPTeam()
+	{
+		if (this.Mod == null) return this.DefaultCheckXPTeam;
+		try
+		{
+			local s = this.Mod.ModSettings.getSetting(this.CheckXPTeamID);
+			if (s == null) return this.DefaultCheckXPTeam;
+			return s.getValue();
+		}
+		catch (e)
+		{
+			::logError("Skv.Cfg.checkXPTeam failed (using default): " + e);
+			return this.DefaultCheckXPTeam;
+		}
+	}
+
+	function rarity( _faction )
+	{
+		try
+		{
+			if (_faction != null)
+			{
+				local t = _faction.getType();
+				if (t == ::Const.FactionType.OrientalCityState) return this.SouthRarity;
+				if (t == ::Const.FactionType.NobleHouse)        return this.NobleRarity;
+			}
+		}
+		catch (e)
+		{
+			::logError("Skv.Cfg.rarity failed (using the northern rate): " + e);
+		}
+		return this.NorthRarity;
+	}
+
 	function scaleChecks()
 	{
 		if (this.Mod == null) return this.DefaultScaleChecks;
@@ -534,7 +796,7 @@ if (!("Skv" in ::getroottable()))
 	Types = [
 		"contract.skv_azari", "contract.skv_ambush", "contract.skv_metringer", "contract.skv_black_forks",
 		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing",
-		"contract.skv_carthica", "contract.skv_hollows", "contract.skv_anvil"
+		"contract.skv_carthica", "contract.skv_hollows", "contract.skv_anvil", "contract.skv_threshold"
 	],
 
 	function isMine( _type )
@@ -617,11 +879,233 @@ if (!("Skv" in ::getroottable()))
 		}
 		::logInfo("== " + towns + " eligible town(s); " + readyN + " would PASS the Ambush readiness gate ==");
 	}
+
+	thresholdSurvey = function ()
+	{
+		local out = [];
+		local pt = null;
+		try { pt = ::World.State.getPlayer().getTile(); } catch (e) { pt = null; }
+
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			local fac = null;
+			try { fac = ::World.FactionManager.getFaction(s.getFaction()); } catch (e) { continue; }
+			if (fac == null) continue;
+			if (fac.getType() != ::Const.FactionType.OrientalCityState) continue;
+
+			local why = null;
+			try
+			{
+
+				if (!fac.isReadyForContract())            why = "not ready";
+				else if (fac.hasContractExclusion("contract.skv_threshold")) why = "excluded";
+				else if (s.isIsolated())                  why = "isolated";
+				else if (s.getSize() < 2)                 why = "size < 2";
+			}
+			catch (e) { why = "ERR:" + e; }
+
+			local d = -1;
+			try { if (pt != null) d = pt.getDistanceTo(s.getTile()); } catch (e) { d = -1; }
+
+			out.push({ S = s, D = d, Size = s.getSize(), Disc = s.isDiscovered(), Why = why });
+		}
+		return out;
+	},
+
+	thresholdLive = function ()
+	{
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			foreach (c in s.getContracts())
+			{
+				if (c.getType() == "contract.skv_threshold") return { C = c, S = s };
+			}
+		}
+		return null;
+	}
 };
 
 ::skvc <- function ( _onlyMine = false ) { return ::Skv.Debug.contracts(_onlyMine); };
 ::skvazari <- function () { return ::Skv.Debug.azari(); };
 ::skvambush <- function () { return ::Skv.Debug.ambush(); };
+
+::skvcheck <- function ( _flavor = "stealth", _base = 45, _need = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null)
+	{
+		::logInfo("Skv.check: not in a campaign.");
+		return null;
+	}
+	if (!(_flavor in ::Skv.Check))
+	{
+		::logInfo("Skv.check: no flavor named '" + _flavor + "'. Try: stealth, perception, agility,"
+			+ " brawn, handEye, nerve, guile, charm, lockpick, disarm, secretDoor, wits, reflex, tracking.");
+		return null;
+	}
+
+	local fake = { m = { ActorName = "" } };
+
+	local hadVerbose = ::Skv.Verbose;
+	local hadDump    = ::Skv.CheckVerbose;
+	::Skv.Verbose = true;
+	::Skv.CheckVerbose = true;
+
+	::logInfo("== Skv.Check." + _flavor + "  base=" + _base
+		+ (_need == null ? "  [SCOUT -- best man acts]" : "  [PARTY -- need " + _need + " of the roster]")
+		+ "  -- every ACTIVE brother, scored ==");
+
+	local r = null;
+	try
+	{
+
+		if (_need == null) r = ::Skv.Check[_flavor].call(::Skv.Check, fake, _base);
+		else               r = ::Skv.Check[_flavor].call(::Skv.Check, fake, _base, _need);
+	}
+	catch (e)
+	{
+		::logError("Skv.check: " + _flavor + " threw - " + e
+			+ (_need != null ? "   (does '" + _flavor + "' take a third argument? only stealth does)" : ""));
+	}
+
+	::Skv.Verbose = hadVerbose;
+	::Skv.CheckVerbose = hadDump;
+
+	if (r == null) return null;
+
+	if (_need == null)
+	{
+		::logInfo("  SENT: " + fake.m.ActorName + "   chance=" + r.chance + "   roll=" + r.roll
+			+ (r.ok ? "   PASS" : "   FAIL"));
+		if (r.actor == null)
+			::logInfo("  ⚠ NOBODY QUALIFIED -- chance fell back to the bare base. Empty or all-reserve roster?");
+	}
+	else
+	{
+
+		::logInfo("  " + r.passed + " of " + r.total + " got through; needed " + r.needed
+			+ "   avg chance " + r.avg + (r.ok ? "   PASS" : "   FAIL"));
+		::logInfo(r.ok
+			? "  led by: " + fake.m.ActorName
+			: "  gave you away: " + fake.m.ActorName);
+		::logInfo("  ⚠ A count of many rolls is MUCH steadier than one roll. A big company will"
+			+ " land near its average every time; a small band is where the swing lives.");
+	}
+	return r;
+};
+
+::skvthreshold <- function ( _force = false )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.threshold: not in a campaign.");
+		return null;
+	}
+
+	if (_force)
+	{
+		::Skv.Once.release("Threshold");
+		::World.Flags.remove("SkvOnce.Threshold.retired");
+	}
+
+	local sites = ::Skv.Debug.thresholdSurvey();
+	local open = [];
+	foreach (e in sites) if (e.Why == null) open.push(e);
+	local existing = ::Skv.Debug.thresholdLive();
+
+	::logInfo("== Skv.Threshold (contract #12) ==");
+	::logInfo("  once.active=" + ::World.Flags.has("SkvOnce.Threshold.active")
+		+ " once.retired=" + ::World.Flags.has("SkvOnce.Threshold.retired")
+		+ (::Skv.Once.isLocked("Threshold") ? "  << BLOCKING" : ""));
+	::logInfo("  score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : ""));
+	::logInfo("  city-states found = " + sites.len() + " (expect 3), of which " + open.len() + " can host now");
+	if (sites.len() == 0)
+	{
+		::logInfo("  ⚠ NO CITY-STATE FOUND. Either the world has none (check 50_city_states.nut loaded)"
+			+ " or the faction type test is wrong - this contract cannot post at all.");
+	}
+	foreach (e in sites)
+	{
+		::logInfo("    " + (e.Why == null ? "OK  " : "--  ") + e.S.getName()
+			+ "  " + (e.D < 0 ? "?" : e.D + "") + " tiles  size " + e.Size
+			+ (e.Disc ? "  discovered" : "  UNDISCOVERED")
+			+ (e.Why == null ? "" : "  [" + e.Why + "]"));
+	}
+	::logInfo("  live copy = " + (existing == null ? "none" : "at " + existing.S.getName()));
+
+	if (existing != null)
+	{
+		try
+		{
+			local m = existing.C.m;
+			::logInfo("  -- act " + m.Act + (m.Concluded ? "  CONCLUDED" : "") + (m.Aborted ? "  ABORTED" : ""));
+			::logInfo("     ladder = " + existing.C.rungCount() + "/6  (bits " + m.Advantage + ")"
+				+ "   KnowsRune=" + m.KnowsRune + "   bead=" + m.HasBracelet + "   scale=" + m.HasCharms);
+			::logInfo("     act I: gift=" + m.GiftDone + " beetles=" + m.Beetles
+				+ " mask=" + m.FoundMask + " notes=" + m.FoundNotes + " tracks=" + m.Footprints
+				+ " chase=" + m.ChaseStep + " (" + m.ChaseWins + " won, pick " + m.ChasePick + ")"
+				+ " door=" + m.DoorGate + "/4 tries=" + m.DoorTries + " hint=" + m.DoorHint
+				+ " key=" + m.DoorKey + " rune=" + m.RuneLesson);
+			::logInfo("     act II: gusa=" + m.Gusa + " kobolds=" + m.Kobolds + " swim=" + m.Swim
+				+ " jubo=" + m.Jubo + " approach=" + m.Approach + " reads=" + m.Act2Reads
+				+ " grotto=" + m.GrottoPick + " watched=" + m.Watched
+				+ " ngajaDead=" + m.NgajaDead + " ot=" + m.OtFound + " students=" + m.Students
+				+ " flipped=" + m.Flipped);
+			::logInfo("     act III: clockDay=" + m.ClockDay + " spent=" + m.HoursSpent
+				+ "h limit=" + m.HoursLimit + "h runes=" + m.RunesDone + " outcome=" + m.Outcome);
+			::logInfo("     ⚠ act I states: 0 untried · 1 tried and MISSED · 2 found."
+				+ " beetles 3 = looked and missed. chase 6 = resolved, either way.");
+			::logInfo("     ⚠ act II states: gusa 1 talked down / 2 killed / 3 would not be talked round."
+				+ " kobolds 3 = repulsed once (the retry is cheaper). jubo 1 snuck / 2 WOKE (it joins the"
+				+ " grotto) / 3 driven off. grotto 3 = driven off the shelf, quiet way only.");
+
+			::logInfo("     ⚠ reads= is a BITFIELD: 1 rubble read tried · 2 rubble read PASSED"
+				+ " · 4 the act III hazard has fired · 8 Okulou's pack taken (the sickle).");
+		}
+		catch (e)
+		{
+			::logError("Skv.threshold: state dump failed (the gate report above is still good): " + e);
+		}
+	}
+	::logInfo("  ⚠ NOT VISIBLE HERE: the 12% rarity roll and the action's 14-day cooldown."
+		+ " Both are re-rolled per faction tick; neither leaves a flag. Use (true) to bypass them.");
+
+	if (!_force)
+	{
+		return existing == null ? null : existing.C;
+	}
+
+	if (existing != null)
+	{
+		::logInfo("Skv.threshold: already posted at " + existing.S.getName() + " - not posting a second.");
+		return existing.C;
+	}
+	if (open.len() == 0)
+	{
+		::logInfo("Skv.threshold: no city-state can take it. See the reasons above.");
+		return null;
+	}
+
+	local s = open[0].S;
+	local f = ::World.FactionManager.getFaction(s.getFaction());
+
+	::Skv.Once.claim("Threshold");
+	local c = ::new("scripts/contracts/contracts/skv_threshold_contract");
+	c.setFaction(f.getID());
+	c.setHome(s);
+	c.setEmployerID(f.getRandomCharacter().getID());
+	::World.Contracts.addContract(c);
+
+	local posted = ::Skv.Debug.thresholdLive();
+	if (posted == null)
+	{
+		::Skv.Once.release("Threshold");
+		::logError("Skv.threshold: addContract accepted nothing at " + s.getName() + ".");
+		return null;
+	}
+
+	::logInfo("Skv.threshold: posted at " + posted.S.getName() + ", " + open[0].D + " tiles away.");
+	return posted.C;
+};
 
 ::skvwin <- function ()
 {
