@@ -37,3 +37,6 @@
 
 ::Const.Contracts.ContractCategoryMap.skv_threshold_contract <- ::Const.Contracts.Categories.Hunt;
 ::Const.FactionTrait.Actions[::Const.FactionTrait.OrientalCityState].push("scripts/factions/contracts/skv_threshold_action");
+
+::Const.Contracts.ContractCategoryMap.skv_zoldos_contract <- ::Const.Contracts.Categories.Hunt;
+::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_zoldos_action");

@@ -224,6 +224,87 @@ if (!("Skv" in ::getroottable()))
 	}
 };
 
+::Skv.Econ <- {
+
+	function wealth( _settlement, _lo, _hi )
+	{
+		if (_settlement == null)
+		{
+			::Skv.dbg("Skv.Econ.wealth: via=NONE (settlement is null) -> 1.0");
+			return 1.0;
+		}
+
+		try
+		{
+			if (_settlement.isNull())
+			{
+				::Skv.dbg("Skv.Econ.wealth: via=NONE (settlement isNull) -> 1.0");
+				return 1.0;
+			}
+		}
+		catch (e) {}
+
+		local w = null;
+		local via = "legends";
+
+		try { w = 0.01 * _settlement.getWealth(); }
+		catch (e) { w = null; via = "fallback (getWealth threw: " + e + ")"; }
+
+		if (w == null)
+		{
+			if (via == "legends") via = "fallback (getWealth gave null)";
+
+			local baseline = 50.0;
+			try { baseline += 50.0 * _settlement.getSize(); }
+			catch (e)
+			{
+				::Skv.dbg("Skv.Econ.wealth: via=NONE (getSize threw: " + e + ") -> 1.0");
+				return 1.0;
+			}
+
+			try { if (_settlement.isMilitary()) baseline += 50.0; } catch (e) {}
+			try { if (::MSU.isKindOf(_settlement, "city_state")) baseline += 100.0; } catch (e) {}
+
+			try { w = _settlement.getResources().tofloat() / baseline; }
+			catch (e)
+			{
+				::Skv.dbg("Skv.Econ.wealth: via=NONE (getResources threw: " + e + ") -> 1.0");
+				return 1.0;
+			}
+
+			via = via + " baseline=" + baseline;
+		}
+
+		if (w == null || w != w)
+		{
+			::Skv.dbg("Skv.Econ.wealth: via=NONE (result was not a number) -> 1.0");
+			return 1.0;
+		}
+
+		local clamped = ::Math.maxf(_lo, ::Math.minf(_hi, w));
+		::Skv.dbg("Skv.Econ.wealth: via=" + via + " raw=" + w + " clamped=" + clamped
+			+ " [" + _lo + ".." + _hi + "]" + (clamped != w ? " CLAMPED" : ""));
+		return clamped;
+	}
+
+	function pool( _contract, _base, _wealthLo = null, _wealthHi = null )
+	{
+		local w = 1.0;
+
+		if (_wealthLo != null && _wealthHi != null)
+		{
+			local home = null;
+			try { home = _contract.m.Home; } catch (e) { home = null; }
+			w = this.wealth(home, _wealthLo, _wealthHi);
+		}
+
+		return _base * w
+			* _contract.getPaymentMult()
+			* ::Math.pow(_contract.getDifficultyMult(), ::Const.World.Assets.ContractRewardPOW)
+			* _contract.getReputationToPaymentMult();
+	}
+};
+
 ::Skv.CheckVerbose <- false;
 
 ::Skv.Check <- {
@@ -333,6 +414,7 @@ if (!("Skv" in ::getroottable()))
 			{ worstChance = chance; worstRoll = roll; worst = bro; }
 
 			rows.push({
+				bro = bro,
 				name = bro.getName(),
 				bg = (bg != null ? bg.getID() : ""),
 				chance = chance,
@@ -348,7 +430,8 @@ if (!("Skv" in ::getroottable()))
 		if (total == 0)
 		{
 			_contract.m.ActorName = "the company";
-			return { ok = false, actor = null, worst = null, passed = 0, needed = 0, total = 0, avg = _base, rows = rows };
+
+			return { ok = false, actor = null, star = null, worst = null, passed = 0, needed = 0, total = 0, avg = _base, rows = rows };
 		}
 
 		local want = total * _needFraction;
@@ -363,7 +446,7 @@ if (!("Skv" in ::getroottable()))
 		_contract.m.ActorName = (face != null ? face.getName() : "the company");
 
 		return {
-			ok = ok, actor = face, worst = worst,
+			ok = ok, actor = face, star = star, worst = worst,
 			passed = passed, needed = needed, total = total,
 			avg = 1.0 * sum / total, rows = rows
 		};
@@ -547,20 +630,32 @@ if (!("Skv" in ::getroottable()))
 		return r;
 	}
 
-	function reflex( _contract, _base )
+	function reflex( _contract, _base, _need = null )
 	{
-		local r = this.bestByComposition(_contract, _base,
+		local traits =
 			{ ["trait.dexterous"] = 12, ["trait.lucky"] = 5, ["trait.legend_light"] = 5,
 			  ["trait.quick"] = 2, ["trait.swift"] = 2, ["trait.athletic"] = 2,
-			  ["trait.clumsy"] = -12, ["trait.clubfooted"] = -12, ["trait.fat"] = -12, ["trait.old"] = -5 },
+			  ["trait.clumsy"] = -12, ["trait.clubfooted"] = -12, ["trait.fat"] = -12, ["trait.old"] = -5 };
+		local bgs =
 			{ ["background.thief"] = 8, ["background.assassin"] = 8, ["background.assassin_southern"] = 8,
 			  ["background.gladiator"] = 5, ["background.monk"] = 4,
 			  ["background.belly_dancer"] = 3, ["background.juggler"] = 3,
-			  ["background.brawler"] = -5, ["background.flagellant"] = -8, ["background.cripple"] = -15 },
-			{ [::Legends.Perk.Dodge] = 15, [::Legends.Perk.LegendEvasion] = 10, [::Legends.Perk.Anticipation] = 5 },
-			this.legInjuries());
-		::Skv.dbg("Skv.Check.reflex chance=" + r.chance + " roll=" + r.roll + (r.ok ? " PASS" : " FAIL") + " actor=" + _contract.m.ActorName);
-		return r;
+			  ["background.brawler"] = -5, ["background.flagellant"] = -8, ["background.cripple"] = -15 };
+		local perks = { [::Legends.Perk.Dodge] = 15, [::Legends.Perk.LegendEvasion] = 10,
+			  [::Legends.Perk.Anticipation] = 5 };
+		local inj = this.legInjuries();
+
+		if (_need == null)
+		{
+			local rs = this.bestByComposition(_contract, _base, traits, bgs, perks, inj);
+			::Skv.dbg("Skv.Check.reflex[one] chance=" + rs.chance + " roll=" + rs.roll + (rs.ok ? " PASS" : " FAIL") + " actor=" + _contract.m.ActorName);
+			return rs;
+		}
+
+		local rp = this.countByComposition(_contract, _base, traits, bgs, perks, inj, _need);
+		::Skv.dbg("Skv.Check.reflex[party] " + rp.passed + "/" + rp.total + " clear, needed " + rp.needed
+			+ ", avg=" + rp.avg + (rp.ok ? "  PASS" : "  FAIL -- " + _contract.m.ActorName + " was caught in the open"));
+		return rp;
 	}
 
 	function stealth( _contract, _base, _need = null )
@@ -657,20 +752,20 @@ if (!("Skv" in ::getroottable()))
 				"Contract frequency (weight)",
 				"How often the mod's hand-authored contracts appear. This is the shared selection weight (m.Score) used by EVERY Golarion contract in the faction-action pick.\n\n[b]0[/b] = off (no Golarion contract is offered).\n[b]2[/b] = default.\nHigher = they win a settlement's contract slot more often.\n\nEach contract keeps its own rarity and eligibility gates; this only sets how heavily it weighs when it rolls.");
 			page.addRangeSetting(this.ActorShareID, this.DefaultActorShare, 0, 100, 5,
-				"Check XP — actor share (%)",
+				"Check XP: actor share (%)",
 				"When a brother passes a skill check (a lockpick, a trapped passage, a reading), the contract awards a bit of experience.\n\nThis sets how much of it goes to the brother who actually did it; the rest is split evenly across the whole active company (everyone learns a little from watching).\n\n[b]35[/b] = default (about a third to the doer, the rest shared).\n[b]100[/b] = all to the doer.\n[b]0[/b] = split evenly across everyone.");
 			page.addRangeSetting(this.CheckXPSoloID, this.DefaultCheckXPSolo, 0, 200, 5,
-				"Check XP — one man's award",
-				"Experience for a skill check that ONE brother makes on everyone's behalf — reading a ring, spotting a snare, picking a lock, creeping ahead to look.\n\nThis is the whole award for that check. How much of it goes to the brother who did it rather than to the company is the setting below.\n\n[b]75[/b] = default.\n[b]0[/b] = no experience from skill checks.");
+				"Check XP: one man's award",
+				"Experience for a skill check that ONE brother makes on everyone's behalf, such as reading a ring, spotting a snare, picking a lock, creeping ahead to look.\n\nThis is the whole award for that check. How much of it goes to the brother who did it rather than to the company is the setting below.\n\n[b]75[/b] = default.\n[b]0[/b] = no experience from skill checks.");
 			page.addRangeSetting(this.CheckXPTeamID, this.DefaultCheckXPTeam, 0, 200, 5,
-				"Check XP — team effort, per brother",
-				"Experience for a skill check EVERY brother has to make for himself — moving quietly past something asleep, crossing a market without being marked.\n\nThis is paid PER ACTIVE BROTHER and split evenly, so each man earns this much and the award does not get thinner as the company grows.\n\n[b]50[/b] = default. Deliberately lower than one man's award above: carrying a job for the whole company is worth more than doing your own share of one.");
+				"Check XP: team effort, per brother",
+				"Experience for a skill check EVERY brother has to make for himself, such as moving quietly past something asleep, crossing a market without being marked.\n\nThis is paid PER ACTIVE BROTHER and split evenly, so each man earns this much and the award does not get thinner as the company grows.\n\n[b]50[/b] = default. Deliberately lower than one man's award above: carrying a job for the whole company is worth more than doing your own share of one.");
 			page.addBooleanSetting(this.ScaleChecksID, this.DefaultScaleChecks,
 				"Scale skill checks with contract difficulty",
-				"When ON, skill checks that scale (spotting a trap, reading a tome, picking a lock) get harder on higher-skull contracts and easier on low ones.\n\nWhen OFF, every such check sits at its own standard-difficulty value regardless of the contract's skull rating — predictable mode.\n\nPhysical checks like crossing a pit are never affected either way.\n\n[b]On[/b] = default.");
+				"When ON, skill checks that scale (spotting a trap, reading a tome, picking a lock) get harder on higher-skull contracts and easier on low ones.\n\nWhen OFF, every such check sits at its own standard-difficulty value regardless of the contract's skull rating. Predictable mode.\n\nPhysical checks like crossing a pit are never affected either way.\n\n[b]On[/b] = default.");
 			page.addBooleanSetting(this.DebugLoggingID, this.DefaultDebugLogging,
 				"Debug logging (log.html)",
-				"When ON, the mod writes diagnostics — skill-check chances and rolls, fight budgets, the gambler's-gamble swing — to log.html.\n\nLeave OFF for normal play. Turn it ON if you hit odd behaviour and want to report it, then send the log.\n\n[b]Off[/b] = default.");
+				"When ON, the mod writes diagnostics (skill-check chances and rolls, fight budgets, the gambler's-gamble swing) to log.html.\n\nLeave OFF for normal play. Turn it ON if you hit odd behaviour and want to report it, then send the log.\n\n[b]Off[/b] = default.");
 			::Skv.dbg("Skv.Cfg: settings registered (default score " + this.DefaultScore + ")");
 		}
 		catch (e)
@@ -796,7 +891,8 @@ if (!("Skv" in ::getroottable()))
 	Types = [
 		"contract.skv_azari", "contract.skv_ambush", "contract.skv_metringer", "contract.skv_black_forks",
 		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing",
-		"contract.skv_carthica", "contract.skv_hollows", "contract.skv_anvil", "contract.skv_threshold"
+		"contract.skv_carthica", "contract.skv_hollows", "contract.skv_anvil", "contract.skv_threshold",
+		"contract.skv_zoldos"
 	],
 
 	function isMine( _type )
@@ -1443,6 +1539,162 @@ if (!("Skv" in ::getroottable()))
 
 	::logInfo("Skv.anvil: posted at " + posted.S.getName() + ", " + open[0].D + " tiles away.");
 	return posted.C;
+};
+
+::skvzoldos <- function ( _force = false )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.zoldos: not in a campaign.");
+		return null;
+	}
+
+	if (_force)
+	{
+		::Skv.Once.release("Zoldos");
+		::World.Flags.remove("SkvOnce.Zoldos.retired");
+	}
+
+	local act = null;
+	try { act = ::new("scripts/factions/contracts/skv_zoldos_action"); }
+	catch (e) { ::logInfo("Skv.zoldos: could not build the action (" + e + ")"); act = null; }
+
+	local renown = ::World.Assets.getBusinessReputation();
+
+	::logInfo("== Skv.Zoldos (contract #13) ==");
+	::logInfo("  once.active=" + ::World.Flags.has("SkvOnce.Zoldos.active")
+		+ " once.retired=" + ::World.Flags.has("SkvOnce.Zoldos.retired")
+		+ (::Skv.Once.isLocked("Zoldos") ? "  << BLOCKING" : ""));
+	::logInfo("  score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : ""));
+	::logInfo("  renown=" + renown + " / 1300" + (renown < 1300 ? "  << BLOCKING" : ""));
+
+	local open = [];
+	local live = null;
+	local total = 0;
+
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		foreach (c in s.getContracts())
+		{
+			if (c.getType() == "contract.skv_zoldos") live = { S = s, C = c };
+		}
+
+		total = total + 1;
+
+		local ok = false;
+		local verdict = "canHost";
+		if (act != null)
+		{
+			try { ok = act.canHost(s); }
+			catch (e) { verdict = "local (canHost threw: " + e + ")"; act = null; }
+		}
+		if (act == null)
+		{
+			verdict = "local (no action)";
+			ok = !s.isIsolated()
+				&& ::MSU.isKindOf(s, "legends_village")
+				&& s.getSize() <= 2
+				&& s.getSurroundingTilesOfType([::Const.World.TerrainType.Mountains], 3).len() != 0;
+		}
+
+		local why = null;
+		if (!ok)
+		{
+			if (s.isIsolated()) why = "isolated";
+			else if (!::MSU.isKindOf(s, "legends_village")) why = "not a village";
+			else if (s.getSize() > 2) why = "size " + s.getSize() + " (want <=2)";
+			else if (s.getSurroundingTilesOfType([::Const.World.TerrainType.Mountains], 3).len() == 0) why = "no mountains within 3";
+			else why = "canHost says no, and this dump cannot say why";
+		}
+
+		if (ok) open.push(s);
+
+		if (ok || why == "no mountains within 3" || why.slice(0, 4) == "size")
+		{
+			::logInfo("    " + (ok ? "OK  " : "--  ") + s.getName()
+				+ "  size " + s.getSize()
+				+ "  mtn " + s.getSurroundingTilesOfType([::Const.World.TerrainType.Mountains], 3).len()
+				+ (why == null ? "" : "   [" + why + "]"));
+		}
+	}
+
+	::logInfo("  " + open.len() + " of " + total + " settlements can host now."
+		+ (act == null ? "   [verdict: LOCAL COPY -- the action would not build]" : "   [verdict: the action's own canHost]"));
+	if (live != null) ::logInfo("  LIVE at " + live.S.getName() + " -- \"" + live.C.getName() + "\"");
+
+	if (!_force) return live == null ? null : live.C;
+
+	if (live != null)
+	{
+		::logInfo("Skv.zoldos: already posted at " + live.S.getName() + " - not posting a second.");
+		return live.C;
+	}
+	if (open.len() == 0)
+	{
+		::logInfo("Skv.zoldos: no settlement can host it. See the reasons above.");
+		return null;
+	}
+
+	local ready = [];
+	foreach (h in open)
+	{
+		local hf = ::World.FactionManager.getFaction(h.getFaction());
+		local r = false;
+		try { r = hf.isReadyForContract(::Const.Contracts.ContractCategoryMap.skv_zoldos_contract); }
+		catch (e) { r = true; }
+		if (r) ready.push(h);
+	}
+
+	local pool = ready.len() > 0 ? ready : open;
+	if (ready.len() == 0)
+	{
+		::logInfo("Skv.zoldos: NO host has a free Hunt/Wildcard slot -- trying anyway, and it may be refused.");
+	}
+
+	local s = pool[::Math.rand(0, pool.len() - 1)];
+	local f = ::World.FactionManager.getFaction(s.getFaction());
+
+	::Skv.Once.claim("Zoldos");
+	local c = ::new("scripts/contracts/contracts/skv_zoldos_contract");
+	c.setFaction(f.getID());
+	c.setHome(s);
+	c.setEmployerID(f.getRandomCharacter().getID());
+	::World.Contracts.addContract(c);
+
+	local landed = false;
+	foreach (x in s.getContracts())
+	{
+		if (x.getType() == "contract.skv_zoldos") landed = true;
+	}
+
+	if (landed)
+	{
+		::logInfo("Skv.zoldos: FORCED onto the board at " + s.getName() + " -- verified present.");
+		return c;
+	}
+
+	::Skv.Once.release("Zoldos");
+	local tier = s.getSize() - 1;
+	local hunt = "?", wild = "?", hlim = "?", wlim = "?";
+	try
+	{
+		hunt = f.m.ContractsByCategory["Hunt"].len() + "";
+		wild = f.m.ContractsByCategory["Wildcard"].len() + "";
+		hlim = ::Const.Contracts.CategoryLimits["Hunt"][tier] + "";
+		wlim = ::Const.Contracts.CategoryLimits["Wildcard"][tier] + "";
+	}
+	catch (e) {}
+
+	::logInfo("Skv.zoldos: ⚠ REFUSED at " + s.getName() + " (size " + s.getSize() + ").");
+	::logInfo("  Legends' addContract drops a contract when its category AND Wildcard are both full,");
+	::logInfo("  and only says so behind Debug.Flags.ContractCategories. Slots here:");
+	::logInfo("    Hunt " + hunt + "/" + hlim + "   Wildcard " + wild + "/" + wlim);
+	foreach (x in s.getContracts())
+	{
+		::logInfo("    holding: " + x.getName() + " [" + x.getType() + "]");
+	}
+	::logInfo("  Run it again to draw a different host, or clear a contract at this one.");
+	return null;
 };
 
 ::skvitem <- function ( _path = null )

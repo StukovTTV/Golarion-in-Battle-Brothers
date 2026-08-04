@@ -31,15 +31,7 @@ this.skv_black_forks_contract <- this.inherit("scripts/contracts/contract", {
 
 		this.m.DifficultyMult = this.Math.rand(90, 120) * 0.01;
 
-		local wealth = 1.0;
-		if (this.m.Home != null && !this.m.Home.isNull())
-		{
-			local v = this.m.Home;
-			local baseline = v.getSize() == 3 ? 200.0 : (v.getSize() == 2 ? 150.0 : 100.0);
-			wealth = this.Math.maxf(0.5, this.Math.minf(1.5, v.getResources().tofloat() / baseline));
-		}
-
-		this.m.Payment.Pool = 300 * wealth * this.getPaymentMult() * this.Math.pow(this.getDifficultyMult(), this.Const.World.Assets.ContractRewardPOW) * this.getReputationToPaymentMult();
+		this.m.Payment.Pool = ::Skv.Econ.pool(this, 300, 0.5, 1.5);
 
 		this.m.Payment.Completion = 1.0;
 		this.m.Payment.Advance = 0.0;

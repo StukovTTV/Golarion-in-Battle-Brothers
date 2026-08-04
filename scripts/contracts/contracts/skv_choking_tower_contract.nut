@@ -780,15 +780,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 
 		this.m.DifficultyMult = this.Math.rand(70, 82) * 0.01;
 
-		local wealth = 1.0;
-		if (this.m.Home != null && !this.m.Home.isNull())
-		{
-			local v = this.m.Home;
-			local baseline = v.getSize() == 3 ? 200.0 : (v.getSize() == 2 ? 150.0 : 100.0);
-			wealth = this.Math.maxf(0.6, this.Math.minf(1.1, v.getResources().tofloat() / baseline));
-		}
-
-		this.m.Payment.Pool = 250 * wealth * this.getPaymentMult() * this.Math.pow(this.getDifficultyMult(), this.Const.World.Assets.ContractRewardPOW) * this.getReputationToPaymentMult();
+		this.m.Payment.Pool = ::Skv.Econ.pool(this, 250, 0.6, 1.1);
 
 		this.m.Payment.Advance = 0.2;
 		this.m.Payment.Completion = 0.8;

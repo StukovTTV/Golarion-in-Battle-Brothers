@@ -486,6 +486,16 @@ this.skv_anvil_contract <- this.inherit("scripts/contracts/contract", {
 			{
 				local c = this.Contract;
 
+				if (c.m.Fought && !c.m.Won && !c.m.Paid)
+				{
+					c.m.Paid = true;
+					c.m.Concluded = true;
+					::Skv.dbg("Skv.Anvil: forge fight LOST -> Failed");
+					c.setScreen("Failed");
+					this.World.Contracts.showActiveContract();
+					return;
+				}
+
 				if (c.m.Won && !c.m.Paid)
 				{
 
@@ -574,19 +584,6 @@ this.skv_anvil_contract <- this.inherit("scripts/contracts/contract", {
 				}
 			}
 
-			function onCombatFinished()
-			{
-				this.contract_state.onCombatFinished();
-
-				local c = this.Contract;
-				if (!c.m.Won && c.m.Fought && !c.m.Paid)
-				{
-					c.m.Paid = true;
-					c.m.Concluded = true;
-					c.setScreen("Failed");
-					this.World.Contracts.showActiveContract();
-				}
-			}
 		});
 	}
 

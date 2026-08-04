@@ -1,5 +1,5 @@
 local modID = "mod_golarion";
-local modVersion = "0.96.37";
+local modVersion = "0.97.19";
 
 local modName = "Golarion Localization";
 ::mods_registerMod(modID, modVersion, modName);

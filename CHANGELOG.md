@@ -10,6 +10,68 @@ All notable changes to **Golarion Localization** are recorded here. The format l
   are in place, but the categories themselves, and the contract-display cap that keeps the noticeboard
   within its slot limit, are not yet wired up.
 
+## [0.97] - playtest
+
+Adds the thirteenth contract, a dragon hunt in the north where the dragon is not the hardest part of
+the job, and closes a bug that had been quietly making written content unreachable in two contracts
+that shipped months ago.
+
+### Contracts
+- **The Scourge of Mount Zoldos** (contract #13, once per campaign, Hunt), adapted from Paizo's *The
+  Scourge of Sheerleaf* by Shay Snow. Posted only by small villages with mountains close by, only at
+  high renown, and only once you have the ambition that makes the nobles aware of your company. It is
+  the deliberate northern counterweight to Threshold of Knowledge, which only the southern city states
+  offer.
+
+  **The mayor was a blacksmith before she was a mayor.** A dragon came down into her sixth acceptance
+  speech, put the meeting hall through the ground, and told the village what it wanted. She went up the
+  mountain to negotiate and it threw her out of its own cave. She went up a second time with her guards,
+  and it followed her home, flattened the place, and took her wife and her three children into the caves
+  with it. The village has fed it every third day since: sheep first, then the cattle, and after that the
+  horses, and after that she does not know.
+
+  **The mountain is the first fight and there is nothing to swing at.** If anybody in your company reads
+  ground, he can read this slope, and being shown where to stand beforehand is worth more than being
+  quick afterwards. When the face comes down, every brother saves himself or does not, on his own roll,
+  and the men who fail are the men who bleed. Halfway up is a dwarven shrine nobody has prayed in for a
+  very long time, with a hammer cut into a chest lid that most companies will not be able to put a name
+  to.
+
+  **The caves are what the job is actually about.** She asked you to kill the dragon. She also asked you,
+  if you decided you could not, to at least bring her family out. Those are two different jobs, and the
+  contract pays attention to which one you did. Nobody in this contract dies on a die roll; when it goes
+  badly the company reports what it could not reach, which is worse.
+
+  **The dragon has a name and does not negotiate.** On a hard enough contract in front of a strong enough
+  company he arrives as considerably more than the beast you were expecting, and there is no version of
+  the conversation where he backs down.
+
+  **The ending grades the family, not the kill.** Bring all four down off the mountain and the village's
+  regard for you is worth double an ordinary success. Bring none and it goes into the ledger as a failed
+  contract even though the beast is dead, because she asked for her family first and the dragon second.
+  Take some of them home without killing it and she pays you half, without apology, because half is what
+  half a job is worth.
+
+### Shared engine (`::Skv`)
+- **Settlement wealth is now one shared term instead of a copy in every contract that wanted it, and
+  fixing it changed what some towns pay.** Two contracts each carried their own hand written version, and
+  both used the same wrong baseline for what an average settlement is worth. Measured on a live map, 11
+  of 26 settlements were being read incorrectly: every fort and every city state. The Choking Tower had
+  been pinned at its own ceiling the whole time, so its wealth term was doing nothing at all.
+- **A whole company can now be asked to react at once.** Some checks are answered by your best man and
+  everyone benefits, and some are not, because nobody can dive under a ledge on somebody else's behalf.
+  The rockslide is the first of the second kind: every brother rolls his own, and the ones who fail are
+  precisely the ones who get hurt, rather than two names drawn at random.
+- **Experience for that shape of check now pays the men who actually got through it**, instead of paying
+  nobody when the company as a whole came off badly.
+
+### Fixed
+- **Two contracts had written screens in them that no player could ever have seen.** Losing either fight
+  in Threshold of Knowledge was supposed to push you back with a real cost and a screen explaining it,
+  and losing the road fight in Master of the Anvil was supposed to end the job rather than strand it on
+  the map. Both were wired to a callback that turns out not to exist, so neither had ever run. All of it
+  is reachable now.
+
 ## [0.96] - playtest
 
 Adds the twelfth contract, a three-act job in the southern city-states that changes what it is about

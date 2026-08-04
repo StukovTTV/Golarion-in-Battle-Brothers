@@ -671,6 +671,26 @@ this.skv_threshold_contract <- this.inherit("scripts/contracts/contract", {
 					return;
 				}
 
+				local f = this.Flags.get("F12");
+				if (f != null && f != false && f != "")
+				{
+					local won  = this.Flags.get("V12") == f;
+					local fled = this.Flags.get("R12") == f;
+					this.Flags.set("F12", "");
+					this.Flags.set("R12", "");
+
+					if (!won && !fled)
+					{
+						::Skv.dbg("Skv.Threshold: " + f + " launched but never resolved - dialog cancelled.");
+					}
+					else if (!won)
+					{
+						this.Flags.set("D12", f);
+						::Skv.dbg("Skv.Threshold: DEFEAT id=" + f);
+					}
+
+				}
+
 				local v = this.Flags.get("V12");
 				if (v != null && v != false && v != "")
 				{
@@ -895,23 +915,15 @@ this.skv_threshold_contract <- this.inherit("scripts/contracts/contract", {
 				::Skv.dbg("Skv.Threshold: victory id=" + _combatID);
 			}
 
-			function onCombatFinished()
+			function onRetreatedFromCombat( _combatID )
 			{
-				this.contract_state.onCombatFinished();
-
 				local f = this.Flags.get("F12");
 				if (f == null || f == false || f == "")
 				{
 					return;
 				}
-				this.Flags.set("F12", "");
-
-				if (this.Flags.get("V12") == f)
-				{
-					return;
-				}
-				this.Flags.set("D12", f);
-				::Skv.dbg("Skv.Threshold: DEFEAT id=" + f);
+				this.Flags.set("R12", f);
+				::Skv.dbg("Skv.Threshold: retreated from " + f + " (id=" + _combatID + ")");
 			}
 
 		});

@@ -151,10 +151,6 @@ this.skv_den_hunt_contract <- this.inherit("scripts/contracts/contract", {
 				}
 			}
 
-			function onCombatFinished()
-			{
-				this.contract_state.onCombatFinished();
-			}
 		});
 	}
 

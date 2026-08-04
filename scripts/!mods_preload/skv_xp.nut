@@ -119,3 +119,27 @@ if (!("Skv" in getroottable())) ::Skv <- {};
 
 	return rows;
 }
+
+::Skv.XP.checkEach <- function ( _r, _mult = 1.0 )
+{
+	if (_r == null || !("rows" in _r) || _r.rows == null)
+		return [];
+
+	local each = ::Skv.Cfg.DefaultCheckXPTeam;
+	try { each = ::Skv.Cfg.checkXPTeam(); }
+	catch (e) { ::logError("Skv.XP.checkEach: settings unavailable, using default: " + e); }
+
+	local amount = ::Math.round(each * _mult);
+	if (amount <= 0)
+		return [];
+
+	local rows = [];
+	foreach ( cr in _r.rows )
+	{
+		if (!cr.ok) continue;
+		local bro = ("bro" in cr) ? cr.bro : null;
+		if (bro == null || !bro.isAlive()) continue;
+		rows.push(::Legends.EventList.changeBroExperience(bro, amount));
+	}
+	return rows;
+}
