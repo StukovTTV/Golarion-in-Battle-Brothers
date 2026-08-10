@@ -738,6 +738,29 @@ if (!("Skv" in ::getroottable()))
 	DebugLoggingID = "GolarionDebugLogging",
 	DefaultDebugLogging = false,
 
+	MovementMultID = "GolarionMovementMult",
+	DefaultMovementMult = 50,
+
+	VanillaGlobalMult = 0.75,
+
+	FastForwardID = "GolarionFastForward",
+	DefaultFastForward = 100,
+
+	BaseFastMult     = null,
+	BaseVeryFastMult = null,
+	BaseEscortMult   = null,
+
+	MarchDrainID          = "GolarionMarchDrain",
+	DefaultMarchDrain     = 0.75,
+	MarchRecoverID        = "GolarionMarchRecover",
+	DefaultMarchRecover   = 3.0,
+	MarchTownBonusID      = "GolarionMarchTownBonus",
+	DefaultMarchTownBonus = 1.5,
+	MarchCapID            = "GolarionMarchCap",
+	DefaultMarchCap       = 75,
+	MarchTavernID         = "GolarionMarchTavern",
+	DefaultMarchTavern    = 1,
+
 	function register( _id, _version, _name )
 	{
 		try
@@ -766,12 +789,162 @@ if (!("Skv" in ::getroottable()))
 			page.addBooleanSetting(this.DebugLoggingID, this.DefaultDebugLogging,
 				"Debug logging (log.html)",
 				"When ON, the mod writes diagnostics (skill-check chances and rolls, fight budgets, the gambler's-gamble swing) to log.html.\n\nLeave OFF for normal play. Turn it ON if you hit odd behaviour and want to report it, then send the log.\n\n[b]Off[/b] = default.");
+
+			local world = this.Mod.ModSettings.addPage("World");
+			world.addTitle("golarion_world_title", "Golarion World");
+			local movement = world.addRangeSetting(this.MovementMultID, this.DefaultMovementMult, 10, 100, 5,
+				"Travel speed (%)",
+				"[b]100 = unchanged. LOWER IS SLOWER.[/b] This is a travel speed, not a world size, so turning it DOWN is what makes the world feel larger.\n\nIt sets how fast EVERY party crosses the world map -- yours and everyone else's, by the same factor. The map stays the same size and the towns stay where they are; only the time between them changes.\n\n[b]100[/b] = the game's normal speed, nothing altered.\n[b]50[/b] = default, half speed, a journey takes twice the days.\n[b]10[/b] = a tenth, for a very long campaign.\n\nEveryone slows together, so nothing outruns you that could not before, and no enemy becomes easier to escape.\n\n[b]Contract deadlines stretch automatically[/b] -- the game works out travel time using this same number, so a job is never made impossible by moving the slider.\n\n⚠ [b]What it does NOT slow is time.[/b] Wages and food are paid by the day, so at 50 percent a long journey costs roughly twice the crowns and twice the bread it used to. Distance having a price is the point, but it is a real cost. Fast-forward only skips the waiting, not the days.\n\n[b]Comparing two settings?[/b] Count the DAYS a journey takes, not how long it feels. Fast-forward, roads (x1.5), night (x0.75) and terrain all change the feel without changing what the slider did.\n\nTakes effect immediately and can be changed at any point in a campaign.");
+
+			local wired = false;
+
+			try { movement.addAfterChangeCallback(function ( _oldValue ) { ::Skv.Cfg.applyMovement(); }); wired = true; }
+			catch (e) {}
+
+			if (!wired)
+			{
+				try { movement.addCallback(function ( _newValue ) { ::Skv.Cfg.applyMovement(_newValue); }); wired = true; }
+				catch (e) {}
+			}
+
+			if (!wired)
+			{
+				::logError("Skv.Cfg: no usable MSU change callback -- travel speed will only apply at load.");
+			}
+
+			local fastfwd = world.addRangeSetting(this.FastForwardID, this.DefaultFastForward, 100, 300, 25,
+				"Fast-forward strength (%)",
+				"[b]100 = unchanged.[/b] How much ground the fast-forward buttons cover per second of YOUR time. This is the tedium dial, and it is not the same thing as the travel speed above.\n\nTravel speed changes how many DAYS a journey costs your company. Fast-forward changes only how long you sit watching it. Raising this does not make anything cheaper: the same days pass, the same food is eaten, the same wages are paid, and everyone else on the map moves faster with you.\n\n[b]100[/b] = default, the speeds Legends set.\n[b]200[/b] = twice as brisk, which cancels a travel setting of 50.\n[b]300[/b] = three times.\n\nAffects the fast and very fast buttons and the forced speed during escort contracts. Camping is left alone, because that is a rest you chose rather than a wait you endured.\n\n⚠ At high values the game world advances in bigger jumps between checks, so it is possible to sweep past something you would rather have noticed. If you start missing encounters, come back down.");
+
+			local wiredFF = false;
+
+			try { fastfwd.addAfterChangeCallback(function ( _oldValue ) { ::Skv.Cfg.applyFastForward(); }); wiredFF = true; }
+			catch (e) {}
+
+			if (!wiredFF)
+			{
+				try { fastfwd.addCallback(function ( _newValue ) { ::Skv.Cfg.applyFastForward(_newValue); }); wiredFF = true; }
+				catch (e) {}
+			}
+
+			if (!wiredFF)
+			{
+				::logError("Skv.Cfg: no usable MSU change callback -- fast-forward will only apply at load.");
+			}
+
+			world.addTitle("golarion_march_title", "March Fatigue");
+
+			world.addRangeSetting(this.MarchDrainID, this.DefaultMarchDrain, 0.0, 2.0, 0.25,
+				"Fatigue lost per hour on the road (%)",
+				"Every hour the company spends travelling costs it this much of its MAXIMUM fatigue. Nobody becomes slower or less able; there is simply less strength left in them when the fighting starts.\n\n[b]0.75[/b] = default. A full day of marching costs 18 points, so one hard day is felt and two are a problem.\n[b]0[/b] = turn the drain off and keep the recovery, if you only want camping to be worth something.\n\nThe clock stops while you are inside a settlement, so shopping, haggling and hiring cost nothing at all.\n\n⚠ This is the pressure half of the system. The cure is below.");
+
+			world.addRangeSetting(this.MarchRecoverID, this.DefaultMarchRecover, 0.0, 8.0, 0.5,
+				"Fatigue regained per hour in camp (%)",
+				"What making camp gives back, per hour. This is the only real cure, which is the entire point of the feature.\n\n[b]3.0[/b] = default. An ordinary eight hour night in camp returns 24 points and therefore pays for roughly thirty-two hours on the road, so a company that makes camp each night will hardly notice any of this.\n\nRaise it if you would rather camp briefly and often. Lower it if you want a forced march to be a decision you live with for days.");
+
+			world.addRangeSetting(this.MarchTownBonusID, this.DefaultMarchTownBonus, 1.0, 3.0, 0.25,
+				"Camping near a settlement, recovery bonus",
+				"A multiplier on the recovery above when the camp is pitched within three tiles of a friendly settlement. Hot food, a fire somebody else built, a roof for any man who wants one, and a short walk to a bed for those who can pay for it.\n\n[b]1.5[/b] = default, so the standard 3.0 becomes 4.5 an hour.\n[b]1.0[/b] = no bonus, one camp is as good as another.\n\nThree tiles is the game's own reckoning of a town's reach: it is the same radius the base game uses to decide that the men enjoyed the visit. Any settlement that is not hostile to you counts, hamlet or fortress alike.");
+
+			local marchCap = world.addRangeSetting(this.MarchCapID, this.DefaultMarchCap, 0, 90, 5,
+				"Worst it can get (% of fatigue lost)",
+				"The floor. However long the march, the company never loses more than this much of its maximum fatigue.\n\n⚠ [b]This is the amount LOST, not the amount left.[/b] 75 means a brother fights on a QUARTER of his usual fatigue: a man with 130 goes down to 32.\n\n[b]75[/b] = default. Reaching it takes about a hundred unbroken hours of marching, four days without once making camp, and climbing back out of it costs a full day in camp.\n[b]25[/b] = a steady tax that one night's camp erases.\n[b]0[/b] = switches the whole system off, and takes it off the company immediately.\n\nNothing else in the game is touched. Initiative, resolve, health and skill are all exactly what they were.");
+
+			local wiredCap = false;
+
+			try { marchCap.addAfterChangeCallback(function ( _oldValue ) { try { ::Skv.March.reconcile(); } catch (e) {} }); wiredCap = true; }
+			catch (e) {}
+
+			if (!wiredCap)
+			{
+				try { marchCap.addCallback(function ( _newValue ) { try { ::Skv.March.reconcile(); } catch (e) {} }); wiredCap = true; }
+				catch (e) {}
+			}
+
+			if (!wiredCap)
+			{
+				::Skv.dbg("Skv.Cfg: march ceiling has no change callback -- it will apply on the next hourly tick instead of instantly.");
+			}
+
+			world.addRangeSetting(this.MarchTavernID, this.DefaultMarchTavern, 0, 10, 1,
+				"A round of drinks at the tavern gives back (%)",
+				"Buying the company a round in a tavern puts a little strength back into them. Once per day, however many taverns you visit.\n\n[b]1[/b] = default. Deliberately small: it is worth about eighty minutes of marching. A gesture rather than a plan, and no substitute for making camp.\n[b]0[/b] = drinking is for morale only, as it was.\n\nThe crowns, the drunkenness and the mood are all unchanged; this is added on top of what the round already did.");
+
+			this.applyFastForward();
+
+			this.applyMovement();
+
 			::Skv.dbg("Skv.Cfg: settings registered (default score " + this.DefaultScore + ")");
 		}
 		catch (e)
 		{
 			::logError("Skv.Cfg.register failed (settings unavailable, using default score): " + e);
 			this.Mod = null;
+		}
+	}
+
+	function applyMovement( _pct = null )
+	{
+		try
+		{
+
+			local vanilla = this.VanillaGlobalMult;
+			local pct     = this.DefaultMovementMult;
+
+			if (_pct != null)
+			{
+				pct = _pct;
+			}
+			else if (this.Mod != null)
+			{
+				local st = this.Mod.ModSettings.getSetting(this.MovementMultID);
+				if (st != null) pct = st.getValue();
+			}
+
+			::Const.World.MovementSettings.GlobalMult = vanilla * (pct / 100.0);
+			::Skv.dbg("Skv.Cfg: travel speed " + pct + "% -> GlobalMult "
+				+ ::Const.World.MovementSettings.GlobalMult + " (vanilla " + vanilla + ")");
+		}
+		catch (e)
+		{
+			::logError("Skv.Cfg.applyMovement failed (world speed left as-is): " + e);
+		}
+	}
+
+	function applyFastForward( _pct = null )
+	{
+		try
+		{
+			local ss = ::Const.World.SpeedSettings;
+
+			if (this.BaseFastMult == null)     this.BaseFastMult     = ss.FastMult;
+			if (this.BaseVeryFastMult == null) this.BaseVeryFastMult = ss.VeryFastMult;
+			if (this.BaseEscortMult == null)   this.BaseEscortMult   = ss.EscortMult;
+
+			local pct = this.DefaultFastForward;
+
+			if (_pct != null)
+			{
+				pct = _pct;
+			}
+			else if (this.Mod != null)
+			{
+				local st = this.Mod.ModSettings.getSetting(this.FastForwardID);
+				if (st != null) pct = st.getValue();
+			}
+
+			local scale = pct / 100.0;
+			ss.FastMult     = this.BaseFastMult * scale;
+			ss.VeryFastMult = this.BaseVeryFastMult * scale;
+			ss.EscortMult   = this.BaseEscortMult * scale;
+
+			::Skv.dbg("Skv.Cfg: fast-forward " + pct + "% -> Fast " + ss.FastMult
+				+ ", VeryFast " + ss.VeryFastMult + ", Escort " + ss.EscortMult
+				+ " (base " + this.BaseFastMult + " / " + this.BaseVeryFastMult + " / " + this.BaseEscortMult + ")");
+		}
+		catch (e)
+		{
+			::logError("Skv.Cfg.applyFastForward failed (speed tiers left as-is): " + e);
 		}
 	}
 
@@ -872,6 +1045,29 @@ if (!("Skv" in ::getroottable()))
 			return this.DefaultScaleChecks;
 		}
 	}
+
+	function marchNumber( _id, _fallback )
+	{
+		if (this.Mod == null) return _fallback;
+		try
+		{
+			local s = this.Mod.ModSettings.getSetting(_id);
+			if (s == null) return _fallback;
+			local v = s.getValue();
+			if (v == null) return _fallback;
+			return v;
+		}
+		catch (e)
+		{
+			return _fallback;
+		}
+	}
+
+	function marchDrain()     { return this.marchNumber(this.MarchDrainID,     this.DefaultMarchDrain);     }
+	function marchRecover()   { return this.marchNumber(this.MarchRecoverID,   this.DefaultMarchRecover);   }
+	function marchTownBonus() { return this.marchNumber(this.MarchTownBonusID, this.DefaultMarchTownBonus); }
+	function marchCap()       { return this.marchNumber(this.MarchCapID,       this.DefaultMarchCap);       }
+	function marchTavern()    { return this.marchNumber(this.MarchTavernID,    this.DefaultMarchTavern);    }
 
 	function debugLogging()
 	{
@@ -1018,12 +1214,479 @@ if (!("Skv" in ::getroottable()))
 			}
 		}
 		return null;
+	},
+
+	roam = function ( _budget = 105, _casters = true )
+	{
+		if (!("World" in ::getroottable()) || ::World == null)
+		{
+			::logError("Skv.Debug.roam: no world loaded - load a campaign first.");
+			return;
+		}
+
+		local fac = null;
+		try { fac = ::World.FactionManager.getFactionOfType(::Const.FactionType.Goblins); }
+		catch (e) { fac = null; }
+		if (fac == null)
+		{
+			::logError("Skv.Debug.roam: no greenskin faction in this world.");
+			return;
+		}
+
+		local pt = ::World.State.getPlayer().getTile();
+		local dest = ::Skv.Debug.freeTileNearPlayer();
+
+		local list = _casters ? ::Const.World.Spawn.GolarionKoboldsCasters
+		                      : ::Const.World.Spawn.GolarionKobolds;
+
+		local party = null;
+		try
+		{
+			party = fac.spawnEntity(dest, "Kobold Warband", false, list, _budget);
+		}
+		catch (e)
+		{
+			::logError("Skv.Debug.roam: spawnEntity threw - " + e);
+			return;
+		}
+
+		::Skv.Debug.quietTestParty(party);
+
+		try { party.setDescription("A test warband. It should not be here."); } catch (e) {}
+		try { party.setDiscovered(true); } catch (e) {}
+
+		::logInfo(">> Skv.Debug.roam: " + list.Name + " at budget " + _budget
+			+ " spawned at " + dest.Coords.X + "," + dest.Coords.Y
+			+ " (player at " + pt.Coords.X + "," + pt.Coords.Y + ")");
+		::logInfo("   roster: " + ::Skv.Debug.rosterOf(party));
+	},
+
+	bog = function ( _budget = 105 )
+	{
+		if (!("World" in ::getroottable()) || ::World == null)
+		{
+			::logError("Skv.Debug.bog: no world loaded - load a campaign first.");
+			return;
+		}
+
+		local fac = null;
+		try { fac = ::World.FactionManager.getFactionOfType(::Const.FactionType.Beasts); }
+		catch (e) { fac = null; }
+		if (fac == null)
+		{
+			::logError("Skv.Debug.bog: no beast faction in this world.");
+			return;
+		}
+
+		if (!("GolarionTroglodyteRoamers" in ::Const.World.Spawn))
+		{
+			::logError("Skv.Debug.bog: GolarionTroglodyteRoamers is not registered -- config/79_troglodytes.nut did not load.");
+			return;
+		}
+
+		local pt = ::World.State.getPlayer().getTile();
+		local dest = ::Skv.Debug.freeTileNearPlayer();
+		local list = ::Const.World.Spawn.GolarionTroglodyteRoamers;
+
+		local party = null;
+		try
+		{
+			party = fac.spawnEntity(dest, "Troglodyte Test Band", false, list, _budget);
+		}
+		catch (e)
+		{
+			::logError("Skv.Debug.bog: spawnEntity threw - " + e);
+			return;
+		}
+
+		::Skv.Debug.quietTestParty(party);
+
+		try { party.setDescription("A test band out of the bog. It should not be here."); } catch (e) {}
+		try { party.setDiscovered(true); } catch (e) {}
+
+		::logInfo(">> Skv.Debug.bog: " + list.Name + " at budget " + _budget
+			+ " spawned at " + dest.Coords.X + "," + dest.Coords.Y
+			+ " (player at " + pt.Coords.X + "," + pt.Coords.Y + ")");
+		::logInfo("   roster: " + ::Skv.Debug.rosterOf(party));
+	},
+
+	brushes = function ( _prefix = "bust_ghoul", _max = 12 )
+	{
+		if (_prefix == null || _prefix == "")
+		{
+			::logError("Skv.Debug.brushes: give it a prefix, e.g. ::skvbrush(\"bust_ghoul_04\").");
+			return;
+		}
+
+		local probe = function ( _name )
+		{
+			try { return ::doesBrushExist(_name); } catch (e) { return false; }
+		};
+
+		local canary = false;
+		try { canary = ::doesBrushExist("bust_ghoul_body_01"); } catch (e) { canary = false; }
+
+		if (!canary)
+		{
+			::logError("Skv.Debug.brushes: ::doesBrushExist did not confirm a brush we KNOW exists (bust_ghoul_body_01). Every result below would be meaningless, so nothing was probed.");
+			return;
+		}
+
+		local hits = [];
+
+		if (probe(_prefix)) hits.push(_prefix);
+
+		for( local i = 1; i <= _max; i = i + 1 )
+		{
+			local plain  = _prefix + "_" + i;
+			local padded = _prefix + "_" + (i < 10 ? "0" : "") + i;
+
+			if (probe(plain)) hits.push(plain);
+			if (padded != plain && probe(padded)) hits.push(padded);
+		}
+
+		if (hits.len() == 0)
+		{
+			::logInfo(">> Skv.Debug.brushes: nothing registered under '" + _prefix + "' or its first " + _max + " numbered siblings.");
+			return;
+		}
+
+		local out = "";
+		foreach (h in hits) out = out + (out == "" ? "" : ", ") + h;
+		::logInfo(">> Skv.Debug.brushes: " + hits.len() + " under '" + _prefix + "' -- " + out);
+	},
+
+	fxset = function ( _key = null, _value = null )
+	{
+		if (!("Skv" in ::Const) || !("FXStenchScale" in ::Const.Skv))
+		{
+			::logError("Skv.Debug.fxset: config/81_fx.nut did not load.");
+			return;
+		}
+
+		if (_key == null)
+		{
+			::logInfo(">> Skv.Debug.fxset: the dials, all live and all writable.");
+
+			foreach (k, v in ::Const.Skv)
+			{
+				if (k.len() > 2 && k.slice(0, 2) == "FX") ::logInfo("   " + k + " = " + (v == null ? "null" : v));
+			}
+
+			::logInfo("   ::skvfxset('Scale', 1.4) sets FXStenchScale and repaints.");
+			return;
+		}
+
+		local key = "FXStench" + _key;
+		if (!(key in ::Const.Skv)) key = _key;
+
+		if (!(key in ::Const.Skv))
+		{
+			::logError("Skv.Debug.fxset: no dial called '" + _key + "' or 'FXStench" + _key + "'. ::skvfxset() lists them.");
+			return;
+		}
+
+		local was = ::Const.Skv[key];
+		::Const.Skv[key] = _value;
+
+		::logInfo(">> Skv.Debug.fxset: " + key + " " + (was == null ? "null" : was) + " -> " + (_value == null ? "null" : _value));
+
+		this.repaintAndReport();
+	},
+
+	repaintAndReport = function ()
+	{
+		if (!("Tactical" in ::getroottable()) || ::Tactical == null || ::Tactical.State == null) return;
+		if (!("StenchFX" in ::Skv)) return;
+
+		::Skv.StenchFX.LastRound = -999;
+
+		try { ::Skv.StenchFX.repaint(); }
+		catch (e) { ::logError("Skv.Debug.fxset: repaint threw - " + e); return; }
+
+		::logInfo("   " + ::Skv.StenchFX.LastSources + " source(s), "
+			+ ::Skv.StenchFX.LastTiles + " visible aura tile(s), "
+			+ ::Skv.FX.LastStainDecals + " decal(s) laid, "
+			+ ::Skv.StenchFX.LastEmitters + " emitter(s) spawned.");
+
+		if (::Skv.StenchFX.LastSources == 0)
+			::logInfo("   no source: nothing on the field carries " + ::Skv.Stench.RacialID + ".");
+		else if (::Skv.StenchFX.LastTiles == 0)
+			::logInfo("   sources but no tiles: every neighbour failed IsVisibleForPlayer.");
+		else
+		{
+			if (::Skv.FX.LastStainDecals == 0)
+				::logInfo("   tiles but no decals: spawnDetail is refusing the flies brushes.");
+			if (::Skv.StenchFX.LastEmitters == 0)
+				::logInfo("   tiles but no emitters: the Miasma pool or its entry [0] is missing.");
+		}
+	},
+
+	fx = function ( _name = null )
+	{
+		if (!("Tactical" in ::Const))
+		{
+			::logError("Skv.Debug.fx: ::Const.Tactical does not exist.");
+			return;
+		}
+
+		local known = [
+			"TerrainDropdown", "RaiseFromGround", "Dust", "GruesomeFeast", "Smoke",
+			"Miasma", "Lich", "Fire", "Burn", "Acid", "HandgonneRight"
+		];
+
+		if (_name == null)
+		{
+			local present = "";
+			local absent = "";
+
+			foreach (n in known)
+			{
+				if ((n + "Particles") in ::Const.Tactical) present = present + (present == "" ? "" : ", ") + n;
+				else absent = absent + (absent == "" ? "" : ", ") + n;
+			}
+
+			::logInfo(">> Skv.Debug.fx: pools present -- " + (present == "" ? "none" : present));
+			if (absent != "") ::logInfo("   absent -- " + absent);
+
+			try
+			{
+				if ("FliesDecals" in ::Const)
+				{
+					local d = "";
+					foreach (b in ::Const.FliesDecals) d = d + (d == "" ? "" : ", ") + b;
+					::logInfo("   Const.FliesDecals (" + ::Const.FliesDecals.len() + ") -- " + d);
+				}
+				else
+				{
+					::logError("   Const.FliesDecals is NOT registered -- the stench stain in hooks/66 will find nothing to paint.");
+				}
+			}
+			catch (e)
+			{
+				::logError("   could not read Const.FliesDecals: " + e);
+			}
+
+			::logInfo("   ::skvfx(\"Miasma\") for one pool's contents.");
+			return;
+		}
+
+		local key = _name + "Particles";
+
+		if (!(key in ::Const.Tactical))
+		{
+			::logError("Skv.Debug.fx: no pool called " + key + ". ::skvfx() lists them.");
+			return;
+		}
+
+		local pool = ::Const.Tactical[key];
+		::logInfo(">> Skv.Debug.fx: " + key + " has " + pool.len() + " entr(y/ies).");
+
+		foreach (i, entry in pool)
+		{
+			try
+			{
+				local brushes = "";
+				if ("Brushes" in entry)
+				{
+					foreach (b in entry.Brushes) brushes = brushes + (brushes == "" ? "" : ", ") + b;
+				}
+
+				::logInfo("   [" + i + "] brushes = " + (brushes == "" ? "none" : brushes));
+
+				local line = "        ";
+				foreach (k, v in entry)
+				{
+					if (k == "Brushes" || k == "Stages") continue;
+					line = line + k + "=" + v + "  ";
+				}
+				::logInfo(line);
+
+				if (!("Stages" in entry) || entry.Stages == null)
+				{
+					::logInfo("        stages = none");
+					continue;
+				}
+
+				::logInfo("        stages = " + entry.Stages.len());
+
+				foreach (s, stage in entry.Stages)
+				{
+
+					local keys = "";
+					foreach (k, v in stage) keys = keys + (keys == "" ? "" : ", ") + k;
+					::logInfo("          stage " + s + ": " + keys);
+				}
+			}
+			catch (e)
+			{
+				::logError("   [" + i + "] could not be read: " + e);
+			}
+		}
+	},
+
+	quietTestParty = function ( _party )
+	{
+		try
+		{
+			_party.getFlags().set("IsMercenaries", false);
+		}
+		catch (e)
+		{
+			::logError("Skv.Debug: could not quiet the test party, expect faction.nut errors on the world map - " + e);
+		}
+	},
+
+	freeTileNearPlayer = function ()
+	{
+		local pt = ::World.State.getPlayer().getTile();
+
+		for( local i = 0; i != 6; i = ++i )
+		{
+			if (!pt.hasNextTile(i)) continue;
+			local t = pt.getNextTile(i);
+
+			for( local step = 0; step != 2; step = ++step )
+			{
+				local ok = false;
+				try
+				{
+					ok = !t.IsOccupied
+						&& t.Type != ::Const.World.TerrainType.Impassable
+						&& t.Type != ::Const.World.TerrainType.Ocean
+						&& t.Type != ::Const.World.TerrainType.Mountains;
+				}
+				catch (e) { ok = false; }
+
+				if (ok) return t;
+				if (!t.hasNextTile(i)) break;
+				t = t.getNextTile(i);
+			}
+		}
+
+		return pt;
+	},
+
+	rosterOf = function ( _party )
+	{
+		local counts = {}, order = [];
+
+		try
+		{
+			foreach (t in _party.getTroops())
+			{
+				local n = "?";
+				try { n = ::Const.Strings.EntityName[t.ID]; } catch (e) { n = "id:" + t.ID; }
+				if (!(n in counts)) { counts[n] <- 0; order.push(n); }
+				counts[n] = counts[n] + 1;
+			}
+		}
+		catch (e) { return "(could not read roster: " + e + ")"; }
+
+		local line = "";
+		foreach (n in order) line = line + (line == "" ? "" : ", ") + counts[n] + "x " + n;
+		return line == "" ? "EMPTY" : line;
+	},
+
+	band = function ( _troop = "Bomber", _count = 4, _casters = true )
+	{
+		if (!("World" in ::getroottable()) || ::World == null)
+		{
+			::logError("Skv.Debug.band: no world loaded - load a campaign first.");
+			return;
+		}
+
+		local key = _troop;
+		if (!(key in ::Const.World.Spawn.Troops)) key = "SkvKobold" + _troop;
+
+		if (!(key in ::Const.World.Spawn.Troops))
+		{
+
+			local known = "";
+			foreach (k, v in ::Const.World.Spawn.Troops)
+			{
+				if (k.len() > 3 && k.slice(0, 3) == "Skv")
+				{
+					known = known + (known == "" ? "" : ", ") + k;
+				}
+			}
+			::logError("Skv.Debug.band: no troop '" + _troop + "'. Known: " + known);
+			return;
+		}
+
+		local def = ::Const.World.Spawn.Troops[key];
+
+		local fac = null;
+		try { fac = ::World.FactionManager.getFactionOfType(::Const.FactionType.Goblins); }
+		catch (e) { fac = null; }
+		if (fac == null)
+		{
+			::logError("Skv.Debug.band: no greenskin faction in this world.");
+			return;
+		}
+
+		local pt   = ::World.State.getPlayer().getTile();
+		local dest = ::Skv.Debug.freeTileNearPlayer();
+		local list = _casters ? ::Const.World.Spawn.GolarionKoboldsCasters
+		                      : ::Const.World.Spawn.GolarionKobolds;
+
+		local party = null;
+		try
+		{
+			party = fac.spawnEntity(dest, "Kobold Test Band", false, list, 1);
+		}
+		catch (e)
+		{
+			::logError("Skv.Debug.band: spawnEntity threw - " + e);
+			return;
+		}
+
+		try { party.getTroops().clear(); }
+		catch (e) { ::logError("Skv.Debug.band: could not clear the seeded roster, expect stray kobolds - " + e); }
+
+		local added = 0;
+		for( local i = 0; i != _count; i = ++i )
+		{
+			try
+			{
+				::Const.World.Common.addTroop(party, { Type = def }, false);
+				added = added + 1;
+			}
+			catch (e)
+			{
+				::logError("Skv.Debug.band: addTroop threw - " + e);
+				break;
+			}
+		}
+
+		::Skv.Debug.quietTestParty(party);
+
+		try { party.updateStrength(); } catch (e) {}
+		try { party.setDescription("A test band. It should not be here."); } catch (e) {}
+		try { party.setDiscovered(true); } catch (e) {}
+
+		::logInfo(">> Skv.Debug.band: " + added + "x " + key
+			+ " spawned at " + dest.Coords.X + "," + dest.Coords.Y
+			+ " (player at " + pt.Coords.X + "," + pt.Coords.Y + ")");
+		::logInfo("   roster: " + ::Skv.Debug.rosterOf(party));
 	}
 };
 
 ::skvc <- function ( _onlyMine = false ) { return ::Skv.Debug.contracts(_onlyMine); };
 ::skvazari <- function () { return ::Skv.Debug.azari(); };
 ::skvambush <- function () { return ::Skv.Debug.ambush(); };
+
+::skvroam <- function ( _budget = 105, _casters = true ) { return ::Skv.Debug.roam(_budget, _casters); };
+
+::skvbog <- function ( _budget = 105 ) { return ::Skv.Debug.bog(_budget); };
+
+::skvbrush <- function ( _prefix = "bust_ghoul", _max = 12 ) { return ::Skv.Debug.brushes(_prefix, _max); };
+
+::skvfx <- function ( _name = null ) { return ::Skv.Debug.fx(_name); };
+
+::skvfxset <- function ( _key = null, _value = null ) { return ::Skv.Debug.fxset(_key, _value); };
+
+::skvband <- function ( _troop = "Bomber", _count = 4, _casters = true ) { return ::Skv.Debug.band(_troop, _count, _casters); };
 
 ::skvcheck <- function ( _flavor = "stealth", _base = 45, _need = null )
 {
@@ -1203,6 +1866,8 @@ if (!("Skv" in ::getroottable()))
 	return posted.C;
 };
 
+::skvwinPending <- false;
+
 ::skvwin <- function ()
 {
 	if (!("Tactical" in getroottable()) || ::Tactical == null || ::Tactical.State == null)
@@ -1211,26 +1876,47 @@ if (!("Skv" in ::getroottable()))
 		return -1;
 	}
 
-	local factions = ::Tactical.Entities.m.Instances;
-	local killed = 0;
-
-	for ( local f = ::Const.Faction.Player + 1; f < factions.len(); f = f + 1 )
+	if (::skvwinPending)
 	{
-		if (factions[f].len() == 0 || ::World.FactionManager.isAlliedWithPlayer(f))
-		{
-			continue;
-		}
-
-		foreach (e in clone factions[f])
-		{
-			if (e == null) continue;
-			try { e.kill(); killed = killed + 1; }
-			catch (err) { ::logError("Skv.win: " + err); }
-		}
+		::logInfo("Skv.win: already armed, waiting for projectiles to land.");
+		return 0;
 	}
 
-	::logInfo("Skv.win: killed " + killed + " enemies.");
-	return killed;
+	::skvwinPending = true;
+
+	::Time.scheduleEvent(::TimeUnit.Real, 1200, function ( _data )
+	{
+		::skvwinPending = false;
+
+		if (!("Tactical" in ::getroottable()) || ::Tactical == null || ::Tactical.State == null)
+		{
+			::logInfo("Skv.win: fight ended before the kill fired.");
+			return;
+		}
+
+		local factions = ::Tactical.Entities.m.Instances;
+		local killed = 0;
+
+		for ( local f = ::Const.Faction.Player + 1; f < factions.len(); f = f + 1 )
+		{
+			if (factions[f].len() == 0 || ::World.FactionManager.isAlliedWithPlayer(f))
+			{
+				continue;
+			}
+
+			foreach (e in clone factions[f])
+			{
+				if (e == null) continue;
+				try { e.kill(); killed = killed + 1; }
+				catch (err) { ::logError("Skv.win: " + err); }
+			}
+		}
+
+		::logInfo("Skv.win: killed " + killed + " enemies.");
+	}, null);
+
+	::logInfo("Skv.win: armed, killing in 1200ms so anything in flight lands first.");
+	return 0;
 };
 
 ::skvhollows <- function ()
@@ -1728,3 +2414,385 @@ if (!("Skv" in ::getroottable()))
 
 ::SkvAmbushDbg <- false;
 ::skvambushdbg <- function ( _on = true ) { ::SkvAmbushDbg = _on; ::Skv.dbg("SkvAmbushDbg = " + _on); return _on; };
+
+::skvverbose <- function ( _on = null )
+{
+	local now = ::Const.AI.VerboseMode;
+	::Const.AI.VerboseMode = _on == null ? !now : _on;
+	::logInfo("Skv.verbose: AI score logging is now " + (::Const.AI.VerboseMode ? "ON" : "OFF") + ".");
+	return ::Const.AI.VerboseMode;
+};
+
+::skvpickTargetTile <- function ( _actor, _skill )
+{
+	local own = _actor.getTile();
+
+	local targeted = false;
+	try { targeted = _skill.m.IsTargeted; } catch (e) { return own; }
+	if (!targeted) return own;
+
+	local minRange = 1;
+	local maxRange = 1;
+	try { minRange = _skill.m.MinRange; } catch (e) {}
+	try { maxRange = _skill.getMaxRange(); } catch (e) {}
+	if (maxRange < minRange) maxRange = minRange;
+
+	local factions = ::Tactical.Entities.m.Instances;
+	local best = null;
+	local bestName = "";
+	local bestDist = 9999;
+	local bestFriendly = true;
+
+	local nearestName = "";
+	local nearestDist = 9999;
+	local inWindowRefused = 0;
+
+	for ( local f = 0; f < factions.len(); f = f + 1 )
+	{
+		foreach ( other in factions[f] )
+		{
+			if (other == null || !other.isAlive() || !other.isPlacedOnMap()) continue;
+			if (other.getID() == _actor.getID()) continue;
+
+			local tile = other.getTile();
+			local d = own.getDistanceTo(tile);
+
+			if (d < nearestDist)
+			{
+				nearestDist = d;
+				nearestName = other.getName();
+			}
+
+			if (d < minRange || d > maxRange) continue;
+
+			local usable = true;
+			try { usable = _skill.isUsableOn(tile); } catch (e) {}
+
+			if (!usable)
+			{
+				inWindowRefused = inWindowRefused + 1;
+				continue;
+			}
+
+			local friendly = other.isAlliedWith(_actor);
+
+			local take = false;
+			if (best == null) take = true;
+			else if (bestFriendly && !friendly) take = true;
+			else if (bestFriendly == friendly && d < bestDist) take = true;
+
+			if (!take) continue;
+
+			best = tile;
+			bestName = other.getName();
+			bestDist = d;
+			bestFriendly = friendly;
+		}
+	}
+
+	if (best == null)
+	{
+		if (inWindowRefused > 0)
+		{
+			::logInfo("Skv.use: " + inWindowRefused + " actor(s) DO stand between range " + minRange
+				+ " and " + maxRange + " and isUsableOn refused every one, so the SKILL is saying no rather than the positioning."
+				+ " It will fire at its own tile and return FALSE.");
+		}
+		else if (nearestDist == 9999)
+		{
+			::logInfo("Skv.use: there is nobody else alive on the field to aim at."
+				+ " It will fire at its own tile and return FALSE.");
+		}
+		else
+		{
+			::logInfo("Skv.use: nobody stands between range " + minRange + " and " + maxRange
+				+ ". The nearest is " + nearestName + " at " + nearestDist + " tiles, so move somebody closer and try again."
+				+ " It will fire at its own tile and return FALSE.");
+		}
+
+		return own;
+	}
+
+	::logInfo("Skv.use: aiming at " + bestName + " at " + bestDist + " tiles ("
+		+ (bestFriendly ? "ally" : "hostile") + ", range window " + minRange + " to " + maxRange + ").");
+	return best;
+};
+
+::skvusePending <- false;
+
+::skvuse <- function ( _match = "warcry" )
+{
+	if (!("Tactical" in ::getroottable()) || ::Tactical == null || ::Tactical.State == null)
+	{
+		::logInfo("Skv.use: not in a tactical fight.");
+		return false;
+	}
+
+	if (::skvusePending)
+	{
+		::logInfo("Skv.use: already armed.");
+		return false;
+	}
+
+	::skvusePending = true;
+
+	::Time.scheduleEvent(::TimeUnit.Real, 900, function ( _data )
+	{
+		::skvusePending = false;
+
+		if (!("Tactical" in ::getroottable()) || ::Tactical == null || ::Tactical.State == null)
+		{
+			::logInfo("Skv.use: the fight ended before it fired.");
+			return;
+		}
+
+		local factions = ::Tactical.Entities.m.Instances;
+
+		for ( local f = 0; f < factions.len(); f = f + 1 )
+		{
+			foreach ( actor in factions[f] )
+			{
+				if (actor == null || !actor.isAlive() || !actor.isPlacedOnMap()) continue;
+				if (actor.isPlayerControlled()) continue;
+
+				foreach ( skill in actor.getSkills().m.Skills )
+				{
+					if (skill == null) continue;
+
+					local id = "";
+					try { id = skill.getID(); } catch (e) { continue; }
+					if (id.find(_match) == null) continue;
+
+					local ap = "?";
+					local affordable = "?";
+					try { ap = actor.getActionPoints() + "/" + actor.getActionPointsMax(); } catch (e) {}
+					try { affordable = skill.isAffordable() ? "yes" : "no"; } catch (e) {}
+
+					::logInfo("Skv.use: " + actor.getName() + " -> " + id
+						+ " (usable " + (skill.isUsable() ? "yes" : "no")
+						+ ", affordable " + affordable
+						+ ", AP " + ap + ", cost " + skill.getActionPointCost() + ")");
+
+					local lent = false;
+					local savedAP = 0;
+					local savedFatigue = 0;
+
+					try
+					{
+						savedAP = actor.getActionPoints();
+						savedFatigue = actor.getFatigue();
+						actor.setActionPoints(actor.getActionPointsMax());
+						actor.setFatigue(0);
+						lent = true;
+						::logInfo("Skv.use: lending " + actor.getName() + " a full turn ("
+							+ actor.getActionPointsMax() + " AP, no fatigue) so isUsableOn will look at a target. Given back below.");
+					}
+					catch (e)
+					{
+						::logError("Skv.use: could not lend the caster a turn, so a spent creature will report no target: " + e);
+					}
+
+					try
+					{
+
+						local ok = skill.use(::skvpickTargetTile(actor, skill), true);
+						::logInfo("Skv.use: use() returned " + (ok ? "TRUE -- onUse ran" : "FALSE -- onUse did NOT run, check range and target"));
+					}
+					catch (e)
+					{
+						::logError("Skv.use: " + id + " threw on use: " + e);
+					}
+
+					if (lent)
+					{
+						try
+						{
+							actor.setActionPoints(savedAP);
+							actor.setFatigue(savedFatigue);
+						}
+						catch (e)
+						{
+							::logError("Skv.use: COULD NOT GIVE THE TURN BACK -- " + actor.getName()
+								+ " is standing on borrowed action points. Reload before drawing any conclusion from this fight: " + e);
+						}
+					}
+
+					return;
+				}
+			}
+		}
+
+		::logInfo("Skv.use: no living enemy on the field holds a skill matching '" + _match + "'.");
+	}, null);
+
+	::logInfo("Skv.use: armed for '" + _match + "', firing in 900ms so anything in flight lands first.");
+	return true;
+};
+
+::skvmorale <- function ()
+{
+	if (!("Tactical" in ::getroottable()) || ::Tactical == null || ::Tactical.State == null)
+	{
+		::logInfo("Skv.morale: not in a tactical fight.");
+		return;
+	}
+
+	local names = {};
+	try { foreach ( k, v in ::Const.MoraleState ) names[v] <- k; } catch (e) {}
+
+	local factions = ::Tactical.Entities.m.Instances;
+
+	for ( local f = 0; f < factions.len(); f = f + 1 )
+	{
+		foreach ( actor in factions[f] )
+		{
+			if (actor == null || !actor.isAlive() || !actor.isPlacedOnMap()) continue;
+
+			local state = actor.getMoraleState();
+			local label = (state in names) ? names[state] : ("" + state);
+
+			::logInfo("Skv.morale: [f" + f + "] " + actor.getName()
+				+ "  morale " + label
+				+ "  fat " + actor.getFatigue() + "/" + actor.getFatigueMax()
+				+ "  hp " + actor.getHitpoints() + "/" + actor.getHitpointsMax());
+		}
+	}
+};
+
+::skvgear <- function ()
+{
+	if (!("Tactical" in ::getroottable()) || ::Tactical == null || ::Tactical.State == null)
+	{
+		::logInfo("Skv.gear: not in a tactical fight.");
+		return;
+	}
+
+	local slots = [];
+	try
+	{
+		slots = [
+			["mainhand", ::Const.ItemSlot.Mainhand],
+			["offhand",  ::Const.ItemSlot.Offhand],
+			["head",     ::Const.ItemSlot.Head],
+			["body",     ::Const.ItemSlot.Body]
+		];
+	}
+	catch (e)
+	{
+		::logError("Skv.gear: could not read Const.ItemSlot - " + e);
+		return;
+	}
+
+	local describe = function ( _item )
+	{
+		if (_item == null) return "-";
+
+		local name = "?";
+		try { name = _item.getName(); } catch (e) {}
+
+		try { return name + " " + ::Math.round(_item.getCondition()) + "/" + ::Math.round(_item.getConditionMax()); }
+		catch (e) { return name; }
+	};
+
+	local factions = ::Tactical.Entities.m.Instances;
+
+	for ( local f = 0; f < factions.len(); f = f + 1 )
+	{
+		foreach ( actor in factions[f] )
+		{
+			if (actor == null || !actor.isAlive() || !actor.isPlacedOnMap()) continue;
+			if (actor.isPlayerControlled()) continue;
+
+			try
+			{
+				local items = actor.getItems();
+				local line = "Skv.gear: " + actor.getName();
+
+				foreach ( pair in slots )
+				{
+					line = line + "  [" + pair[0] + "] " + describe(items.getItemAtSlot(pair[1]));
+				}
+
+				local bag = "";
+				try
+				{
+					foreach ( it in items.getAllItemsAtSlot(::Const.ItemSlot.Bag) )
+					{
+						bag = bag + (bag == "" ? "" : ", ") + describe(it);
+					}
+				}
+				catch (e) {}
+
+				line = line + "  [bag] " + (bag == "" ? "-" : bag);
+				::logInfo(line);
+			}
+			catch (e)
+			{
+				::logError("Skv.gear: could not read " + actor.getName() + "'s items - " + e);
+			}
+		}
+	}
+};
+
+::skvbreak <- function ( _state = "Wavering" )
+{
+	if (!("Tactical" in ::getroottable()) || ::Tactical == null || ::Tactical.State == null)
+	{
+		::logInfo("Skv.break: not in a tactical fight.");
+		return false;
+	}
+
+	local target = null;
+	local known  = "";
+
+	try
+	{
+		foreach ( k, v in ::Const.MoraleState )
+		{
+			known = known + (known == "" ? "" : ", ") + k;
+			if (k.tolower() == _state.tolower()) target = v;
+		}
+	}
+	catch (e)
+	{
+		::logError("Skv.break: could not read Const.MoraleState - " + e);
+		return false;
+	}
+
+	if (target == null)
+	{
+		::logInfo("Skv.break: no morale state called '" + _state + "'. Known: " + known);
+		return false;
+	}
+
+	local ignore = null;
+	try { ignore = ::Const.MoraleState.Ignore; } catch (e) {}
+
+	local factions = ::Tactical.Entities.m.Instances;
+	local moved = 0;
+
+	for ( local f = 0; f < factions.len(); f = f + 1 )
+	{
+		foreach ( actor in factions[f] )
+		{
+			if (actor == null || !actor.isAlive() || !actor.isPlacedOnMap()) continue;
+			if (actor.isPlayerControlled()) continue;
+
+			try
+			{
+				if (ignore != null && actor.getMoraleState() == ignore) continue;
+
+				actor.setMoraleState(target);
+				moved = moved + 1;
+			}
+			catch (e)
+			{
+				::logError("Skv.break: " + actor.getName() + " refused the change - " + e);
+			}
+		}
+	}
+
+	::logInfo("Skv.break: " + moved + " enemies set to " + _state
+		+ ". End your turn, then watch Rally and Warcry in the next behaviour dump.");
+	return true;
+};

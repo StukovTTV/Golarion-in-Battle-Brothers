@@ -238,7 +238,8 @@ this.skv_threshold_contract <- this.inherit("scripts/contracts/contract", {
 
 	function koboldBudget()
 	{
-		local b = 70.0 * this.getScaledDifficultyMult() * this.getDifficultyMult();
+
+		local b = 105.0 * this.getScaledDifficultyMult() * this.getDifficultyMult();
 
 		if ((this.m.Act2Reads & 0x02) != 0)
 		{
@@ -255,7 +256,8 @@ this.skv_threshold_contract <- this.inherit("scripts/contracts/contract", {
 
 	function escortBudget()
 	{
-		local b = 55.0 * this.getScaledDifficultyMult() * this.getDifficultyMult();
+
+		local b = 83.0 * this.getScaledDifficultyMult() * this.getDifficultyMult();
 
 		if (this.hasRung(this.m.Rung.Ground))
 		{

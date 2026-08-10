@@ -64,7 +64,8 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 
 		BudgetWolves = 60,
 		BudgetSpider = 65,
-		BudgetGurt   = 45,
+		BudgetGurt   = 68,
+
 		BudgetDen    = 60,
 		BudgetGraypelt = 90,
 		EncounterChance = 65,

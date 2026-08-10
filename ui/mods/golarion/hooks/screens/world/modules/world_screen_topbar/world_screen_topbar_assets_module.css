@@ -1,0 +1,105 @@
+/*
+ *  Golarion Localization -- fitting a sixth figure into the world assets bar.
+ *
+ *  ⚠⚠ THE BASE GAME'S OWN SIXTH SLOT DOES NOT FIT, AND 0.98.12 PROVED IT.
+ *  Overhype's world_screen_topbar_assets_module.css defines .asset-container.is-brothers
+ *  at left 43.4rem, and the Squirrel module still carries setOnBrothersPressedListener
+ *  and onBrothersButtonPressed, so a sixth entry clearly existed at some point. But the
+ *  frame art behind the bar now ends at roughly 46rem. Dropped in at 43.4rem the icon
+ *  straddles the edge and the label, which sits 3.2rem further right again, lands
+ *  outside the frame entirely and is clipped. On screen that reads as "the symbol is
+ *  there but there is no number", which is exactly what it did.
+ *
+ *  ⚠⚠ SO WE RE-SPACE ALL SIX, WHICH MEANS OVERRIDING FIVE VANILLA RULES. Not done
+ *  lightly, but there is no alternative: medicine ends at 42.8rem and the frame ends at
+ *  46rem, so the 3.2rem of slack left over cannot hold a 2.8rem icon AND its number.
+ *
+ *  The slack to reclaim is in the pitch, not the content. Vanilla spaces the five slots
+ *  8.2rem apart while each holds a 2.8rem icon and at most three digits, about 5.2rem of
+ *  actual content. Tightening the pitch to 6.8rem still leaves room and buys the whole
+ *  sixth slot. Money keeps a wider box because it is the only figure that runs to five
+ *  or six characters.
+ *
+ *  ⚠ ORDER, NOT SPECIFICITY, IS WHAT MAKES THESE WIN. The selectors are identical in
+ *  weight to the base game's. mod_hooks injects mod stylesheets by appending <link>
+ *  elements to document.body (ui/mod_hooks.js), which puts them after everything in
+ *  <head>, so the last rule wins. Nothing here needs !important and nothing here should
+ *  gain it.
+ *
+ *  ⚠ WE DO NOT COPY .is-brothers's top: -0.3rem. That was a nudge for a taller icon.
+ *  Ours is the same 2.8rem square as the medicines and lines up by inheriting the
+ *  default -3.8rem from .asset-container.
+ */
+
+.world-screen .topbar-assets-module .asset-container.is-money
+{
+    left: 1.0rem;
+    width: 8.8rem;
+}
+
+.world-screen .topbar-assets-module .asset-container.is-food
+{
+    left: 9.6rem;
+    width: 6.8rem;
+}
+
+.world-screen .topbar-assets-module .asset-container.is-supplies
+{
+    left: 16.4rem;
+    width: 6.8rem;
+}
+
+.world-screen .topbar-assets-module .asset-container.is-ammo
+{
+    left: 23.2rem;
+    width: 6.8rem;
+}
+
+.world-screen .topbar-assets-module .asset-container.is-medicine
+{
+    left: 30.0rem;
+    width: 6.8rem;
+}
+
+.world-screen .topbar-assets-module .asset-container.is-golarion-march
+{
+    left: 36.8rem;
+    width: 6.8rem;
+}
+
+/*
+ *  The four-band colour ramp for the vigour figure.
+ *
+ *  ⚠ THESE ARE NOT THE GAME'S TOOLTIP GREENS. Const.UI.Color.PositiveValue is #135213,
+ *  a very dark green meant for black text on a light parchment tooltip. On the dark
+ *  topbar it reads as a smudge. The two colours that DO live on this bar are
+ *  #dda21f (the amber every other figure uses) and #CD2626 (its negative), from
+ *  ui/colors.css, so the ramp below is built to sit between those two rather than
+ *  borrowing from a palette drawn for a different background.
+ *
+ *  ⚠ !important IS REQUIRED HERE, unusually. The stock .font-color-assets-* rules carry
+ *  it, and although the JS strips both of those classes before adding one of these, the
+ *  declaration has to be able to win outright if anything ever re-adds one.
+ *
+ *  Bands: 100-95 good, 94-85 fair, 84-70 poor, 69 and below bad.
+ */
+
+.world-screen .topbar-assets-module .asset-container.is-golarion-march .label.golarion-march-good
+{
+    color: #8cbf3f !important;
+}
+
+.world-screen .topbar-assets-module .asset-container.is-golarion-march .label.golarion-march-fair
+{
+    color: #e0c72e !important;
+}
+
+.world-screen .topbar-assets-module .asset-container.is-golarion-march .label.golarion-march-poor
+{
+    color: #e08a24 !important;
+}
+
+.world-screen .topbar-assets-module .asset-container.is-golarion-march .label.golarion-march-bad
+{
+    color: #cd2626 !important;
+}

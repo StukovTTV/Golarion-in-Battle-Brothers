@@ -317,7 +317,8 @@ this.skv_ambush_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.FightFled = false;
 		local p = this.newFightProperties();
 		local fac = this.goblinFactionID();
-		local budget = 50 * this.getDifficultyMult() * this.getScaledDifficultyMult();
+
+		local budget = 75 * this.getDifficultyMult() * this.getScaledDifficultyMult();
 
 		this.Const.World.Common.addUnitsToCombat(p.Entities, this.Const.World.Spawn.GolarionKobolds, budget, fac);
 		::Skv.dbg("Skv.Ambush patrol budget=" + budget);
@@ -338,7 +339,7 @@ this.skv_ambush_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.FightFled = false;
 		local p = this.newFightProperties();
 		local fac = this.goblinFactionID();
-		local budget = 70 * this.getDifficultyMult() * this.getScaledDifficultyMult();
+		local budget = 105 * this.getDifficultyMult() * this.getScaledDifficultyMult();
 
 		this.Const.World.Common.addUnitsToCombat(p.Entities, this.Const.World.Spawn.GolarionKoboldsCasters, budget, fac);
 
@@ -356,8 +357,8 @@ this.skv_ambush_contract <- this.inherit("scripts/contracts/contract", {
 		{
 
 			p.Entities.push({
-				ID = ::Const.EntityType.SkvKoboldWarrior, Variant = 0, Row = 0,
-				Script = "scripts/entity/tactical/enemies/skv_kobold_warrior",
+				ID = ::Const.EntityType.SkvKoboldBlade, Variant = 0, Row = 0,
+				Script = "scripts/entity/tactical/enemies/skv_kobold_blade",
 				Faction = fac, Callback = this.onCappedChampionPlaced.bindenv(this)
 			});
 		}
@@ -365,8 +366,8 @@ this.skv_ambush_contract <- this.inherit("scripts/contracts/contract", {
 		{
 
 			p.Entities.push({
-				ID = ::Const.EntityType.SkvKoboldChief, Variant = 0, Row = 0,
-				Script = "scripts/entity/tactical/enemies/skv_kobold_chief",
+				ID = ::Const.EntityType.SkvKoboldChieftain, Variant = 0, Row = 0,
+				Script = "scripts/entity/tactical/enemies/skv_kobold_chieftain",
 				Faction = fac, Callback = this.onChampionChiefPlaced.bindenv(this)
 			});
 		}

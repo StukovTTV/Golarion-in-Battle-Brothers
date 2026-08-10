@@ -10,6 +10,167 @@ All notable changes to **Golarion Localization** are recorded here. The format l
   are in place, but the categories themselves, and the contract-display cap that keeps the noticeboard
   within its slot limit, are not yet wired up.
 
+## [0.98] - playtest
+
+### A larger world without a larger map
+
+There is a new **World** tab in the mod's settings with a single dial: travel speed, as a percentage,
+defaulting to half. It slows every party on the map by the same factor, yours and everyone else's, so
+nothing outruns you that could not before and no enemy becomes easier to escape. The map is the same
+size and the towns are exactly where they were; the distance between them simply means something
+again.
+
+Contract deadlines stretch on their own, because the game works out how long a journey should take
+using the same number, so no job is made impossible by moving the slider.
+
+What it does not slow is time. Wages and food are paid by the day, so at half speed a long march
+costs roughly twice the crowns and twice the bread. That is the point rather than an oversight, but
+it is a real cost, and the setting says so. Fast-forward skips the waiting, not the days.
+
+A second dial sits beside it: **fast-forward strength**, which changes only how long you sit watching
+a journey, not what the journey costs. The days still pass, the bread is still eaten, the wages are
+still paid, and everything else on the map speeds up alongside you. Set travel to 50 and fast-forward
+to 200 and the world is twice as large while your evening is exactly as long as it was.
+
+Both can be changed at any point in a campaign and take effect immediately.
+
+### And a reason to stop walking
+
+The two dials above changed what a journey costs and how long you sit through it. Neither gave the
+company any reason to rest, so a third piece finishes the thought: **hours on the road eat into every
+brother's maximum fatigue.**
+
+Nothing else about the men changes. Not initiative, not resolve, not health, not a single skill.
+There is simply less in the tank when the fighting starts, and it shows on the world topbar beside
+the medicines as the vigour the company has left.
+
+Making camp is the cure, and camping within three tiles of a settlement that will have you mends it
+half again as fast: hot food, a smith's fire, a roof for those who want one. Standing the company a
+round in a tavern helps a little as well, once a day, on top of everything a round already did.
+
+A company that beds down at night will barely know this exists. One eight-hour camp gives back more
+than a day and a half of marching. A company that force-marches for four days without once stopping
+arrives at a quarter of its fatigue and fights like it. The feature is not a tax on travel; it is a
+price on refusing to rest.
+
+Five sliders on the World page set the drain, the recovery, the settlement bonus, the ceiling and the
+tavern round. Setting the ceiling to zero switches the whole thing off and takes it off the company
+on the spot. The clock stops while you are inside a settlement, so shopping and haggling cost
+nothing.
+
+No new contract this time. Instead the kobolds stopped being red goblins.
+
+Through 0.97 a kobold was a goblin with the green turned down and one of three tier names. This
+version gives them a Pathfinder roster ten units deep, their own weapons, a racial trait you can
+read in the tooltip, and prices worked out from the goblins they are built on rather than guessed
+at. Every unit and every piece of gear below comes from a real Archives of Nethys stat block.
+
+### The roster
+
+- **Kobold**, the spear-fodder. Leather, and then either a sling with the spear stowed or the spear
+  already in hand, decided per kobold. The slingers fight like skirmishers: they shoot, they back
+  off, and they only draw the spear once you are on them.
+- **Kobold Sniper** (was Trapper). Studded leather and a light crossbow, and it reloads.
+- **Kobold Blade** (was Warrior). Breastplate and a rapier. The one unit in the warren that will
+  actually hold ground, and the one that still throws nets.
+- **Kobold Yapper**, new. It barely fights. It has a hunting bow it would rather not use, and spends
+  its turns screaming at your line, rallying its own, putting men to sleep and splitting into copies
+  of itself. The thing you want dead first.
+- **Kobold Master Trapper**, new. Opens with a reinforced net, then reaches for its bow. Carries
+  poison, and drops a set of masterwork tools.
+- **Kobold Bomber**, new. Fire pots, and the only unit in the mod that carries one. A shortsword in
+  the other hand and nothing that shoots, so it has to come to throwing distance to be dangerous. It
+  holds that distance rather than closing, and only draws the blade once the fire is gone.
+- **Kobold Scalecaster** (was Shaman). The warren's ordinary sorcerer. Light crossbow, burning hands
+  at close quarters, and a stupefying cantrip for everything else.
+- **Kobold Chieftain** (was Chief). Leader's plate, a rapier and a shield, and never alone: a
+  Guilecaster walks with him. Rarer than the Devilspeaker, and there is only ever one.
+- **Kobold Guilecaster** (was Dragon-Priest). Quarterstaff, lightning, magic missile, mirror images
+  of itself and a pit under your feet, and a set of masterwork tools on the body.
+- **Kobold Devilspeaker**, new and rare. Studded leather, a buckler, a rondel in the bag. It holds
+  men where they stand, breaks them with horror, and raises what has already fallen. Roughly one draw
+  in a hundred, and only in a fight big enough to warrant him.
+
+### Kobolds live somewhere now
+
+Until this version the entire kobold roster existed only inside this mod's own contracts, so a
+company that never took one never met a kobold at all. Warrens now appear on the world map: cave
+mouths dug into forest, two to a map, held by the greenskins the way a goblin camp is.
+
+A warren is worth attacking. Its garrison is the full roster, chieftain and temple casters included,
+which makes it the one place all ten units can be found. Clear it and it refills over time, the way
+greenskin lairs do.
+
+Bands also come out of them and wander the surrounding country for a couple of days before going
+home. Those are the lean version: fodder, snipers, blades, the occasional bomber or trapper, and a
+scalecaster with a bodyguard. The chieftain and the dragon-cult stay in the hole.
+
+None of this replaces anything. Goblin camps and goblin roaming bands are untouched, so kobold
+warrens and kobold warbands are added on top of them, up to two of each. It also applies to a
+campaign already in progress; no new game is needed.
+
+### No two kobolds alike
+
+Nine of the ten units now roll their weapon rather than carrying a fixed one, the way base goblins
+always have. A line of Blades is a falchion, a scramasax and a rapier instead of six identical
+rapiers; a Yapper might have a Boondock Bow or a hunting bow; a Guilecaster's staff might be the
+one-handed gnarled kind that lets it fight back when something reaches it. Armour stays exactly where
+each unit's stat block puts it, so nothing gets tougher by luck, only different to look at.
+
+A few rolls change the fight rather than the picture. One melee kobold in four carries a real goblin
+spear and can brace against a charge. One Sniper in ten has a one-handed hand crossbow. One
+Scalecaster in ten carries the greenskin Spiked Impaler, which hits harder than the chieftain's
+sword, so meeting one is a bad afternoon. And the chieftain himself now comes three ways: a shielded
+duellist with a rapier, a pikeman who fights from two tiles back behind his bodyguard, or a
+two-handed hammer taken off some northerner, with no guard at all.
+
+The pact-priest lost its daggers and gained a barbed whip or a staff. Both reach further than a
+dagger, which is what a creature that would rather be casting actually wants, and neither tempts it
+into throwing knives when it should be raising your dead against you.
+
+### Light sensitivity
+
+Kobolds are creatures of the deep tunnel. They no longer take the penalty everything else takes for
+fighting at night, they see one further in the dark, and one less in daylight. It shows in the unit
+tooltip as a racial trait rather than hiding in a stat block, so a warren that fights better after
+dusk tells you why.
+
+### Casters travel with an escort
+
+Every kobold caster now arrives with one or two bodyguards, paid for out of the same budget that
+would otherwise have bought more rank and file. A Scalecaster brings plain kobolds; the two temple
+casters bring Blades; the Chieftain brings a Guilecaster and exactly one. Which caster shows up is
+weighted, and each is gated behind a fight big enough to justify it.
+
+### Balance
+
+Kobold prices were re-derived from the goblins each unit is built on, which raised the average cost
+of a kobold by about half. Every kobold-facing contract budget rose by the same factor, so fights are
+the same size they were; the composition inside them is what changed. The dearer tiers also actually
+turn up now, which through 0.97 they very nearly did not.
+
+Named weapons no longer appear on any kobold, including a championed Chieftain.
+
+### Enemies can throw fire pots now
+
+No creature in the base game or in Legends has ever carried a bomb. Not one of the fifty-eight human
+enemy files equips one, and the only mentions of a fire pot outside the item itself are in nomad
+location loot tables, so the behaviour written to throw them had never once run in a real fight. It
+turns out it barely can: it only ever considers ground two or three tiles away and refuses unless the
+blast would catch at least two of you.
+
+A fire pot is really just a throwing weapon, and this version treats it as one, the same way the game
+already treats a javelin or a throwing axe. An enemy holding one will now use it against a single
+target, from as far away as it can, and will refuse to throw one at somebody it is standing next to,
+which the old path was never in a position to do wrong.
+
+### Fixed
+
+Three Legends spells could not be handed to any creature at all: burning hands, lightning bolt and
+hailstone each threw a script error the instant they were created, because of a one-word typo in the
+class they inherit from. Nothing in Legends ever granted them, so nobody had hit it. Two of the three
+are now on kobolds, and both work.
+
 ## [0.97] - playtest
 
 Adds the thirteenth contract, a dragon hunt in the north where the dragon is not the hardest part of
