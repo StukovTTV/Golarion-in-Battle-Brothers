@@ -20,6 +20,13 @@
 			{
 
 				this.m.EventScreen.setIsContract(true);
+
+				try
+				{
+					local cur = c.m.ActiveScreen;
+					if (cur != null) c.setScreen(cur.ID);
+				}
+				catch (e) { ::logError("loadout restore: could not rebuild the contract screen: " + e); }
 				this.m.EventScreen.show(c, false);
 			}
 		},

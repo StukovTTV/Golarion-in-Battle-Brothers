@@ -131,3 +131,22 @@
 		}
 	}
 });
+
+::mods_hookExactClass("states/tactical_state", function ( o )
+{
+	local onInit = o.onInit;
+	o.onInit = function ()
+	{
+		try { ::Skv.FX.forgetStains(); ::Skv.StenchFX.LastRound = -1; }
+		catch (e) { ::logError("Skv.StenchFX: could not reset at battle start: " + e); }
+		return onInit.call(this);
+	}
+
+	local onFinish = o.onFinish;
+	o.onFinish = function ()
+	{
+		try { ::Skv.FX.forgetStains(); ::Skv.StenchFX.LastRound = -1; }
+		catch (e) { ::logError("Skv.StenchFX: could not reset at battle end: " + e); }
+		return onFinish.call(this);
+	}
+});

@@ -181,6 +181,8 @@ this.skv_black_forks_contract <- this.inherit("scripts/contracts/contract", {
 				p.CombatID = "BlackForks";
 
 				p.LocationTemplate = clone this.Const.Tactical.LocationTemplate;
+
+				p.LocationTemplate.Template = clone this.Const.Tactical.LocationTemplate.Template;
 				p.LocationTemplate.Template[0] = "tactical.ruins";
 				p.LocationTemplate.Fortification = this.Const.Tactical.FortificationType.Walls;
 				p.EnemyDeploymentType = this.Const.Tactical.DeploymentType.Circle;

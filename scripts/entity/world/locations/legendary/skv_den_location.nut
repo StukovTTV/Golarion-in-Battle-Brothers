@@ -56,7 +56,22 @@ this.skv_den_location <- this.inherit("scripts/entity/world/location", {
 	function onDropLootForPlayer( _lootTable )
 	{
 		this.location.onDropLootForPlayer(_lootTable);
+		this.dropTreasure(this.Math.rand(3, 5), [
 
-		this.dropTreasure(this.Math.rand(1, 2), [], _lootTable);
+			"loot/ancient_gold_coins_item",
+			"loot/white_pearls_item",
+			"loot/jade_broche_item",
+			"loot/bone_figurines_item",
+			"trade/salt_item",
+
+			"loot/sabertooth_item",
+
+			"loot/valuable_furs_item",
+			"trade/furs_item",
+			"trade/furs_item",
+			"trade/legend_small_furs_item",
+
+			"trade/legend_raw_wood_item"
+		], _lootTable);
 	}
 });

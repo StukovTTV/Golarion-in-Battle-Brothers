@@ -1088,7 +1088,7 @@ if (!("Skv" in ::getroottable()))
 		"contract.skv_azari", "contract.skv_ambush", "contract.skv_metringer", "contract.skv_black_forks",
 		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing",
 		"contract.skv_carthica", "contract.skv_hollows", "contract.skv_anvil", "contract.skv_threshold",
-		"contract.skv_zoldos"
+		"contract.skv_zoldos", "contract.skv_fortress"
 	],
 
 	function isMine( _type )
@@ -2225,6 +2225,333 @@ if (!("Skv" in ::getroottable()))
 
 	::logInfo("Skv.anvil: posted at " + posted.S.getName() + ", " + open[0].D + " tiles away.");
 	return posted.C;
+};
+
+::skvfortress <- function ( _force = false )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.fortress: not in a campaign.");
+		return null;
+	}
+
+	if (_force)
+	{
+		::Skv.Once.release("Fortress");
+		::World.Flags.remove("SkvOnce.Fortress.retired");
+	}
+
+	local act = null;
+	try { act = ::new("scripts/factions/contracts/skv_fortress_action"); }
+	catch (e) { ::logInfo("Skv.fortress: could not build the action (" + e + ")"); act = null; }
+
+	local sc = ::Skv.Cfg.score();
+	local locked = ::Skv.Once.isLocked("Fortress");
+
+	local held = 0;
+	if (act != null)
+	{
+		try { held = act.heldBack(); }
+		catch (e) { held = 0; }
+	}
+
+	::logInfo("== Skv.Fortress (contract #14) ==");
+	if (held == 0) ::logInfo("  RELEASED (0.99.28) -- posts on its own when the gates below pass.");
+
+	if (held > 0)
+	{
+		::logInfo("  ⚠⚠ HELD BACK ON PURPOSE -- #14 is UNFINISHED and cannot post itself.");
+		::logInfo("     effective score = " + sc + " - " + held + " = " + (sc - held)
+			+ "   << BLOCKING, and nothing below it is ever reached.");
+		::logInfo("     The rooms are one-line placeholders; the tower walks but nothing in it fights.");
+		::logInfo("     ::skvfortress(true) STILL POSTS IT -- it bypasses onUpdate entirely.");
+		::logInfo("     To release it: return 0 from heldBack() in skv_fortress_action.nut.");
+	}
+
+	::logInfo("  THE GATE STACK -- every one of these must pass, cheapest first:");
+	::logInfo("    1 score dial      = " + sc + (sc <= 0 ? "        << BLOCKING (all Golarion contracts are off)" : "        ok")
+		+ (held > 0 ? "   (moot -- held back above)" : ""));
+	::logInfo("    2 once/campaign   active=" + ::World.Flags.has("SkvOnce.Fortress.active")
+		+ " retired=" + ::World.Flags.has("SkvOnce.Fortress.retired")
+		+ (locked ? "   << BLOCKING" : "   ok"));
+	::logInfo("    3 readiness       per faction -- category slot in the north, vanilla's 2/3 cap + 4-day delay in the south");
+	::logInfo("    4 canHost         size >= 2 and not isolated");
+	::logInfo("    5 exclusion       per faction");
+	::logInfo("    6 rarity roll     3% at a settlement, 9% at a city-state -- THE SLOW ONE, and it rolls every tick");
+	::logInfo("  NOT gated on renown, terrain, a situation, or the day. That is deliberate:");
+	::logInfo("  #14 is the board's entry-level delve. 'No renown gate' is NOT 'no gates'.");
+
+	local open = [];
+	local live = null;
+	local total = 0;
+	local shown = 0;
+
+	try
+	{
+		local ac = ::World.Contracts.getActiveContract();
+		if (ac != null && ac.getType() == "contract.skv_fortress")
+		{
+			local h = null;
+			try { h = ac.m.Home; } catch (e) { h = null; }
+			live = { S = h, C = ac, Active = true };
+		}
+	}
+	catch (e) { }
+
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		foreach (c in s.getContracts())
+		{
+			if (c.getType() == "contract.skv_fortress" && live == null) live = { S = s, C = c, Active = false };
+		}
+
+		total = total + 1;
+
+		local fac = null;
+		try { fac = ::World.FactionManager.getFaction(s.getFaction()); } catch (e) { fac = null; }
+
+		local ok = false;
+		if (act != null)
+		{
+			try { ok = act.canHostFaction(fac) && act.canHost(s); }
+			catch (e) { ::logInfo("Skv.fortress: canHost threw - " + e); act = null; }
+		}
+		if (act == null)
+		{
+			local t = -1;
+			try { t = fac.getType(); } catch (e) { t = -1; }
+			ok = (t == ::Const.FactionType.Settlement || t == ::Const.FactionType.OrientalCityState)
+				&& !s.isIsolated() && s.getSize() >= 2;
+		}
+
+		if (!ok) continue;
+		open.push(s);
+
+		if (shown < 8)
+		{
+			shown = shown + 1;
+			local f = fac;
+			local ready = "?";
+			try
+			{
+				if (f.getType() == ::Const.FactionType.Settlement)
+					ready = f.isReadyForContract(::Const.Contracts.ContractCategoryMap.skv_fortress_contract) ? "yes" : "NO";
+				else
+					ready = f.isReadyForContract() ? "yes" : "NO";
+			}
+			catch (e) { ready = "threw"; }
+
+			local excl = "?";
+			try { excl = f.hasContractExclusion("contract.skv_fortress") ? "EXCLUDED" : "-"; }
+			catch (e) { excl = "threw"; }
+
+			::logInfo("    OK  " + s.getName() + "  size " + s.getSize()
+				+ "  ready=" + ready + "  excl=" + excl
+				+ "  rarity=" + ::Skv.Cfg.rarity(f) + "%");
+		}
+	}
+
+	::logInfo("  " + open.len() + " of " + total + " settlements pass canHost."
+		+ (act == null ? "   [verdict: LOCAL COPY -- the action would not build]" : "   [verdict: the action's own canHost]"));
+	if (live != null)
+	{
+		local where = "somewhere";
+		try { where = live.S != null && !live.S.isNull() ? live.S.getName() : "no home set"; }
+		catch (e) { where = "no home set"; }
+		::logInfo("  LIVE at " + where + " -- \"" + live.C.getName() + "\""
+			+ (live.Active ? "   [ACCEPTED -- read from World.Contracts, not a board]" : "   [on the board]"));
+	}
+	else ::logInfo("  not posted anywhere yet. ::skvfortress(true) posts it directly.");
+
+	if (live != null)
+	{
+		try
+		{
+			local c = live.C;
+
+			::logInfo("  ---- the spine ----  state=" + c.getActiveState().ID
+				+ "  Rooms=" + c.m.Rooms + " Found=" + c.m.Found + " Access=" + c.m.Access + " Alert=" + c.m.Alert + "%");
+			::logInfo("    stair=" + (c.hasAccess(0x01) ? "OPEN (the Armoury is done)" : "blocked")
+				+ "  secretDoor=" + (c.hasAccess(0x04) ? "found" : "not found")
+				+ "  keys=" + (c.hasAccess(0x02) ? "held" : "not held")
+				+ "  Balenar=" + c.m.Balenar);
+
+			local nxt = c.nextRoom();
+			foreach (r in c.rooms())
+			{
+				local mark;
+				if (c.hasRoom(r.Bit))       mark = "done";
+				else if (r.Bit == nxt)      mark = "NEXT";
+				else if (!c.isSpine(r.Bit)) mark = (c.templeOpen() ? "OPEN" : "shut");
+				else                        mark = "  . ";
+
+				::logInfo("    " + mark + "  area " + (r.Area < 10 ? " " : "") + r.Area
+					+ "  floor " + r.Floor + "  " + r.Title
+					+ (c.isSpine(r.Bit) ? "" : "   << the one branch off the line"));
+			}
+
+			if (nxt == 0) ::logInfo("    the tower is walked out -- the hub offers the road home.");
+		}
+		catch (e)
+		{
+			::logInfo("  ---- the spine ----  could not be read (" + e + ")");
+		}
+	}
+
+	if (!_force) return live == null ? null : live.C;
+
+	if (live != null)
+	{
+		::logInfo("Skv.fortress: already posted at " + live.S.getName() + " - not posting a second.");
+		return live.C;
+	}
+	if (open.len() == 0)
+	{
+		::logInfo("Skv.fortress: no settlement can host it.");
+		return null;
+	}
+
+	local ready = [];
+	foreach (h in open)
+	{
+		local hf = ::World.FactionManager.getFaction(h.getFaction());
+		local r = false;
+		try
+		{
+			if (hf.getType() == ::Const.FactionType.Settlement)
+				r = hf.isReadyForContract(::Const.Contracts.ContractCategoryMap.skv_fortress_contract);
+			else
+				r = hf.isReadyForContract();
+		}
+		catch (e) { r = true; }
+		if (r) ready.push(h);
+	}
+
+	local pool = ready.len() > 0 ? ready : open;
+	if (ready.len() == 0)
+	{
+		::logInfo("Skv.fortress: NO host has a free Battle/Wildcard slot -- trying anyway, and it may be refused.");
+	}
+
+	local s = pool[::Math.rand(0, pool.len() - 1)];
+	local f = ::World.FactionManager.getFaction(s.getFaction());
+
+	::Skv.Once.claim("Fortress");
+	local c = ::new("scripts/contracts/contracts/skv_fortress_contract");
+	c.setFaction(f.getID());
+	c.setHome(s);
+	c.setEmployerID(f.getRandomCharacter().getID());
+	::World.Contracts.addContract(c);
+	::logInfo("Skv.fortress: posted at " + s.getName() + ".");
+	return c;
+};
+
+::skvden <- function ( _rolls = 5 )
+{
+	if (!("World" in ::getroottable()) || ::World == null)
+	{
+		::logInfo("Skv.den: not in a campaign.");
+		return;
+	}
+
+	local den = null;
+	try
+	{
+		foreach (l in ::World.EntityManager.getLocations())
+		{
+			if (l.getTypeID() == "location.skv_den") { den = l; break; }
+		}
+	}
+	catch (e)
+	{
+		::logInfo("Skv.den: could not walk the location list (" + e + ")");
+	}
+
+	local live = den != null;
+	if (!live)
+	{
+		try { den = ::new("scripts/entity/world/locations/legendary/skv_den_location"); }
+		catch (e)
+		{
+			::logInfo("Skv.den: could not build a Den at all (" + e + ")");
+			return;
+		}
+	}
+
+	local scale = 1.0;
+	try { scale = den.m.LootScale; } catch (e) { scale = -1.0; }
+
+	::logInfo("== Skv.Den loot ==  " + (live ? "the LIVE Den on this map" : "a THROWAWAY instance -- no Den on this map, LootScale is the 1.0 default")
+		+ "   LootScale=" + scale);
+	::logInfo("  Calling the real onDropLootForPlayer. Up to 0.99.4 this threw here, every time:");
+	::logInfo("    \"the index '0' does not exist\"  --  dropTreasure with an EMPTY list.");
+
+	local grand = 0;
+	local items = 0;
+
+	local tally = {};
+	local lo = -1;
+	local hi = -1;
+
+	for( local r = 1; r <= _rolls; r = r + 1 )
+	{
+		local loot = [];
+
+		try
+		{
+			den.onDropLootForPlayer(loot);
+		}
+		catch (e)
+		{
+			::logInfo("  roll " + r + ":  STILL THROWING -- " + e);
+			if (!live) ::logInfo("    (on a throwaway instance -- re-run on a map that has the Den before believing this)");
+			return;
+		}
+
+		local line = "";
+		local worth = 0;
+
+		foreach (it in loot)
+		{
+			local nm = it.getName();
+			line = line + (line == "" ? "" : ", ") + nm;
+			if (nm in tally) tally[nm] = tally[nm] + 1;
+			else tally[nm] <- 1;
+			try { worth = worth + it.getValue(); } catch (e) { }
+		}
+
+		items = items + loot.len();
+		grand = grand + worth;
+		if (lo < 0 || worth < lo) lo = worth;
+		if (worth > hi) hi = worth;
+
+		::logInfo("  roll " + r + ":  " + loot.len() + " item(s), base value " + worth
+			+ "   " + (line == "" ? "(nothing)" : line));
+	}
+
+	::logInfo("  " + _rolls + " rolls, NO THROW. " + items + " items total, "
+		+ (items > 0 ? (grand / _rolls) + " base value per roll on average." : "which is itself worth a look."));
+
+	if (items > 0)
+	{
+
+		::logInfo("  worst haul " + lo + ", best " + hi
+			+ (lo > 0 ? "  (" + (hi / lo) + "x spread)" : ""));
+
+		local rows = [];
+		foreach (k, v in tally) rows.push({ N = k, C = v });
+		rows.sort(function ( a, b ) { return b.C <=> a.C; });
+
+		::logInfo("  WHAT ACTUALLY CAME OUT -- " + rows.len() + " distinct items in " + items + " draws:");
+		foreach (row in rows)
+		{
+			::logInfo("    " + row.C + "x   " + ::Math.floor(100.0 * row.C / items) + "%   " + row.N);
+		}
+		::logInfo("  ⚠ Compare those shares against the list. An entry listed twice should sit at");
+		::logInfo("    double the others; anything far off after 20+ rolls is worth a second look.");
+	}
+
+	return null;
 };
 
 ::skvzoldos <- function ( _force = false )

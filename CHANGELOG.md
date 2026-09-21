@@ -10,6 +10,73 @@ All notable changes to **Golarion Localization** are recorded here. The format l
   are in place, but the categories themselves, and the contract-display cap that keeps the noticeboard
   within its slot limit, are not yet wired up.
 
+## [0.99] - playtest
+
+Adds the troglodytes and the fourteenth contract, a twelve-room tower climbed in one push with no
+rest, and brings these notes up to date with the fixes from the 0.99.10 emergency build.
+
+### Contracts
+- **Master of the Fallen Fortress** (contract #14, once per campaign), adapted from Paizo's
+  *Master of the Fallen Fortress* by Rob McCreary. Offered by ordinary towns in the north and by the
+  southern city-states, with no renown gate: it is meant as the board's entry-level delve.
+
+  **A Pathfinder went into an old siege tower and did not come back.** Venture-Captain Valsin of the
+  Grand Lodge wants him out, and would rather not send another of his own after him. The ground moved
+  a month ago and the tower came open. Something has moved into it since, and it was not scholars.
+
+  **Twelve rooms, one way up, and no resting.** A starving pack outside the walls, a spider's lair on
+  the ground floor, an armoury that stinks of troglodyte, a trapped hall, a roost that comes down on
+  your heads, a flooded chamber with something in the water, the barracks, the brute who keeps the
+  prisoner, the cell, and at the top the druid who brought the young ones here and the white beast
+  that walks beside him. Fights come one after another; hit points do not come back between them,
+  and a retreat lets you try again at whatever strength you have left. A loadout screen is on hand
+  between rooms, and it says plainly that it mends nothing.
+
+  **Mistakes cost you, but never the contract.** Read the dust and you know what is upstairs. Spring
+  the trap and every man who cannot keep still makes every later fight a little harder, and the tower
+  tells you by how much. Miss the seam in a wall and you never learn there was a temple behind it.
+  Pick the lock or wait for its key, and the temple has its own dead to deal with, and its own reward.
+  At the top the floor of one wing is rotten: cross it and risk the fall, or go round and fight more
+  of the guard.
+
+  **The man in the cell has not been tortured, and he does not seem to notice the smell.** What you
+  do about that is up to you. Free him and he will mend a wound and, back at the lodge, ask to join
+  the company; a full roster is no obstacle, because you can make room right there. The lodge pays
+  the fee, pays again for his wayfinder if he lives, and buys back the temple's holy symbols for the
+  priests of Nethys if you bring them.
+
+  **Loot is the real pay.** Kita's collar, a banner whose worth depends on whether anyone recognises
+  it, masterwork steel, a jade figurine, the druid's chest, and potions of cure light and cure
+  moderate wounds that are the only healing the tower offers.
+
+### Troglodytes
+- **Ten troglodyte units from Pathfinder stat blocks**: the rank and file, Skulkers, Champions and
+  Warren Guards, three casters (Beast-Speaker, Priest, Sorcerer), a javelin-throwing Scale-Rider, a
+  Chieftain and a Tyrant. Their **stench** saps the men standing next to them, and a Tyrant's is
+  worse; poison immunity protects against it, and the ground around them shows it.
+- **They live in the swamps.** Troglodyte bands wander bog country from day ten onwards, rarely,
+  with the bigger units turning up only as the campaign goes on.
+
+### Items
+- **Masterwork now reaches shields**: +2 melee and +2 ranged defence while the shield is whole,
+  "Masterwork" in the name, a higher price, and repaired like any other shield. Shields take
+  masterwork only, never the +1 to +5 enchantments.
+
+### Fixed
+- **Clearing the Den crashed the game** and took the whole location's loot with it (reported by
+  several players; fixed in 0.99.10). Its treasure is now a proper short list of what a village
+  overrun by direwolves would leave behind.
+- **Six contracts quietly changed the game's default battle map** whenever they set up a ruins fight
+  (Black Forks, Metringer, Azari, Carthica, Ambush and Shadows on the Frontier), so a location attacked
+  later could come up as ruins it was never meant to have. Each now works on its own copy.
+- **Coming back from the loadout screen showed the contract screen as it was before you left**, so
+  anything you changed there did not count until you opened it a second time.
+- **The failure endings of Master of the Anvil and Hollow's Last Hope could not be closed** (fixed in
+  0.99.10). Hollow's now grades its ending properly: on time +25 renown, late or grim −75, failed −75.
+- **Legends bugs the troglodytes ran into, fixed for everyone:** Horrify could loop thousands of times
+  in one turn, Entangle's cooldown never came back after the first turn (the goblin shaman included),
+  and Prayer of Faith now says in the combat log how many it reached.
+
 ## [0.98] - playtest
 
 ### A larger world without a larger map

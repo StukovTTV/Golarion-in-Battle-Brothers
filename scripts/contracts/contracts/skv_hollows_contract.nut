@@ -2517,9 +2517,14 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 				local rows = [];
 				rows.push({ id = 1, icon = "ui/icons/asset_money.png", text = "[color=" + this.Const.UI.Color.PositiveEventValue + "]" + c.finalPay() + " crowns[/color]" + (t == "InTime" ? "" : " - the fee, cut for the days it took") });
 				rows.push({ id = 2, icon = "ui/icons/special.png", text = "The blackscour lifts from [color=" + this.Const.UI.Color.PositiveEventValue + "]" + town + "[/color]" });
+
 				if (t == "InTime")
 				{
 					rows.push({ id = 3, icon = "ui/icons/asset_moral_reputation.png", text = "[color=" + this.Const.UI.Color.PositiveEventValue + "]Renown[/color] - the company that beat the vale's own clock" });
+				}
+				else
+				{
+					rows.push({ id = 3, icon = "ui/icons/asset_moral_reputation.png", text = "[color=" + this.Const.UI.Color.NegativeEventValue + "]Renown[/color] - word travels that the vale waited on you" });
 				}
 				rows.push({ id = 4, icon = "ui/icons/days_wounded.png", text = "Buried in " + town + " before you returned: [color=" + this.Const.UI.Color.NegativeEventValue + "]" + c.m.Dead + "[/color]" });
 
@@ -2550,9 +2555,14 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 							}
 
 							this.World.Assets.addMoney(this.Contract.finalPay());
+
 							if (t == "InTime")
 							{
 								this.World.Assets.addBusinessReputation(this.Const.World.Assets.ReputationOnContractSuccess);
+							}
+							else
+							{
+								this.World.Assets.addBusinessReputation(this.Const.World.Assets.ReputationOnContractFail);
 							}
 							this.World.FactionManager.getFaction(this.Contract.getFaction()).addPlayerRelation(this.Const.World.Assets.RelationCivilianContractSuccess, "Cured the blackscour taint");
 							this.World.Contracts.finishActiveContract();
@@ -2574,8 +2584,8 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 					Text = "{We were too slow.}",
 					function getResult()
 					{
-						this.World.Assets.addBusinessReputation(-this.Const.World.Assets.ReputationOnContractFailed);
-						this.World.FactionManager.getFaction(this.Contract.getFaction()).addPlayerRelation(-this.Const.World.Assets.RelationCivilianContractFailed, "Failed to cure the blackscour taint");
+						this.World.Assets.addBusinessReputation(this.Const.World.Assets.ReputationOnContractFail);
+						this.World.FactionManager.getFaction(this.Contract.getFaction()).addPlayerRelation(this.Const.World.Assets.RelationCivilianContractFail, "Failed to cure the blackscour taint");
 						this.World.Contracts.finishActiveContract();
 						return 0;
 					}

@@ -422,7 +422,7 @@ this.skv_anvil_contract <- this.inherit("scripts/contracts/contract", {
 					Text = "{Nothing to be done.}",
 					function getResult()
 					{
-						this.World.Assets.addBusinessReputation(-this.Const.World.Assets.ReputationOnContractFailed);
+
 						this.World.Contracts.finishActiveContract();
 						return 0;
 					}

@@ -217,6 +217,12 @@
 		}
 	}
 
+	function forgetStains()
+	{
+		this.Stained = [];
+		this.LastStainDecals = 0;
+	}
+
 	function unstainAll()
 	{
 		local flag = this.detailFlag();

@@ -12,7 +12,9 @@
 	MasterworkAccuracy = 2,
 
 	ValueQuadraticFactor = 0.4,
-	MasterworkValueMult = 1.5
+	MasterworkValueMult = 1.5,
+
+	MasterworkShieldDefense = 2
 };
 
 ::GolarionEnchant.apply <- function ( _item, _tier ) {
@@ -33,10 +35,16 @@
 }
 
 ::GolarionEnchant.setMasterwork <- function ( _item, _v = true ) {
-	if (!::GolarionEnchant.isEligible(_item))
+	if (!::GolarionEnchant.isMasterworkEligible(_item))
 		return false;
 	_item.setMasterwork(_v);
 	return true;
+}
+
+::GolarionEnchant.isMasterworkEligible <- function ( _item ) {
+	if (::GolarionEnchant.isEligible(_item))
+		return true;
+	return _item != null && _item.isItemType(::Const.Items.ItemType.Shield);
 }
 
 ::GolarionEnchant.isEligible <- function ( _item ) {
@@ -313,3 +321,83 @@
 		}
 	}
 };
+
+::GolarionEnchant.installOnShield <- function ( o )
+{
+	o.isMasterwork <- function () {
+		return this.getFlags().getAsInt("GolarionMasterwork") != 0;
+	}
+
+	o.setMasterwork <- function ( _v ) {
+		this.getFlags().set("GolarionMasterwork", _v ? 1 : 0);
+	}
+
+	if ("getName" in o)
+	{
+		local getName = o.getName;
+		o.getName = function () {
+			local plain = getName();
+			return this.isMasterwork() ? "Masterwork " + plain : plain;
+		}
+	}
+	else
+	{
+		o.getName <- function () {
+			local plain = this.item.getName();
+			return this.isMasterwork() ? "Masterwork " + plain : plain;
+		}
+	}
+
+	if ("getValue" in o)
+	{
+		local getValue = o.getValue;
+		o.getValue = function () {
+			local v = getValue();
+			return this.isMasterwork() ? this.Math.round(v * ::GolarionEnchant.MasterworkValueMult) : v;
+		}
+	}
+	else
+	{
+		o.getValue <- function () {
+			local v = this.item.getValue();
+			return this.isMasterwork() ? this.Math.round(v * ::GolarionEnchant.MasterworkValueMult) : v;
+		}
+	}
+
+	if ("onUpdateProperties" in o)
+	{
+		local onUpdateProperties = o.onUpdateProperties;
+		o.onUpdateProperties = function ( _properties ) {
+			onUpdateProperties(_properties);
+
+			if (this.isMasterwork() && this.m.Condition > 0)
+			{
+				_properties.MeleeDefense += ::GolarionEnchant.MasterworkShieldDefense;
+				_properties.RangedDefense += ::GolarionEnchant.MasterworkShieldDefense;
+			}
+		}
+	}
+	else
+	{
+		::logError("GolarionEnchant.installOnShield: shield declares no onUpdateProperties -- masterwork shields give NO defence");
+	}
+
+	if ("getTooltip" in o)
+	{
+		local getTooltip = o.getTooltip;
+		o.getTooltip = function () {
+			local result = getTooltip();
+			if (this.isMasterwork())
+			{
+				local n = ::GolarionEnchant.MasterworkShieldDefense;
+				result.push({
+					id = 22,
+					type = "text",
+					icon = "ui/icons/melee_defense.png",
+					text = "Masterwork: Melee and Ranged Defense [color=" + ::Const.UI.Color.PositiveValue + "]+" + n + "[/color]"
+				});
+			}
+			return result;
+		}
+	}
+}

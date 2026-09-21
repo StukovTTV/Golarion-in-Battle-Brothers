@@ -292,6 +292,8 @@ this.skv_metringer_contract <- this.inherit("scripts/contracts/contract", {
 				{
 
 					p.LocationTemplate = clone this.Const.Tactical.LocationTemplate;
+
+					p.LocationTemplate.Template = clone this.Const.Tactical.LocationTemplate.Template;
 					p.LocationTemplate.Template[0] = "tactical.ruins";
 					p.LocationTemplate.Fortification = this.Const.Tactical.FortificationType.Walls;
 					::Const.World.Common.addUnitsToCombat(p.Entities, ::Const.World.Spawn.Mercenaries, this.Contract.m.KeeperBudget * mult, fac);

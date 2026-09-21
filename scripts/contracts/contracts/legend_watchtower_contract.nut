@@ -168,6 +168,8 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 				p.CombatID = "Watchtower";
 
 				p.LocationTemplate = clone this.Const.Tactical.LocationTemplate;
+
+				p.LocationTemplate.Template = clone this.Const.Tactical.LocationTemplate.Template;
 				p.LocationTemplate.Template[0] = "tactical.ruins";
 				p.LocationTemplate.Fortification = this.Const.Tactical.FortificationType.Walls;
 
