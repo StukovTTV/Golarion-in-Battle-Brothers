@@ -10,6 +10,52 @@ All notable changes to **Golarion Localization** are recorded here. The format l
   are in place, but the categories themselves, and the contract-display cap that keeps the noticeboard
   within its slot limit, are not yet wired up.
 
+## [1.0] - playtest
+
+Adds the fifteenth contract: a short one, and the first whose second fight you can talk your way
+out of. Also removes two contracts' leftover markers from the map and tidies the spacing of the
+dialogue in six others.
+
+### Contracts
+- **Torment and Legacy** (contract #15, once per campaign), adapted from Paizo's *Torment and
+  Legacy* by Stephen Radney-MacFarland. Offered by small villages near hill country, with no
+  renown gate: like its source, it is a starter job.
+
+  **An ogre walked into the village at noon, stuffed the old sage into a sack and ran for the
+  hills, laughing.** He shouted a name as he went. The sage's granddaughter offers everything she
+  has to see him home.
+
+  **Sneak up, or be met.** The ogre is drunk and his camp is busy with the cow he stole. If the
+  whole company keeps quiet on the climb, you catch them around the fire. One clumsy step and the
+  cave folk he hired come at you out of the rocks from every side. Lose the fight and the camp is
+  still there, but they will be waiting for you next time.
+
+  **The man who sent the ogre is waiting at the standing stones.** The old man has something to
+  tell him first. After that, one of your brothers can try to find the right words, or you can
+  draw steel. Get it right and there is no second fight at all. The ending remembers which way it
+  went.
+
+  **So does your name.** Talk him down and the company's standing rises (+3 moral reputation). Kill
+  him and the village still pays, but it will not speak well of you: poor renown, and −3 moral
+  reputation if he died after the talking failed, −6 if you never tried. Lose to him and he walks
+  through the stones in search of his mother; the old man still comes home.
+
+  **A job for a young company.** It shows one or two skulls, never three. The camp still grows with
+  your company, and a company strong enough will find the ogre is not only drunk but the biggest one
+  anyone there has ever seen: a champion.
+
+  **Loot is in the cave.** A few trinkets, a handful of coin, and a small onyx dog that turns out
+  to be a real one.
+
+### Fixed
+- **Finished contracts left their markers on the map.** The ogre's hill in Torment and Legacy and the
+  wyrm's lair in The Scourge of Mount Zoldos now disappear when the contract ends. A lair left
+  behind by a campaign that finished Zoldos before this version stays where it is.
+- **Extra blank lines between speeches** in Skull's Crossing, The Fires at Black Forks, Carthica's
+  Pride, Master of the Fallen Fortress, Hollow's Last Hope and The Scourge of Mount Zoldos. A speaker
+  who carries on now reads as one speech, and a line naming who speaks now comes before the speech
+  instead of floating alone between two.
+
 ## [0.99] - playtest
 
 Adds the troglodytes and the fourteenth contract, a twelve-room tower climbed in one push with no

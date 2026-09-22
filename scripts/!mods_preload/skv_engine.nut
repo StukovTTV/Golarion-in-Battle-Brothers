@@ -1088,7 +1088,7 @@ if (!("Skv" in ::getroottable()))
 		"contract.skv_azari", "contract.skv_ambush", "contract.skv_metringer", "contract.skv_black_forks",
 		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing",
 		"contract.skv_carthica", "contract.skv_hollows", "contract.skv_anvil", "contract.skv_threshold",
-		"contract.skv_zoldos", "contract.skv_fortress"
+		"contract.skv_zoldos", "contract.skv_fortress", "contract.skv_torment"
 	],
 
 	function isMine( _type )
@@ -2707,6 +2707,182 @@ if (!("Skv" in ::getroottable()))
 		::logInfo("    holding: " + x.getName() + " [" + x.getType() + "]");
 	}
 	::logInfo("  Run it again to draw a different host, or clear a contract at this one.");
+	return null;
+};
+
+::skvtorment <- function ( _force = false )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.torment: not in a campaign.");
+		return null;
+	}
+
+	if (_force)
+	{
+		::Skv.Once.release("Torment");
+		::World.Flags.remove("SkvOnce.Torment.retired");
+	}
+
+	local act = null;
+	try { act = ::new("scripts/factions/contracts/skv_torment_action"); }
+	catch (e) { ::logInfo("Skv.torment: could not build the action (" + e + ")"); act = null; }
+
+	local day = ::World.getTime().Days;
+	::logInfo("== Skv.Torment (contract #15) ==");
+	::logInfo("  once.active=" + ::World.Flags.has("SkvOnce.Torment.active")
+		+ " once.retired=" + ::World.Flags.has("SkvOnce.Torment.retired")
+		+ (::Skv.Once.isLocked("Torment") ? "  << BLOCKING" : ""));
+	::logInfo("  score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : ""));
+	::logInfo("  day=" + day + " / 5" + (day < 5 ? "  << BLOCKING" : ""));
+	::logInfo("  SkvHaanarFate=" + (::World.Flags.has("SkvHaanarFate") ? ::World.Flags.get("SkvHaanarFate") : "unset")
+		+ "   (1 home · 2 dead after talking · 3 dead, straight to blades · 4 gone to his mother)");
+
+	local hills = @(s) s.getSurroundingTilesOfType([::Const.World.TerrainType.Hills], 3).len();
+	local open = [];
+	local live = null;
+	local total = 0;
+
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		foreach (c in s.getContracts())
+		{
+			if (c.getType() == "contract.skv_torment") live = { S = s, C = c };
+		}
+		total = total + 1;
+
+		local ok = false;
+		if (act != null)
+		{
+			try { ok = act.canHost(s); }
+			catch (e) { ::logInfo("  canHost threw on " + s.getName() + ": " + e); ok = false; }
+		}
+
+		local why = null;
+		if (!ok)
+		{
+			if (s.isIsolated()) why = "isolated";
+			else if (!::MSU.isKindOf(s, "legends_village")) why = "not a village";
+			else if (s.getSize() > 2) why = "size " + s.getSize() + " (want <=2)";
+			else if (hills(s) == 0) why = "no hills within 3";
+			else why = "canHost says no, and this dump cannot say why";
+		}
+		if (ok) open.push(s);
+		if (ok || why == "no hills within 3" || why.slice(0, 4) == "size")
+		{
+			::logInfo("    " + (ok ? "OK  " : "--  ") + s.getName() + "  size " + s.getSize()
+				+ "  hills " + hills(s) + (why == null ? "" : "   [" + why + "]"));
+		}
+	}
+	::logInfo("  " + open.len() + " of " + total + " settlements can host now."
+		+ (act == null ? "   [⚠ the action would not build -- no verdict]" : ""));
+
+	if (live == null)
+	{
+
+		local a = ::World.Contracts.getActiveContract();
+		if (a != null && a.getType() == "contract.skv_torment") live = { S = a.getHome(), C = a };
+	}
+	if (live != null)
+	{
+		local m = live.C.m;
+		local acts = ["0 travelling", "1 trail read", "2 fight 1 won", "3 stones shown", "4 hill resolved", "5 concluded"];
+		local apps = ["0 not tried", "1 caught at the fire", "2 the camp was up"];
+		local outs = ["0 none", "1 talked down", "2 talked, then fought", "3 straight to blades", "4 Haanar gone"];
+		local pick = function ( _arr, _i ) { return (_i >= 0 && _i < _arr.len()) ? _arr[_i] : (_i + " (UNKNOWN)"); };
+		::logInfo("  LIVE at " + (live.S == null ? "?" : live.S.getName()) + " -- \"" + live.C.getName()
+			+ "\"  active=" + m.IsActive);
+		::logInfo("    Act=" + pick(acts, m.Act) + "  Approach=" + pick(apps, m.Approach)
+			+ "  Outcome=" + pick(outs, m.Outcome));
+		::logInfo("    Searched=" + m.Searched + "  Concluded=" + m.Concluded + "  Speaker=\"" + m.Speaker + "\"");
+		::logInfo("    Marks=" + m.Marks + "  [" + ((m.Marks & ::Const.Skv.Torment.MarkFight1Lost) != 0 ? "1 fight-1-lost" : "no bits")
+			+ "]   (1 fight 1 was lost: every re-attack is an ambush)");
+		try
+		{
+			::logInfo("    hub -> " + live.C.hubScreen() + "   pay=" + live.C.finalPay()
+				+ "   band budget=" + live.C.bandBudget() + "   wolf budget=" + live.C.wolfBudget()
+				+ "   diff=" + live.C.getDifficultyMult());
+			::logInfo("    ogre raw budget=" + live.C.ogreBudget() + "   champion=" + live.C.ogreIsChampion()
+				+ " (gate " + ::Const.Skv.Torment.OgreChampionBudget + ")");
+		}
+		catch (e) { ::logInfo("    (hub/budget read threw: " + e + ")"); }
+	}
+
+	if (!_force) return live == null ? null : live.C;
+
+	if (live != null)
+	{
+		::logInfo("Skv.torment: already posted - not posting a second.");
+		return live.C;
+	}
+	if (open.len() == 0)
+	{
+		::logInfo("Skv.torment: no settlement can host it. See the reasons above.");
+		return null;
+	}
+
+	local ready = [];
+	foreach (h in open)
+	{
+		local hf = ::World.FactionManager.getFaction(h.getFaction());
+		local r = false;
+		try { r = hf.isReadyForContract(::Const.Contracts.ContractCategoryMap.skv_torment_contract); }
+		catch (e) { r = true; }
+		if (r) ready.push(h);
+	}
+
+	local shuffle = function ( _arr )
+	{
+		for (local i = _arr.len() - 1; i > 0; i = i - 1)
+		{
+			local j = ::Math.rand(0, i);
+			local t = _arr[i]; _arr[i] = _arr[j]; _arr[j] = t;
+		}
+		return _arr;
+	};
+	local order = shuffle(ready);
+	local rest = [];
+	foreach (h in open)
+	{
+		local isReady = false;
+		foreach (r in ready) if (r == h) isReady = true;
+		if (!isReady) rest.push(h);
+	}
+	order.extend(shuffle(rest));
+	if (ready.len() == 0) ::logInfo("Skv.torment: NO host has a free Hunt/Wildcard slot -- trying all " + order.len() + " anyway.");
+
+	local join = function ( _arr )
+	{
+		local out = "";
+		foreach (i, n in _arr) out = out + (i == 0 ? "" : ", ") + n;
+		return out;
+	};
+
+	::Skv.Once.claim("Torment");
+	local tried = [];
+	foreach (s in order)
+	{
+		local f = ::World.FactionManager.getFaction(s.getFaction());
+		local c = ::new("scripts/contracts/contracts/skv_torment_contract");
+		c.setFaction(f.getID());
+		c.setHome(s);
+		c.setEmployerID(f.getRandomCharacter().getID());
+		::World.Contracts.addContract(c);
+
+		foreach (x in s.getContracts())
+		{
+			if (x.getType() == "contract.skv_torment")
+			{
+				::logInfo("Skv.torment: FORCED onto the board at " + s.getName() + " -- verified present"
+					+ (tried.len() == 0 ? "." : " (refused first at: " + join(tried) + ")."));
+				return c;
+			}
+		}
+		tried.push(s.getName());
+	}
+	::Skv.Once.release("Torment");
+	::logInfo("Skv.torment: ⚠ REFUSED at every host (" + join(tried)
+		+ ") - Legends drops a contract when its category AND Wildcard are full. Wait a few days, or free a slot.");
 	return null;
 };
 

@@ -1098,7 +1098,7 @@ this.skv_zoldos_contract <- this.inherit("scripts/contracts/contract", {
 				this.Text = "[img]gfx/ui/events/event_04.png[/img]" + c.paras([
 					"It takes a long time to stop moving, and longer for anybody to go near it.",
 					"Behind where it lay the chamber keeps going, and the floor of it is money. Not a pile - a floor, ankle-deep in places, of coin and plate and cut stone hauled up here over years from places that never found out where any of it went. Somebody turns up an amulet cut from a bone too big to name and puts it in his shirt without saying anything about it.",
-					"There is also, penned at the back behind a rockfall he built himself, a small and extremely frightened group of sheep.%SPEECH_ON%He was saving them.%SPEECH_OFF%%SPEECH_ON%He was saving them for later. That is what that is.%SPEECH_OFF%",
+					"There is also, penned at the back behind a rockfall he built himself, a small and extremely frightened group of sheep.%SPEECH_ON%He was saving them.%SPEECH_OFF%Somebody behind him puts it more plainly.%SPEECH_ON%He was saving them for later. That is what that is.%SPEECH_OFF%",
 					"The way out is the way in, and it is a long way, and there are people down at the bottom of it waiting to be told."
 				]);
 
@@ -1241,7 +1241,7 @@ this.skv_zoldos_contract <- this.inherit("scripts/contracts/contract", {
 				}
 				else
 				{
-					second = "The road behind the company stays empty. She looks at it for a while anyway, the way you check a sum you already know the answer to.%SPEECH_ON%None.%SPEECH_OFF%%SPEECH_ON%We could not reach them.%SPEECH_OFF%She nods once, and does not ask any of the questions she is entitled to ask.";
+					second = "The road behind the company stays empty. She looks at it for a while anyway, the way you check a sum you already know the answer to.%SPEECH_ON%None.%SPEECH_OFF%Somebody has to say it, so somebody does.%SPEECH_ON%We could not reach them.%SPEECH_OFF%She nods once, and does not ask any of the questions she is entitled to ask.";
 				}
 
 				local third;
@@ -1341,9 +1341,12 @@ this.skv_zoldos_contract <- this.inherit("scripts/contracts/contract", {
 		if (this.m.IsActive)
 		{
 			::Skv.Once.retire("Zoldos");
+
 			if (!::MSU.isNull(this.m.Destination))
 			{
 				this.m.Destination.getSprite("selection").Visible = false;
+				this.m.Destination.die();
+				this.m.Destination = null;
 			}
 		}
 	}
