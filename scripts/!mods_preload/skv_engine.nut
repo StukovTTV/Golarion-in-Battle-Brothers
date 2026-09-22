@@ -1088,8 +1088,35 @@ if (!("Skv" in ::getroottable()))
 		"contract.skv_azari", "contract.skv_ambush", "contract.skv_metringer", "contract.skv_black_forks",
 		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing",
 		"contract.skv_carthica", "contract.skv_hollows", "contract.skv_anvil", "contract.skv_threshold",
-		"contract.skv_zoldos", "contract.skv_fortress", "contract.skv_torment"
+		"contract.skv_zoldos", "contract.skv_fortress", "contract.skv_torment", "contract.skv_fane"
 	],
+
+	function forcePost( _contract )
+	{
+		try { _contract.m.Flags.set("StoredAsWildcard", true); }
+		catch (e) { ::logError("Skv.Debug.forcePost: could not set StoredAsWildcard (the slots may refuse it): " + e); }
+		::World.Contracts.addContract(_contract);
+	}
+
+	function tilesAway( _s )
+	{
+		try { return _s.getTile().getDistanceTo(::World.State.getPlayer().getTile()); }
+		catch (e) { return -1; }
+	}
+
+	function nearestFirst( _hosts )
+	{
+		local rows = [];
+		foreach (h in _hosts)
+		{
+			local d = this.tilesAway(h);
+			rows.push({ S = h, D = d < 0 ? 9999 : d });
+		}
+		rows.sort(@(x, y) x.D <=> y.D);
+		local out = [];
+		foreach (r in rows) out.push(r.S);
+		return out;
+	}
 
 	function isMine( _type )
 	{
@@ -1186,10 +1213,11 @@ if (!("Skv" in ::getroottable()))
 			if (fac.getType() != ::Const.FactionType.OrientalCityState) continue;
 
 			local why = null;
+			local slots = false;
 			try
 			{
 
-				if (!fac.isReadyForContract())            why = "not ready";
+				if (!fac.isReadyForContract())            { why = "not ready"; slots = true; }
 				else if (fac.hasContractExclusion("contract.skv_threshold")) why = "excluded";
 				else if (s.isIsolated())                  why = "isolated";
 				else if (s.getSize() < 2)                 why = "size < 2";
@@ -1199,7 +1227,7 @@ if (!("Skv" in ::getroottable()))
 			local d = -1;
 			try { if (pt != null) d = pt.getDistanceTo(s.getTile()); } catch (e) { d = -1; }
 
-			out.push({ S = s, D = d, Size = s.getSize(), Disc = s.isDiscovered(), Why = why });
+			out.push({ S = s, D = d, Size = s.getSize(), Disc = s.isDiscovered(), Why = why, Slots = slots });
 		}
 		return out;
 	},
@@ -1840,8 +1868,14 @@ if (!("Skv" in ::getroottable()))
 	}
 	if (open.len() == 0)
 	{
-		::logInfo("Skv.threshold: no city-state can take it. See the reasons above.");
-		return null;
+
+		foreach (e in sites) if (e.Slots) open.push(e);
+		if (open.len() == 0)
+		{
+			::logInfo("Skv.threshold: no city-state can take it, even past the cap. See the reasons above.");
+			return null;
+		}
+		::logInfo("Skv.threshold: every city-state is at its cap -- forcing past it (Skv.Debug.forcePost).");
 	}
 
 	local s = open[0].S;
@@ -1852,7 +1886,7 @@ if (!("Skv" in ::getroottable()))
 	c.setFaction(f.getID());
 	c.setHome(s);
 	c.setEmployerID(f.getRandomCharacter().getID());
-	::World.Contracts.addContract(c);
+	::Skv.Debug.forcePost(c);
 
 	local posted = ::Skv.Debug.thresholdLive();
 	if (posted == null)
@@ -2083,6 +2117,7 @@ if (!("Skv" in ::getroottable()))
 			catch (e) { ::logError("Skv.anvil: isMilitary threw at " + s.getName() + " - " + e); }
 
 			local why = null;
+			local slots = false;
 			if (s.isIsolated()) why = "isolated";
 			else if (mil && !::Skv.Anvil.noblesAware())
 				why = "military - waiting on the make_nobles_aware ambition";
@@ -2098,10 +2133,10 @@ if (!("Skv" in ::getroottable()))
 						: f.isReadyForContract();
 				}
 				catch (e) { ::logError("Skv.anvil: isReadyForContract threw at " + s.getName() + " - " + e); }
-				if (!ready) why = "no free Economy/Wildcard slot (or on contract cooldown)";
+				if (!ready) { why = "no free Economy/Wildcard slot (or on contract cooldown)"; slots = true; }
 			}
 
-			out.push({ S = s, D = d, Why = why, Mil = mil, Size = s.getSize() });
+			out.push({ S = s, D = d, Why = why, Mil = mil, Size = s.getSize(), Slots = slots });
 		}
 		out.sort(@(x, y) x.D <=> y.D);
 		return out;
@@ -2201,8 +2236,14 @@ if (!("Skv" in ::getroottable()))
 	}
 	if (open.len() == 0)
 	{
-		::logInfo("Skv.anvil: no town can take it. Clear a contract from a forge town's board and retry.");
-		return null;
+
+		foreach (e in sites) if (e.Slots) open.push(e);
+		if (open.len() == 0)
+		{
+			::logInfo("Skv.anvil: no town can take it, even past the slots. See the reasons above.");
+			return null;
+		}
+		::logInfo("Skv.anvil: every forge town's board is full -- forcing past the slots (Skv.Debug.forcePost).");
 	}
 
 	local s = open[0].S;
@@ -2213,13 +2254,13 @@ if (!("Skv" in ::getroottable()))
 	c.setFaction(f.getID());
 	c.setHome(s);
 	c.setEmployerID(f.getRandomCharacter().getID());
-	::World.Contracts.addContract(c);
+	::Skv.Debug.forcePost(c);
 
 	local posted = A.live();
 	if (posted == null)
 	{
 		::Skv.Once.release(A.Key);
-		::logError("Skv.anvil: addContract accepted nothing - Legends dropped it on the category slots.");
+		::logError("Skv.anvil: addContract accepted nothing even with StoredAsWildcard - read log.html for a Legends error.");
 		return null;
 	}
 
@@ -2430,10 +2471,10 @@ if (!("Skv" in ::getroottable()))
 	local pool = ready.len() > 0 ? ready : open;
 	if (ready.len() == 0)
 	{
-		::logInfo("Skv.fortress: NO host has a free Battle/Wildcard slot -- trying anyway, and it may be refused.");
+		::logInfo("Skv.fortress: NO host has a free Battle/Wildcard slot -- forcing past the slots (Skv.Debug.forcePost).");
 	}
 
-	local s = pool[::Math.rand(0, pool.len() - 1)];
+	local s = ::Skv.Debug.nearestFirst(pool)[0];
 	local f = ::World.FactionManager.getFaction(s.getFaction());
 
 	::Skv.Once.claim("Fortress");
@@ -2441,8 +2482,8 @@ if (!("Skv" in ::getroottable()))
 	c.setFaction(f.getID());
 	c.setHome(s);
 	c.setEmployerID(f.getRandomCharacter().getID());
-	::World.Contracts.addContract(c);
-	::logInfo("Skv.fortress: posted at " + s.getName() + ".");
+	::Skv.Debug.forcePost(c);
+	::logInfo("Skv.fortress: posted at " + s.getName() + ", " + ::Skv.Debug.tilesAway(s) + " tiles away.");
 	return c;
 };
 
@@ -2661,10 +2702,10 @@ if (!("Skv" in ::getroottable()))
 	local pool = ready.len() > 0 ? ready : open;
 	if (ready.len() == 0)
 	{
-		::logInfo("Skv.zoldos: NO host has a free Hunt/Wildcard slot -- trying anyway, and it may be refused.");
+		::logInfo("Skv.zoldos: NO host has a free Hunt/Wildcard slot -- forcing past the slots (Skv.Debug.forcePost).");
 	}
 
-	local s = pool[::Math.rand(0, pool.len() - 1)];
+	local s = ::Skv.Debug.nearestFirst(pool)[0];
 	local f = ::World.FactionManager.getFaction(s.getFaction());
 
 	::Skv.Once.claim("Zoldos");
@@ -2672,7 +2713,7 @@ if (!("Skv" in ::getroottable()))
 	c.setFaction(f.getID());
 	c.setHome(s);
 	c.setEmployerID(f.getRandomCharacter().getID());
-	::World.Contracts.addContract(c);
+	::Skv.Debug.forcePost(c);
 
 	local landed = false;
 	foreach (x in s.getContracts())
@@ -2682,7 +2723,8 @@ if (!("Skv" in ::getroottable()))
 
 	if (landed)
 	{
-		::logInfo("Skv.zoldos: FORCED onto the board at " + s.getName() + " -- verified present.");
+		::logInfo("Skv.zoldos: FORCED onto the board at " + s.getName()
+			+ ", " + ::Skv.Debug.tilesAway(s) + " tiles away -- verified present.");
 		return c;
 	}
 
@@ -2831,16 +2873,7 @@ if (!("Skv" in ::getroottable()))
 		if (r) ready.push(h);
 	}
 
-	local shuffle = function ( _arr )
-	{
-		for (local i = _arr.len() - 1; i > 0; i = i - 1)
-		{
-			local j = ::Math.rand(0, i);
-			local t = _arr[i]; _arr[i] = _arr[j]; _arr[j] = t;
-		}
-		return _arr;
-	};
-	local order = shuffle(ready);
+	local order = ::Skv.Debug.nearestFirst(ready);
 	local rest = [];
 	foreach (h in open)
 	{
@@ -2848,8 +2881,8 @@ if (!("Skv" in ::getroottable()))
 		foreach (r in ready) if (r == h) isReady = true;
 		if (!isReady) rest.push(h);
 	}
-	order.extend(shuffle(rest));
-	if (ready.len() == 0) ::logInfo("Skv.torment: NO host has a free Hunt/Wildcard slot -- trying all " + order.len() + " anyway.");
+	order.extend(::Skv.Debug.nearestFirst(rest));
+	if (ready.len() == 0) ::logInfo("Skv.torment: NO host has a free Hunt/Wildcard slot -- forcing past the slots (Skv.Debug.forcePost).");
 
 	local join = function ( _arr )
 	{
@@ -2867,13 +2900,14 @@ if (!("Skv" in ::getroottable()))
 		c.setFaction(f.getID());
 		c.setHome(s);
 		c.setEmployerID(f.getRandomCharacter().getID());
-		::World.Contracts.addContract(c);
+		::Skv.Debug.forcePost(c);
 
 		foreach (x in s.getContracts())
 		{
 			if (x.getType() == "contract.skv_torment")
 			{
-				::logInfo("Skv.torment: FORCED onto the board at " + s.getName() + " -- verified present"
+				::logInfo("Skv.torment: FORCED onto the board at " + s.getName()
+					+ ", " + ::Skv.Debug.tilesAway(s) + " tiles away -- verified present"
 					+ (tried.len() == 0 ? "." : " (refused first at: " + join(tried) + ")."));
 				return c;
 			}
@@ -2882,6 +2916,186 @@ if (!("Skv" in ::getroottable()))
 	}
 	::Skv.Once.release("Torment");
 	::logInfo("Skv.torment: ⚠ REFUSED at every host (" + join(tried)
+		+ ") - Legends drops a contract when its category AND Wildcard are full. Wait a few days, or free a slot.");
+	return null;
+};
+
+::skvfane <- function ( _force = false )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.fane: not in a campaign.");
+		return null;
+	}
+
+	if (_force)
+	{
+		::Skv.Once.release("Fane");
+		::World.Flags.remove("SkvOnce.Fane.retired");
+	}
+
+	local act = null;
+	try { act = ::new("scripts/factions/contracts/skv_fane_action"); }
+	catch (e) { ::logInfo("Skv.fane: could not build the action (" + e + ")"); act = null; }
+
+	local day = ::World.getTime().Days;
+	::logInfo("== Skv.Fane (contract #16) ==");
+	::logInfo("  once.active=" + ::World.Flags.has("SkvOnce.Fane.active")
+		+ " once.retired=" + ::World.Flags.has("SkvOnce.Fane.retired")
+		+ (::Skv.Once.isLocked("Fane") ? "  << BLOCKING" : ""));
+	::logInfo("  score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : ""));
+	local renown = ::World.Assets.getBusinessReputation();
+	::logInfo("  renown=" + renown + " / " + ::Const.Skv.Fane.RenownGate
+		+ (renown < ::Const.Skv.Fane.RenownGate ? "  << BLOCKING (a (true) force skips it)" : "") + "   day=" + day);
+
+	local hills = @(s) s.getSurroundingTilesOfType(::Const.Skv.Fane.forestTypes(), 3).len();
+	local open = [];
+	local live = null;
+	local total = 0;
+
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		foreach (c in s.getContracts())
+		{
+			if (c.getType() == "contract.skv_fane") live = { S = s, C = c };
+		}
+		total = total + 1;
+
+		local ok = false;
+		if (act != null)
+		{
+			try { ok = act.canHost(s); }
+			catch (e) { ::logInfo("  canHost threw on " + s.getName() + ": " + e); ok = false; }
+		}
+
+		local why = null;
+		if (!ok)
+		{
+			if (s.isIsolated()) why = "isolated";
+			else if (!::MSU.isKindOf(s, "legends_village")) why = "not a village";
+			else if (s.getSize() > 2) why = "size " + s.getSize() + " (want <=2)";
+			else if (hills(s) == 0) why = "no forest within 3";
+			else why = "canHost says no, and this dump cannot say why";
+		}
+		if (ok) open.push(s);
+		if (ok || why == "no forest within 3" || why.slice(0, 4) == "size")
+		{
+
+			::logInfo("    " + (ok ? "OK  " : "--  ") + s.getName() + "  size " + s.getSize()
+				+ "  forest " + hills(s) + "  " + ::Skv.Debug.tilesAway(s) + " tiles"
+				+ (why == null ? "" : "   [" + why + "]"));
+		}
+	}
+	::logInfo("  " + open.len() + " of " + total + " settlements can host now."
+		+ (act == null ? "   [⚠ the action would not build -- no verdict]" : ""));
+
+	if (live == null)
+	{
+
+		local a = ::World.Contracts.getActiveContract();
+		if (a != null && a.getType() == "contract.skv_fane") live = { S = a.getHome(), C = a };
+	}
+	if (live != null)
+	{
+		local m = live.C.m;
+		local F = ::Const.Skv.Fane;
+		local acts = ["0 travelling", "1 at the fane", "2 fight 1 won", "3 sanctum shown", "4 fight 2 won", "5 concluded"];
+		local reveals = ["0 none", "1 unmasked (Line)", "2 burned by the arrow (Line)", "3 sprung (Circle)"];
+		local sprungs = ["0", "1 the clock ran out", "2 the accusation failed", "3 split up"];
+		local outs = ["0 none", "1 done", "2 FAILED at the courtyard", "3 FAILED in the sanctum"];
+		local pick = function ( _arr, _i ) { return (_i >= 0 && _i < _arr.len()) ? _arr[_i] : (_i + " (UNKNOWN)"); };
+		local bits = function ( _v, _names )
+		{
+			local out = "";
+			foreach (pair in _names) if ((_v & pair[0]) != 0) out = out + (out == "" ? "" : ", ") + pair[1];
+			return out == "" ? "no bits" : out;
+		};
+		::logInfo("  LIVE at " + (live.S == null ? "?" : live.S.getName()) + " -- \"" + live.C.getName()
+			+ "\"  active=" + m.IsActive);
+		::logInfo("    Act=" + pick(acts, m.Act) + "  Reveal=" + pick(reveals, m.Reveal)
+			+ "  SprungBy=" + pick(sprungs, m.SprungBy) + "  Outcome=" + pick(outs, m.Outcome));
+		::logInfo("    Beats=" + m.Beats + " / " + F.ClockLimit + "  Concluded=" + m.Concluded + "  Speaker=\"" + m.Speaker + "\"");
+		::logInfo("    Clues=" + m.Clues + "  [" + bits(m.Clues, [[F.ClueTracks, "1 tracks"], [F.ClueFangs, "2 fangs"],
+			[F.ClueBlood, "4 blood"], [F.ClueTalk, "8 talk"]]) + "]");
+		::logInfo("    Marks=" + m.Marks + "  [" + bits(m.Marks, [[F.MarkPools, "1 pools"], [F.MarkSymbols, "2 symbols"],
+			[F.MarkForced, "4 door forced"], [F.MarkRitualTried, "8 ritual tried"], [F.MarkRitualHeld, "16 ritual held"],
+			[F.MarkVerdict, "32 believed"], [F.MarkTracksTried, "64 tracks tried"], [F.MarkStatuesTried, "128 statues tried"],
+			[F.MarkMossTried, "256 moss tried"], [F.MarkTalkTried, "512 talk tried"], [F.MarkVerdictDone, "1024 verdict rolled"]]) + "]");
+		try
+		{
+			::logInfo("    hub -> " + live.C.hubScreen() + "   pay=" + live.C.finalPay()
+				+ "   merc budget=" + live.C.mercBudget() + "   wolf budget=" + live.C.wolfBudget()
+				+ "   diff=" + live.C.getDifficultyMult() + "   verdict chance=" + live.C.verdictChance());
+		}
+		catch (e) { ::logInfo("    (hub/budget read threw: " + e + ")"); }
+	}
+
+	if (!_force) return live == null ? null : live.C;
+
+	if (live != null)
+	{
+		::logInfo("Skv.fane: already posted - not posting a second.");
+		return live.C;
+	}
+	if (open.len() == 0)
+	{
+		::logInfo("Skv.fane: no settlement can host it. See the reasons above.");
+		return null;
+	}
+
+	local ready = [];
+	foreach (h in open)
+	{
+		local hf = ::World.FactionManager.getFaction(h.getFaction());
+		local r = false;
+		try { r = hf.isReadyForContract(::Const.Contracts.ContractCategoryMap.skv_fane_contract); }
+		catch (e) { r = true; }
+		if (r) ready.push(h);
+	}
+
+	local order = ::Skv.Debug.nearestFirst(ready);
+	local rest = [];
+	foreach (h in open)
+	{
+		local isReady = false;
+		foreach (r in ready) if (r == h) isReady = true;
+		if (!isReady) rest.push(h);
+	}
+	order.extend(::Skv.Debug.nearestFirst(rest));
+	if (ready.len() == 0) ::logInfo("Skv.fane: NO host has a free Battle/Wildcard slot -- forcing past the slots (Skv.Debug.forcePost).");
+
+	local join = function ( _arr )
+	{
+		local out = "";
+		foreach (i, n in _arr) out = out + (i == 0 ? "" : ", ") + n;
+		return out;
+	};
+
+	::Skv.Once.claim("Fane");
+	local tried = [];
+	foreach (s in order)
+	{
+		local f = ::World.FactionManager.getFaction(s.getFaction());
+		local c = ::new("scripts/contracts/contracts/skv_fane_contract");
+		c.setFaction(f.getID());
+		c.setHome(s);
+		c.setEmployerID(f.getRandomCharacter().getID());
+		::Skv.Debug.forcePost(c);
+
+		foreach (x in s.getContracts())
+		{
+			if (x.getType() == "contract.skv_fane")
+			{
+				::logInfo("Skv.fane: FORCED onto the board at " + s.getName()
+					+ ", " + ::Skv.Debug.tilesAway(s) + " tiles away -- verified present"
+					+ (tried.len() == 0 ? "." : " (refused first at: " + join(tried) + ")."));
+				return c;
+			}
+		}
+		tried.push(s.getName());
+	}
+	::Skv.Once.release("Fane");
+	::logInfo("Skv.fane: ⚠ REFUSED at every host (" + join(tried)
 		+ ") - Legends drops a contract when its category AND Wildcard are full. Wait a few days, or free a slot.");
 	return null;
 };

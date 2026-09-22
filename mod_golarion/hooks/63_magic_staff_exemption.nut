@@ -21,6 +21,8 @@
 
 		try
 		{
+
+			if (this.getFlags().has("SkvInnateCaster")) return true;
 			local skills = this.getSkills();
 			if (skills == null) return false;
 

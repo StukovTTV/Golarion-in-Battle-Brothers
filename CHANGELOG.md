@@ -10,6 +10,52 @@ All notable changes to **Golarion Localization** are recorded here. The format l
   are in place, but the categories themselves, and the contract-display cap that keeps the noticeboard
   within its slot limit, are not yet wired up.
 
+## [1.1] - playtest
+
+Adds the sixteenth contract: a delivery to a forest temple where the people waiting for you are
+not who they say they are.
+
+### Contracts
+- **Fane of Fangs** (contract #16, once per campaign), adapted from the Pathfinder Society Quest
+  *Fane of Fangs* by Nathan King. Offered by small villages near forest to a company with some
+  name behind it (500 renown); one to three skulls.
+
+  **A village priest of Erastil hands you an arrow as long as a man.** Centuries ago it was loosed
+  through the roof of a daemon's temple, and every dark of the moon two priests set it back in the
+  wound it made. Carry it to them before the moon goes dark.
+
+  **The priests are waiting in the courtyard, and something is wrong.** Read the ground on the way
+  in, look over the statues and the moss, ask them what happened: every clue you find makes the
+  lie easier to see, but they will not wait forever. Call them out on the evidence, hand them the
+  arrow and see what it does to them, or give them the time they want and find out why they
+  wanted it.
+
+  **Under the floor, something is waking.** The dead priests hold the key to the inner doors. Behind
+  them a guardian daemon of Abaddon and the forest's own maddened wolves. Someone can run for the
+  daemon's statue and drive the arrow home.
+
+  **Come back and tell the village what happened.** If they believe you, you put down a daemon;
+  if they do not, officially the company killed two priests. The evidence you brought back helps.
+  The arrow is yours to keep. Lose either fight and the contract is lost with it.
+
+### Balance
+- The courtyard is smaller and the sanctum is bigger. The false priests' band was the heavier of the
+  two fights on paper and the lighter one in practice; it now sits where a story beat belongs, and the
+  wolves at the daemon's feet grow with the company instead of arriving two at a time forever.
+
+### Fixed
+- The ceustodaemon comes for you. It inherited the ghoul pack's patience — hang back for three
+  rounds while the other ghouls close — and since it is one ghoul beside two wolves, that fired every
+  time: it stood by its statue and gave away half the fight. It now waits one round, then comes.
+- Nothing is cut off the ceustodaemon any more. It inherited the nachzehrer's drops and was leaving
+  teeth, horns and growth pearls behind; a bound guardian of Abaddon owns nothing and leaves nothing.
+  The wolves still drop what wolves drop.
+
+### Dev tools
+- The force switches (`::skvfane(true)`, `::skvtorment(true)`, `::skvzoldos(true)`, `::skvfortress(true)`)
+  now post the job at the **nearest** eligible town instead of a random one, and say how many tiles
+  away it is. `::skvfane()` also prints the distance to every town it lists.
+
 ## [1.0] - playtest
 
 Adds the fifteenth contract: a short one, and the first whose second fight you can talk your way
