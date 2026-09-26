@@ -14,12 +14,12 @@ fortnight. Also adds the boggards, a new enemy for the swamps.
 ### Contracts
 - **The Last Croak** (contract #17, once per campaign), adapted from Paizo's *The Last Croak*
   by Thurston Hillman. Offered by small villages near swamp to a company with some name behind
-  it (300 renown) — and only by a village that is **already losing people to the marsh**, so
+  it (300 renown), and only by a village that is **already losing people to the marsh**, so
   the job explains trouble the world had put there before you arrived. One to two skulls.
 
   **Four men watch the water, three at a time, a week on and a week off.** Nobody has come off
   that post in a fortnight. The village herbalist has stitched every one of them at her own
-  table, and she is not asking you to bring them back — she is asking you to go out there, find
+  table, and she is not asking you to bring them back; she is asking you to go out there, find
   out what happened, and come back and tell her.
 
   **How you get there is what the money is for.** Out in the lane afterwards the company works
@@ -32,7 +32,7 @@ fortnight. Also adds the boggards, a new enemy for the swamps.
 
   **Six huts on stilts, joined by plank bridges.** Afterwards you look into them one at a time:
   what is left of the post, the sentries' gear, and a survivor nobody expected. He can lead you
-  to the others, who are in the water — and every one you wade out and bring back is paid for
+  to the others, who are in the water, and every one you wade out and bring back is paid for
   and buried.
 
   **Driven off the stilts is not a failure.** You still know what happened out there, and that
@@ -48,7 +48,7 @@ fortnight. Also adds the boggards, a new enemy for the swamps.
   three tiles away and drags whoever it catches bodily out of your line.
 
 ### Art
-- **Skull's Crossing** now shows hand-drawn battlemap art on both of its screens — the wall of carved
+- **Skull's Crossing** now shows hand-drawn battlemap art on both of its screens: the wall of carved
   skulls as you come up on the dam, and the flooded basin once the jaws grind shut. The two images it
   used before were machine-generated and have been replaced. The maps are by **Racooze**, used with his
   permission and credited to him and to Paizo; see the credits in the README.
@@ -62,7 +62,7 @@ fortnight. Also adds the boggards, a new enemy for the swamps.
 - The four unused placeholder noticeboard icons (`contract_type_pathfinder`, `_church`, `_szarni`,
   `_druid`, each with its greyscale twin) have been deleted. They had sat in the repo since v0.92.25
   waiting on org-flavored contract categories, and that feature is no longer planned. The Legendary
-  icon stays — it is the one of the set actually in use.
+  icon stays: it is the one of the set actually in use.
 
 ## [1.1] - playtest
 
@@ -98,8 +98,8 @@ not who they say they are.
   wolves at the daemon's feet grow with the company instead of arriving two at a time forever.
 
 ### Fixed
-- The ceustodaemon comes for you. It inherited the ghoul pack's patience — hang back for three
-  rounds while the other ghouls close — and since it is one ghoul beside two wolves, that fired every
+- The ceustodaemon comes for you. It inherited the ghoul pack's patience (hang back for three
+  rounds while the other ghouls close), and since it is one ghoul beside two wolves, that fired every
   time: it stood by its statue and gave away half the fight. It now waits one round, then comes.
 - Nothing is cut off the ceustodaemon any more. It inherited the nachzehrer's drops and was leaving
   teeth, horns and growth pearls behind; a bound guardian of Abaddon owns nothing and leaves nothing.
