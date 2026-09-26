@@ -627,7 +627,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 
 		if (_id == "Yard")
 		{
-			if (first) return "[img]gfx/ui/events/event_111.png[/img]{Tall grass and chunks of fallen stone have all but taken the little yard. A wooden stable has gone down on one side into a mound of rotted timber and black straw, and the outer wall to the east has come down with it, leaving a ragged hole a man could walk through.\n\nThree ways out, and the grass is trodden towards none of them in particular: a pair of double doors east, a single door north, and a low door into the squat tower in the corner. Somewhere out of sight a bird is making a noise like a cough.}";
+			if (first) return "[img]gfx/ui/events/event_111.png[/img]{The yard is knee-deep in grass and fallen stone. What was a stable is now a heap of black straw and rotten beams, and the east wall went down with it; the gap is wide enough to drive a cart through.\n\nThree doors: a double one east, a single one north, a low one into the corner tower. The grass is trodden towards none of them in particular. Somewhere out of sight a bird is making a noise like a cough.}";
 			return "[img]gfx/ui/events/event_111.png[/img]{The yard again, and the grass moving where nothing is walking in it.}";
 		}
 
@@ -640,50 +640,50 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 
 		if (_id == "EntryHall")
 		{
-			if (first) return "[img]gfx/ui/events/event_89.png[/img]{Beyond the double doors is a small dark hall, and a year of dead leaves has blown into it and lain down. Debris in mounds along the walls. Through the middle of it, quite clearly, a narrow path is worn - something goes in and out of this building often enough to keep a track open.\n\nThe hall runs east and ends at a single door that has swollen into its frame and will not be opened politely.}";
+			if (first) return "[img]gfx/ui/events/event_89.png[/img]{Dead leaves have blown in through the double doors and banked against the walls of a small, lightless hall, a year's drift of them with rubbish heaped in among it. Down the middle a path has been scuffed clean, narrow and fresh: something uses this way in and out, and often.\n\nAt the east end a single door has swollen fast in its frame. It will take a shoulder.}";
 			return "[img]gfx/ui/events/event_89.png[/img]{The entry hall, its leaves scuffed into ridges now where the company has crossed it.}";
 		}
 
 		if (_id == "Waiting")
 		{
-			if (first) return "[img]gfx/ui/events/event_87.png[/img]{The door gives with a crack and shatters an ancient chair somebody had propped against it from the inside. The room beyond is dry and dark and smells of dust and old decay.\n\nIn the middle of the floor a dwarf is lying, mummified, in the leather of a working blacksmith. There are the shards of a glass vial in one hand and a scrap of parchment in the other, and he has been there a very long time.}";
+			if (first) return "[img]gfx/ui/events/event_87.png[/img]{Third shove, and the door bursts inward; the old chair somebody wedged behind it goes to kindling across the floor. Dry air, dust, and under it the sweetish smell of something long dead.\n\nIt is a dwarf. He lies in the middle of the room in a smith's leather apron, dried down to leather himself, one fist shut on broken glass and the other on a curl of parchment. Nobody has disturbed him since he lay down.}";
 			return "[img]gfx/ui/events/event_87.png[/img]{The waiting room, and the dwarf on the floor where he lay down.}";
 		}
 
 		if (_id == "Cloak")
 		{
-			if (first) return "[img]gfx/ui/events/event_74.png[/img]{A small room for the cloaks and hats of visitors. A row of pegs, a few moth-eaten rags still hanging off them, and one soiled hat on a table. Nothing has visited in a long time.}";
+			if (first) return "[img]gfx/ui/events/event_74.png[/img]{Pegs along one wall for guests' coats. The moths have had everything but a few grey strings, and somebody's hat has been left on the table long enough to go green. No guest has come here in a long while.}";
 			return "[img]gfx/ui/events/event_74.png[/img]{The cloak room, its pegs bare.}";
 		}
 
 		if (_id == "Guest")
 		{
-			if (first) return "[img]gfx/ui/events/event_63.png[/img]{A sitting room, and the only room in this building that anybody has kept: a table and two chairs, both sound. On the table is a half-eaten crow, a crude knife, and a cracked mug.\n\nThere is a door in the far wall, shut.}";
+			if (first) return "[img]gfx/ui/events/event_63.png[/img]{Somebody lives in this one. The chairs are whole, the table has been wiped after a fashion, and on it is supper: a crow, half gone, beside the knife that did it and a mug with a crack down the side.\n\nThere is a door in the far wall, shut.}";
 			return "[img]gfx/ui/events/event_63.png[/img]{The sitting room, and the crow going cold on the table.}";
 		}
 
 		if (_id == "Gurtlekep")
 		{
-			if (!this.m.GurtDead) return "[img]gfx/ui/events/event_81.png[/img]{Two beds in a cramped stone cell, one under a drift of bird bones, the other slept in. A sack. An array of old tools laid out in a row with a care nothing else here has been given.\n\nThe thing that comes off the second bed is small, scaled and dog-faced, and it has a shortsword in its hand and its back to a hole in the wall.}";
+			if (!this.m.GurtDead) return "[img]gfx/ui/events/event_81.png[/img]{A cell barely wider than its two cots. One is heaped with small bird bones; the other has a warm hollow in the blanket. By the wall, a sack, and a row of old tools set out with more care than anything else in this building has been given.\n\nThe thing that comes off the second bed is small, scaled and dog-faced, and it has a shortsword in its hand and its back to a hole in the wall.}";
 			if (first) return "[img]gfx/ui/events/event_81.png[/img]{The kobold's cell. Two beds, a sack, and his tools laid out in their row.}";
 			return "[img]gfx/ui/events/event_81.png[/img]{The kobold's cell, and the hole in the wall he did not reach.}";
 		}
 
 		if (_id == "Library")
 		{
-			if (first) return "[img]gfx/ui/events/event_15.png[/img]{The double doors into this room are shattered, one of them flat on the floor. What was a library is a wreck: a corner of it has come down entirely and the hole is full of standing black water. Shelves still line the walls, and the books still on them are furred over with a pale grey fungus that has grown out into the room and stopped, as if waiting.}";
+			if (first) return "[img]gfx/ui/events/event_15.png[/img]{The first thing is the smell: wet paper and mould. Every book left on these shelves has grown a pale grey fur, and it has crept off the shelves into the room and stopped there, as if waiting. One corner of the ceiling has come down, and the hole beneath it is full of black water. Both doors lie where somebody broke them in, one of them flat on the flags.}";
 			return "[img]gfx/ui/events/event_15.png[/img]{The library, and the water in the corner giving nothing back.}";
 		}
 
 		if (_id == "Shrine")
 		{
-			if (first) return "[img]gfx/ui/events/event_178.png[/img]{Half the roof is down here, and the moon comes through it onto darkwood pews lying tipped over on both sides under a finger of dust. Two of the columns have gone with the roof, and a carved figure that stood between them is in pieces across the flags.\n\nAt the far end, where a shrine ought to have an altar, sits a great ceremonial anvil - and its face has been beaten and scored until whatever was written on it cannot be read.}";
+			if (first) return "[img]gfx/ui/events/event_178.png[/img]{Half the roof is down, and moonlight falls through the gap onto rows of darkwood benches knocked over into the aisles and furred with dust. Two of the columns have gone with the roof, and a carved figure that stood between them is in pieces across the flags.\n\nAt the far end, where a shrine ought to have an altar, sits a great ceremonial anvil - and its face has been beaten and scored until whatever was written on it cannot be read.}";
 			return "[img]gfx/ui/events/event_178.png[/img]{The shrine, and the ruined anvil at the end of it.}";
 		}
 
 		if (_id == "Hallway")
 		{
-			if (first) return "[img]gfx/ui/events/event_89.png[/img]{The north door comes open onto a corridor that runs the length of the building, and the cold in it is a different cold - moving, and coming from somewhere ahead.\n\nAt the end of it a dwarven statue has been smashed. A monk, by what is left of him: his stone hammer is lying on the flags beside the shattered pieces of his own head, and the pieces have been kicked apart since they fell.\n\nThe floor of this corridor is not dusty. It is worn, in a track down the middle, by something that goes up and down it every day.}";
+			if (first) return "[img]gfx/ui/events/event_89.png[/img]{The north door comes open onto a corridor that runs the length of the building, and the cold in it is a different cold - moving, and coming from somewhere ahead.\n\nAt the far end a stone monk has been knocked to pieces. His hammer lies on the flags among the bits of his head, and the bits have been kicked about since they fell.\n\nThe floor of this corridor is not dusty. It is worn, in a track down the middle, by something that goes up and down it every day.}";
 			return "[img]gfx/ui/events/event_89.png[/img]{The long corridor, and the broken monk at the end of it.}";
 		}
 
@@ -701,7 +701,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 
 		if (_id == "Prison")
 		{
-			if (first) return "[img]gfx/ui/events/event_53.png[/img]{Behind the wall is a short corridor with a wall of bars down one side of it, and four rusted doors standing in the bars, and four cells behind the doors.\n\nThere are dwarves in all four. They have been there a very long time. The locks rusted through long ago - these doors were not what kept them in.}";
+			if (first) return "[img]gfx/ui/events/event_53.png[/img]{The wall swings inward on a hidden hinge. Behind it, bars: one whole side of a narrow passage caged off into four cells, each with its own rust-eaten door.\n\nEvery cell has a dwarf in it, and none of them has moved in a lifetime. The locks rotted through long ago. It was never the locks that kept them here.}";
 			return "[img]gfx/ui/events/event_53.png[/img]{The cells, and the four who were left in them.}";
 		}
 
@@ -715,7 +715,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		if (_id == "Graypelt")
 		{
 			if (this.m.GraypeltDead) return "[img]gfx/ui/events/event_118.png[/img]{His chamber, and the light coming down through the holes in the roof onto what is left of him.}";
-			if (first) return "[img]gfx/ui/events/event_118.png[/img]{Holes in the roof let grey light down into a wide ruined chamber. One of the stone columns has come down and lies broken across the floor.\n\nIn the far corner, out of the light, there is a patch of black mushrooms growing in the damp - and the company can count them from the doorway, because there are not many. Six.\n\nThe seventh thing in the room is on top of the fallen column, and it has been watching the doorway since before anybody came through it. It is a wolf the size of a pony, grey through to white at the muzzle, and when it has let the silence run exactly as long as it wants to, it speaks.}";
+			if (first) return "[img]gfx/ui/events/event_118.png[/img]{Grey daylight comes down in shafts through a broken roof. A column has fallen across the middle of the room in three pieces, and the air smells of wet dog and turned earth.\n\nIn the far corner, out of the light, there is a patch of black mushrooms growing in the damp - and the company can count them from the doorway, because there are not many. Six.\n\nThe seventh thing in the room is on top of the fallen column, and it has been watching the doorway since before anybody came through it. It is a wolf the size of a pony, grey through to white at the muzzle, and when it has let the silence run exactly as long as it wants to, it speaks.}";
 			return "[img]gfx/ui/events/event_118.png[/img]{The far chamber, the fallen column, and the grey thing on top of it.}";
 		}
 
@@ -820,7 +820,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 			extra = "\n\n%actor% turns the hammer over twice and does not much like it. %SPEECH_ON%This is a smith's god, and it is not the smith's god you are thinking of. The good one takes an anvil and a hammer laid crossed. This one is a hammer alone, with a whip beside it. Toil, and nothing at the end of the toil. Whoever kept this house changed gods at some point, and they did not change to a better one.%SPEECH_OFF%";
 		}
 
-		return this.result(rows, "[img]gfx/ui/events/event_87.png[/img]{The parchment in his hand is dwarven, and short, and the ink has held: FORGIVE ME, DARK FATHER OF THE FORGE. MY TOILS SHALL NEVER BE ENOUGH.\n\nHe drank whatever was in the vial and lay down in the guest room to do it, which says something about how he felt regarding the rest of the house. Tucked into his belt is a light hammer of worked silver with a god's mark cut into the head, worth taking on the weight of the metal alone." + extra + "}", "Ruin", "The Waiting Room");
+		return this.result(rows, "[img]gfx/ui/events/event_87.png[/img]{The parchment in his hand is dwarven, and short, and the ink has held: DARK SMITH, I HAVE NOTHING LEFT TO GIVE THE ANVIL. PARDON THE WORK I LEAVE UNDONE.\n\nHe drank whatever was in the vial and lay down in the guest room to do it, which says something about how he felt regarding the rest of the house. Tucked into his belt is a light hammer of worked silver with a god's mark cut into the head, worth taking on the weight of the metal alone." + extra + "}", "Ruin", "The Waiting Room");
 	}
 
 	function cloakSearch()
@@ -1172,7 +1172,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		local xp = ::Skv.XP.check(r);
 		foreach (row in xp) rows.push(row);
 
-		return this.result(rows, "[img]gfx/ui/events/event_25.png[/img]{%actor% takes the middle drawer all the way out and turns it over, which is how you find the ones with false backs.\n\nCoin - good coin, the heavy old kind. A hand-axe wrapped in oiled leather, which comes out of the wrapping cold and stays cold, and which puts a nick in the stone desk-top when somebody sets it down too hard. And a prayer book, dwarven, describing the worship of the Dark Smith in a careful hand. Inside the cover somebody has written a single line, and it is not scripture: TORAG IS NO LONGER WORTHY OF OUR DEVOTION. ONLY DROSKAR CAN DELIVER US FROM THE FAILINGS OF KING GARBOLD.\n\nSo that is what happened here. Not a conquest. A vote.}", "Ruin", "The Wolf Den");
+		return this.result(rows, "[img]gfx/ui/events/event_25.png[/img]{%actor% takes the middle drawer all the way out and turns it over, which is how you find the ones with false backs.\n\nCoin - good coin, the heavy old kind. A hand-axe wrapped in oiled leather, which comes out of the wrapping cold and stays cold, and which puts a nick in the stone desk-top when somebody sets it down too hard. And a prayer book, dwarven, describing the worship of the Dark Smith in a careful hand. Inside the cover somebody has written a single line, and it is not scripture: TORAG STOOD BY GARBOLD, AND GARBOLD FAILED US. LET DROSKAR HAVE OUR HANDS INSTEAD.\n\nSo that is what happened here. Not a conquest. A vote.}", "Ruin", "The Wolf Den");
 	}
 
 	function errandsLeft()
@@ -1974,7 +1974,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "Task",
 			Title = "Hollow's Last Hope",
-			Text = "[img]gfx/ui/events/event_124.png[/img]{The line outside the herbalist's door runs the length of the street - pale children, men holding rags to their mouths, a woman who has stopped crying. Inside, %SKVNAME%Laurel%SKVNAME_OFF% does not look up from her pot. %SPEECH_ON%Blackscour. It is in the water and it is in them now, growing, and they cough until their insides come apart. I have tried everything I know.%SPEECH_OFF% She wipes her hands and pulls down a book so old its spine is cloth. %SPEECH_ON%There is one more thing in here, in a hand that is not my grandmother's. She had it off the witch of the vale. I have never dared it, because I have none of what it wants. Elderwood moss - grows only on the oldest tree in a forest, and damned if I know where that is. A pickled rat's tail, which sounds like hoojoo to me, but Ulizmila may still have one in that hut of hers. And seven ironbloom mushrooms, which want dark places thick with metal - and the only such place hereabouts is the dwarves' old ruin under the crag. If they are anywhere, they are there.%SPEECH_OFF% She finally looks at you, and she does not dress it up. %SPEECH_ON%There is a box under that counter with everything I have in it and everything the street could put in it, and that is the whole of what I can offer you - and I cannot even give it you now, because until the pot is standing I am still buying what I can still buy. Bring me the three and you will have all of it. I know what that is worth against a week in the vale.%SPEECH_OFF% She goes back to her stirring. %SPEECH_ON%I also know how many I buried this week.%SPEECH_OFF%}",
+			Text = "[img]gfx/ui/events/event_124.png[/img]{The line outside the herbalist's door runs the length of the street - pale children, men holding rags to their mouths, a woman who has stopped crying. Inside, %SKVNAME%Laurel%SKVNAME_OFF% does not look up from her pot. %SPEECH_ON%Blackscour. It is in the water and it is in them now, growing, and they cough until their insides come apart. I have tried everything I know.%SPEECH_OFF% She wipes her hands and pulls down a book so old its spine is cloth. %SPEECH_ON%There is one more recipe in here, and it is not in my grandmother's hand. She bought it off the witch of the vale, and paid for it with her eyes. I have never brewed it, because three things in it I do not have. Moss off the eldest tree in these woods, wherever that stands. A rat's tail, pickled her particular way, which I would call nonsense if I were less desperate, but Ulizmila may still have one in that hut. And seven ironbloom mushrooms. They grow where it is dark and the ground is full of iron, and the only place like that round here is the dwarves' old ruin under the crag.%SPEECH_OFF% She finally looks at you, and she does not dress it up. %SPEECH_ON%There is a box under that counter with everything I have in it and everything the street could put in it, and that is the whole of what I can offer you - and I cannot even give it you now, because until the pot is standing I am still buying what I can still buy. Bring me the three and you will have all of it. I know what that is worth against a week in the vale.%SPEECH_OFF% She goes back to her stirring. %SPEECH_ON%I also know how many I buried this week.%SPEECH_OFF%}",
 			Image = "",
 			List = [],
 			ShowEmployer = false,
@@ -2029,7 +2029,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "Hub",
 			Title = "Consortium Lumber Camp",
-			Text = "[img]gfx/ui/events/event_39.png[/img]{The camp cuts an ugly scar of stumps into a stand of proud darkwood - bunkhouse, meal hall, office, barn, smithy, and sawdust over all of it. %SKVNAME%Milon Rhoddam%SKVNAME_OFF% draws in the dirt with a stick: the lake here, the old tree somewhere north of it, the witch's hollow west of that. He stops at the edge of his own drawing. %SPEECH_ON%The dwarf-place is past the Crags, and I have never been past the Crags. Nobody from this camp has. It is that way, and that is all I can give you.%SPEECH_OFF%}",
+			Text = "[img]gfx/ui/events/event_39.png[/img]{The loggers have chewed a raw, bald patch out of the darkwood: stumps in rows, five log buildings, carts and sledges, and sawdust over everything like a snowfall. %SKVNAME%Milon Rhoddam%SKVNAME_OFF% draws in the dirt with a stick: the lake here, the old tree somewhere north of it, the witch's hollow west of that. He stops at the edge of his own drawing. %SPEECH_ON%The dwarf-place is past the Crags, and I have never been past the Crags. Nobody from this camp has. It is that way, and that is all I can give you.%SPEECH_OFF%}",
 			Image = "",
 			List = [],
 			Options = [],
@@ -2079,7 +2079,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "BaitSite",
 			Title = "Bait",
-			Text = "[img]gfx/ui/events/event_10.png[/img]{The way runs down to open water, and something is screaming on the shore. A fox - large-eared, its paws the colour of flame - with its hindquarters caught in the jaws of a crude iron trap, ten feet from the water and twenty from the trees. It has been screaming a long time. Nothing about it is an accident: the trap is set in the open, on a shore where things come to drink, and whoever laid it wanted the noise.}",
+			Text = "[img]gfx/ui/events/event_10.png[/img]{The way runs down to open water, and something is screaming on the shore. A fox, all ears, with paws the colour of embers, pinned by the back legs in a rough iron gin a few strides from the water. It has been screaming a long time. Nothing about it is an accident: the trap is set in the open, on a shore where things come to drink, and whoever laid it wanted the noise.}",
 			Image = "",
 			List = [],
 			Options = [],
@@ -2109,7 +2109,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "ElderSite",
 			Title = "The Forest Elder",
-			Text = "[img]gfx/ui/events/event_128.png[/img]{The dense trees and thick brush give way, parting seemingly in respect for the titanic darkwood that dominates this clearing. Several times taller than a temple minaret, in one direction it reaches into the sky with branches like a giant's arms, while in the other it plumbs the earth with roots thicker than a man's waist. Its bark is so richly coloured as to be almost black, its leaves the size of bucklers. The thing is less a tree than a cathedral of boughs and branches.}",
+			Text = "[img]gfx/ui/events/event_128.png[/img]{The brush stops short, as if it had been told to. Beyond it the forest opens around one tree, and the tree is the whole clearing: a darkwood so old its bark has gone nearly black, taller than any tower in any town you have seen, its roots heaving the ground up in ridges a man could lie behind. A single leaf of it would cover your face. It was old before Falcon's Hollow was a notion.}",
 			Image = "",
 			List = [],
 			Options = [],
@@ -2121,7 +2121,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 				{
 					s.Step = 1;
 					this.List = [];
-					this.Text = "[img]gfx/ui/events/event_128.png[/img]{The dense trees and thick brush give way, parting seemingly in respect for the titanic darkwood that dominates this clearing - branches like a giant's arms above, roots thicker than a man's waist below, leaves the size of bucklers. Less a tree than a cathedral of boughs.\n\nThen a whole section of that green ceiling moves.\n\nIt comes down the trunk head-first and far too fast for its size: a long clawed thing with a dragon's head and a sick green mist curling from its open mouth. Something dry and pale is caught in its teeth from the last time it did this.}";
+					this.Text = "[img]gfx/ui/events/event_128.png[/img]{The great darkwood again, black-barked, its roots shouldering up the earth all round the clearing.\n\nThen a whole section of that green ceiling moves.\n\nIt comes down the trunk head-first and far too fast for its size: a long clawed thing with a dragon's head and a sick green mist curling from its open mouth. Something dry and pale is caught in its teeth from the last time it did this.}";
 					this.Options = [
 						{
 							Text = "{Blades. Now.}",
@@ -2214,7 +2214,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "HutSite",
 			Title = "The Hag-Haunted Hollow",
-			Text = "[img]gfx/ui/events/event_115.png[/img]{The sounds of the forest become suddenly distant as the trees part, opening into a small, almost perfectly circular glade. The nearest stands of pine and darkwood twist away from the clearing, as if bent by some impossibly strong wind, or trying to flee despite their paralysed roots. At its centre squats an ugly cottage - twigs, shoots and ivy stacked on mud walls, with bundles of gnarled root, dried carcasses and knucklebone bangles clattering from the thatch. A dozen small thatched fetishes, each shaped like a tiny man or a rearing serpent, stand propped in the yard before a rickety plank door.}",
+			Text = "[img]gfx/ui/events/event_115.png[/img]{The birdsong stops at the edge of the glade as if a door had shut. The clearing is round as a coin, and every tree on its rim leans away from the middle, trunks bowed outward like men turning their faces from a smell. In the centre crouches a hut of mud and wattle under a roof of old ivy, hung all over with dried roots, dead things on strings and little bones that knock together when there is no wind. Stuck in the ground before its warped plank door stand a dozen small straw dolls, some shaped like men, some like snakes reared to strike.}",
 			Image = "",
 			List = [],
 			Options = [],
@@ -2267,7 +2267,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 								});
 							}
 
-							return this.Contract.result(rows, "[img]gfx/ui/events/event_115.png[/img]{You go through her shelves at speed, and the jar is found inside ten minutes.\n\nWhat none of you were watching was the cauldron - a rusted iron thing five feet across, its ash-caked flank worked with a relief of capering fiends, squatting in the middle of the floor exactly where a cauldron ought to squat.\n\nIt comes off the ground and takes %SKVNAME%" + who + "%SKVNAME_OFF% around the middle, and the rim of it closes like a mouth. It takes three men hauling on his arms and a fourth beating the thing with an axe-haft to get him back out, and when he comes he comes with a sound nobody wants to hear again. The cauldron settles onto its base, rocks once, and is a cauldron.\n\nAmong the charts pinned under it, in the same crabbed hand as the recipe in Laurel's book, is a page naming where ironbloom grows, and drawing the way to it.}", "RoadNorth", "The Hag-Haunted Hollow");
+							return this.Contract.result(rows, "[img]gfx/ui/events/event_115.png[/img]{You go through her shelves at speed, and the jar is found inside ten minutes.\n\nWhat none of you were watching was the cauldron: a rusted pot big enough to boil a pig whole, its sides crusted with old ash over a carving of little dancing devils, squatting in the middle of the floor exactly where a cauldron ought to squat.\n\nIt comes off the ground and takes %SKVNAME%" + who + "%SKVNAME_OFF% around the middle, and the rim of it closes like a mouth. It takes three men hauling on his arms and a fourth beating the thing with an axe-haft to get him back out, and when he comes he comes with a sound nobody wants to hear again. The cauldron settles onto its base, rocks once, and is a cauldron.\n\nAmong the charts pinned under it, in the same crabbed hand as the recipe in Laurel's book, is a page naming where ironbloom grows, and drawing the way to it.}", "RoadNorth", "The Hag-Haunted Hollow");
 						}
 					});
 
@@ -2327,7 +2327,7 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 						return;
 					}
 
-					this.Text = "[img]gfx/ui/events/event_108.png[/img]{Sitting squat at the foot of an imposing mountain, a ruined monastery comes into view between ancient gnarled trees. Simple stone blocks worn smooth with time; sections of the slanted shale roof fallen in; the outer wall crumbled in places. Weeds and wild thorn run rampant over the field before it, leaving only the slightest indication of a path, ending at ruined front doors. Beyond, an overgrown yard sits in shadow.\n\nThe path gives out fifty feet short of the wall, between a pair of old stone statues. One is rubble. The other is a dwarf, five feet of him, holding a great stone hammer up over his head, and moss and creeper have taken everything but the shape.\n\nHigh on the squat tower, three big black birds put their heads over the edge and start to shout about it.}";
+					this.Text = "[img]gfx/ui/events/event_108.png[/img]{The trees thin, and under the shoulder of the mountain there is a building: dwarf-work, squat and heavy, its blocks rubbed smooth by the centuries, its slate roof fallen in in places and its outer wall down in others. Thornbrush and weeds have taken the field in front of it; you have to hunt for the path. Past the broken front doors a yard lies in the mountain's shadow.\n\nThe path gives out short of the wall, where two stone statues once stood guard. One is a heap of rubble. The other is a dwarf with a great stone hammer raised over his head, and moss and creeper have taken everything but the shape.\n\nHigh on the squat tower, three big black birds put their heads over the edge and start to shout about it.}";
 				}
 				else
 				{

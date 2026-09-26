@@ -727,7 +727,7 @@ this.skv_croak_contract <- this.inherit("scripts/contracts/contract", {
 
 				local late = c.arrivedLate();
 
-				local opening = "Six huts stand on stilts a few feet above the muck, joined by plank bridges with a rope for a handrail. The doors are bead curtains. One of them is down.\n\nThere are figures out on the bridges, and they are not men. They are squat and wide and wet-looking, the colour of the water, and they move over the planks the way a man moves across his own kitchen.";
+				local opening = "The post is six huts perched on legs over the muck, strung together by plank walkways with a rope to hold on to. Nobody out here bothered with doors: strings of beads hang in the doorways instead, and one string lies in the water.\n\nThere are figures out on the bridges, and they are not men. They are squat and wide and wet-looking, the colour of the water, and they move over the planks the way a man moves across his own kitchen.";
 				local tail = late
 					? "\n\nOne of them is already up on the highest bridge with its head turned this way, and it has been there a while. It fills its throat and lets out a sound like a wet drum, and the rest come up out of the reeds on both sides of you at once.\n\nThe big one in the middle carries a club with something written on it in mud, and the marks are still wet."
 					: "\n\nNone of them has looked up yet. The big one in the middle is arguing with a smaller one about something, in a language of grunts and long wet notes, and the company is over the first bridge before either of them turns round.";

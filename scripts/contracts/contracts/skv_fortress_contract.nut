@@ -72,7 +72,7 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 
 			{ Bit = 0x010, Area = 5,  Floor = 2, Title = "The Trapped Entry",
 			  Label = "{The last door on the second floor.}",
-			  Blurb = "Octagonal, and thick with dust, and the dust in front of the northwestern door has been walked through by something that does not wear boots." },
+			  Blurb = "Octagonal, under a grey skin of dust, trodden through at the north-west door by feet that wear no boots." },
 
 			{ Bit = 0x020, Area = 6,  Floor = 3, Title = "The Bats' Roost",
 			  Label = "{Up the stair to the third floor.}",
@@ -1371,7 +1371,7 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "TrapEntry",
 			Title = "The Trapped Entry",
-			Text = "[img]gfx/ui/events/event_89.png[/img]{Octagonal, and thick with dust, and the dust has not been left alone. Something has walked through it in front of the northwestern door, over and over, and it did not wear boots.\n\nAnd nobody walks through the same doorway that many times without having a reason to want to know who else does.}",
+			Text = "[img]gfx/ui/events/event_89.png[/img]{Octagonal, and a grey skin of dust over everything except at the north-west door. There it has been trodden through, over and over, by feet that wear no boots.\n\nAnd nobody walks through the same doorway that many times without having a reason to want to know who else does.}",
 			Image = "",
 			List = [],
 			Options = [],
@@ -1409,7 +1409,7 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 				local c = this.Contract;
 				local hasPot = c.findFirePot() != null;
 
-				this.Text = "[img]gfx/ui/events/event_44.png[/img]{The stair comes out on the third floor, and half of the third floor is on the second floor - the eastern side has gone down with the rest and left a ragged edge open to the sky. What is left is dark, and it stinks of droppings, and a living, moving fabric seems to cover the ceiling.\n\nIt rustles. Thousands of small bodies, packed wing to wing, and the moment a light or a man moves under them, the whole ceiling is going to come down."
+				this.Text = "[img]gfx/ui/events/event_44.png[/img]{The stair comes out on the third floor, and half of the third floor is on the second floor - the eastern side has gone down with the rest and left a ragged edge open to the sky. What is left is dark, and it stinks of droppings, and the ceiling is furred over with something that breathes.\n\nIt rustles. Thousands of small bodies, packed wing to wing, and the moment a light or a man moves under them, the whole ceiling is going to come down."
 					+ (hasPot ? " There is a fire pot in the baggage." : "") + "}";
 
 				this.Options = [];

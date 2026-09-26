@@ -41,7 +41,7 @@ fortnight. Also adds the boggards, a new enemy for the swamps.
 
 ### Enemies
 - **Boggards.** Squat, wet, the colour of the water, and they cross a bog the way a man crosses
-  his own kitchen. Three of them, drawn from published Pathfinder stat blocks: a **scout** who
+  his own kitchen. Three of them, built after published Pathfinder creatures: a **scout** who
   harries with a sling until you force it into melee, a **warrior** in studded leather who
   charges, and the **swampseer** that leads them, whose acid eats armour off a man's back. Every
   one of them has a **croak** that breaks nerve at a distance, and a **tongue** that hits from
@@ -52,6 +52,11 @@ fortnight. Also adds the boggards, a new enemy for the swamps.
   skulls as you come up on the dam, and the flooded basin once the jaws grind shut. The two images it
   used before were machine-generated and have been replaced. The maps are by **Racooze**, used with his
   permission and credited to him and to Paizo; see the credits in the README.
+
+### Credits
+- Every adapted adventure now names its author, in the README and here. The potion icon, the
+  Legendary contract icon and the two Unsplash item icons are credited to their sources, and the
+  README has a contact section.
 
 ### Dev tools
 - `::skvcroak()` dumps the offer gate for the new contract, listing every settlement with its
@@ -196,7 +201,7 @@ rest, and brings these notes up to date with the fixes from the 0.99.10 emergenc
   moderate wounds that are the only healing the tower offers.
 
 ### Troglodytes
-- **Ten troglodyte units from Pathfinder stat blocks**: the rank and file, Skulkers, Champions and
+- **Ten troglodyte units built after Pathfinder creatures**: the rank and file, Skulkers, Champions and
   Warren Guards, three casters (Beast-Speaker, Priest, Sorcerer), a javelin-throwing Scale-Rider, a
   Chieftain and a Tyrant. Their **stench** saps the men standing next to them, and a Tyrant's is
   worse; poison immunity protects against it, and the ground around them shows it.
@@ -276,7 +281,7 @@ No new contract this time. Instead the kobolds stopped being red goblins.
 Through 0.97 a kobold was a goblin with the green turned down and one of three tier names. This
 version gives them a Pathfinder roster ten units deep, their own weapons, a racial trait you can
 read in the tooltip, and prices worked out from the goblins they are built on rather than guessed
-at. Every unit and every piece of gear below comes from a real Archives of Nethys stat block.
+at. Every unit below is built after a published Pathfinder creature, gear included.
 
 ### The roster
 
@@ -328,7 +333,7 @@ Nine of the ten units now roll their weapon rather than carrying a fixed one, th
 always have. A line of Blades is a falchion, a scramasax and a rapier instead of six identical
 rapiers; a Yapper might have a Boondock Bow or a hunting bow; a Guilecaster's staff might be the
 one-handed gnarled kind that lets it fight back when something reaches it. Armour stays exactly where
-each unit's stat block puts it, so nothing gets tougher by luck, only different to look at.
+each creature's gear puts it, so nothing gets tougher by luck, only different to look at.
 
 A few rolls change the fight rather than the picture. One melee kobold in four carries a real goblin
 spear and can brace against a charge. One Sniper in ten has a one-handed hand crossbow. One
@@ -453,7 +458,7 @@ halfway through, and rebuilds how every contract in the mod hands out experience
 
 ### Contracts
 - **Threshold of Knowledge** (contract #12, once-per-campaign, Hunt) adapted from Paizo's *Threshold of
-  Knowledge*. A magic school's outpost has lost an instructor to the canals under the city, and the woman
+  Knowledge* by Jabari Weathers. A magic school's outpost has lost an instructor to the canals under the city, and the woman
   who runs it will pay quietly to have him found. Offered **only by southern city-states**, and only once
   in a campaign.
 
@@ -556,7 +561,7 @@ and adds masterwork and magical weapon enhancement that any contract can hand ou
 
 ### Contracts
 - **Hollow's Last Hope** (contract #10, once-per-campaign, Hunt) adapted from Paizo's *GameMastery Module
-  D0*. A village at the edge of the forest is dying of blackscour taint in its water. The herbalist has a
+  D0: Hollow's Last Hope* by Jason Bulmahn and F. Wesley Schneider. A village at the edge of the forest is dying of blackscour taint in its water. The herbalist has a
   cure written in a hand that is not her grandmother's and none of the three things it calls for, and she
   cannot pay you until the pot is standing. Offered only by small forest villages that are actually
   suffering sickness.
@@ -611,7 +616,7 @@ fight, and rounds the shared skill-check engine out across all six character att
 
 ### Contracts
 - **Carthica's Pride** (contract #9, once-per-campaign, noble-house Hunt). Adapted from BlackStar Studios'
-  *Carthica's Pride*. A spoiled young noble hires the company through his fixer **Natasha Corvina** to run
+  *Carthica's Pride* by Jaye Sonia. A spoiled young noble hires the company through his fixer **Natasha Corvina** to run
   down two **Sczarni** cutpurses, **Atharius & Jhaari**, who lifted his family signet, recover the ring,
   humiliate the pair in public, and keep his name out of it. An entirely **in-town** job that begins the
   moment you accept: barter with the information-broker **Lady Lilianna** (pay a fee, or give up a *true*
@@ -643,7 +648,7 @@ screen.
 
 ### Contracts
 - **Ambush in _<City>_** (contract #8, once-per-campaign). A courier-rescue-and-delivery job adapted
-  from the Pathfinder Society Quest *Ambush in Absalom*. **Venture-Captain Ambrus Valsin** hires the
+  from the Pathfinder Society Quest *Ambush in Absalom* by Mark Moreland. **Venture-Captain Ambrus Valsin** hires the
   company to find an agent lost in a city's undercity drains: follow the trail through a goblin warren
   (a covered pit-trap, a picket, and the chief's escort led by a champion boss), recover the sealed
   parcel, and carry it to the Sczarni fence **Guaril Karela** in a neighbouring city, where the

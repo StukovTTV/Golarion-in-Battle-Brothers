@@ -854,7 +854,7 @@ this.skv_fane_contract <- this.inherit("scripts/contracts/contract", {
 				local F = ::Const.Skv.Fane;
 				if (c.m.Beats == 0)
 				{
-					this.Text = "[img]gfx/ui/events/event_178.png[/img]{Inside the doors is an open courtyard, green with moss and ringed with columns and weathered statues of an elk-headed hunter. Two of the columns and one statue lie broken across the flagstones. Lanterns burn in the alcoves.\n\nTwo figures in the green of Erastil's priesthood come out to meet you, a broad man and a tall woman, hoods up against the evening chill. The man spreads his hands.%SPEECH_ON%Old Deadeye be thanked, you've brought it. I'm %SKVNAME%Enogas%SKVNAME_OFF%, this is %SKVNAME%Larya%SKVNAME_OFF%. Vandals again, you can see what they did to the statues. Give us the arrow and we'll see the rite done before moonrise.%SPEECH_OFF%}";
+					this.Text = "[img]gfx/ui/events/event_178.png[/img]{Past the doors the courtyard lies open to the sky and gone green with moss. Statues of the elk-headed hunter keep watch from the edges, worn soft by the weather; one of them is face-down on the flags, with two fallen columns beside it. Lanterns burn in the alcoves.\n\nTwo figures in the green of Erastil's priesthood come out to meet you, a broad man and a tall woman, hoods up against the evening chill. The man spreads his hands.%SPEECH_ON%Old Deadeye be thanked, you've brought it. I'm %SKVNAME%Enogas%SKVNAME_OFF%, this is %SKVNAME%Larya%SKVNAME_OFF%. Vandals again, you can see what they did to the statues. Give us the arrow and we'll see the rite done before moonrise.%SPEECH_OFF%}";
 				}
 				else
 				{
