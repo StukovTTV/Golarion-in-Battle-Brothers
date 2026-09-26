@@ -306,9 +306,9 @@ this.skv_threshold_contract <- this.inherit("scripts/contracts/contract", {
 	function gentleBackgrounds()
 	{
 		return [ "background.monk", "background.legend_pilgrim", "background.legend_battle_sister",
-			"background.farmhand", "background.milkmaid", "background.shepherd", "background.gravedigger",
+			"background.farmhand", "background.shepherd", "background.gravedigger",
 			"background.beggar", "background.juggler", "background.legend_philosopher",
-			"background.historian", "background.legend_scribe" ];
+			"background.historian" ];
 	}
 
 	function hardBackgrounds()

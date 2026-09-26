@@ -458,10 +458,11 @@ if (!("Skv" in ::getroottable()))
 			{ ["trait.dexterous"] = 12, ["trait.sure_footing"] = 12, ["trait.lucky"] = 5, ["trait.legend_light"] = 5,
 			  ["trait.clumsy"] = -12, ["trait.clubfooted"] = -12, ["trait.fat"] = -12, ["trait.old"] = -5 },
 			{ ["background.belly_dancer"] = 7,
-			  ["background.juggler"] = 3, ["background.assassin"] = 3, ["background.messenger"] = 3,
+			  ["background.juggler"] = 3, ["background.assassin"] = 3, ["background.assassin_southern"] = 3,
+			  ["background.messenger"] = 3,
 			  ["background.gambler"] = 0,
 			  ["background.legend_blacksmith"] = -4, ["background.brawler"] = -4, ["background.butcher"] = -4,
-			  ["background.farmhand"] = -4, ["background.milkmaid"] = -4, ["background.cripple"] = -12 },
+			  ["background.farmhand"] = -4, ["background.cripple"] = -12 },
 			{ [::Legends.Perk.Dodge] = 15 },
 			this.legInjuries());
 		::Skv.dbg("Skv.Check.agility chance=" + r.chance + " roll=" + r.roll + (r.ok ? " PASS" : " FAIL") + " actor=" + _contract.m.ActorName);
@@ -490,7 +491,7 @@ if (!("Skv" in ::getroottable()))
 			  ["background.wildman"] = 6, ["background.legend_druid"] = 6,
 			  ["background.manhunter"] = 6, ["background.legend_bounty_hunter"] = 6,
 			  ["background.houndmaster"] = 6, ["background.shepherd"] = 3,
-			  ["background.legend_berserker"] = -6, ["background.legend_berserker_commander"] = -6,
+			  ["background.legend_berserker"] = -6,
 			  ["background.legend_commander_berserker"] = -6, ["background.barbarian"] = -6,
 			  ["background.minstrel"] = -4, ["background.servant"] = -4 },
 			{ [::Legends.Perk.Pathfinder] = 5 },
@@ -499,18 +500,29 @@ if (!("Skv" in ::getroottable()))
 		return r;
 	}
 
-	function brawn( _contract, _base )
+	function brawn( _contract, _base, _need = null )
 	{
-		local r = this.bestByComposition(_contract, _base,
+		local traits =
 			{ ["trait.strong"] = 12, ["trait.huge"] = 10, ["trait.brute"] = 12,
-			  ["trait.fat"] = -8, ["trait.old"] = -5 },
+			  ["trait.fat"] = -8, ["trait.old"] = -5 };
+		local bgs =
 			{ ["background.wildman"] = 12, ["background.legend_berserker"] = 12,
-			  ["background.legend_berserker_commander"] = 12, ["background.legend_commander_berserker"] = 12,
+			  ["background.legend_commander_berserker"] = 12,
 			  ["background.barbarian"] = 8, ["background.brawler"] = 6,
 			  ["background.farmhand"] = 2, ["background.lumberjack"] = 2,
-			  ["background.minstrel"] = -5, ["background.historian"] = -5, ["background.messenger"] = -5 },
-			{ [::Legends.Perk.Colossus] = 5 },
-			this.handInjuries());
+			  ["background.minstrel"] = -5, ["background.historian"] = -5, ["background.messenger"] = -5 };
+		local perks = { [::Legends.Perk.Colossus] = 5 };
+		local inj = this.handInjuries();
+
+		if (_need != null)
+		{
+			local rp = this.countByComposition(_contract, _base, traits, bgs, perks, inj, _need);
+			::Skv.dbg("Skv.Check.brawn[party] " + rp.passed + "/" + rp.total + " pulled their weight, needed " + rp.needed
+				+ ", avg=" + rp.avg + (rp.ok ? "  PASS" : "  FAIL"));
+			return rp;
+		}
+
+		local r = this.bestByComposition(_contract, _base, traits, bgs, perks, inj);
 		::Skv.dbg("Skv.Check.brawn chance=" + r.chance + " roll=" + r.roll + (r.ok ? " PASS" : " FAIL") + " actor=" + _contract.m.ActorName);
 		return r;
 	}
@@ -521,8 +533,8 @@ if (!("Skv" in ::getroottable()))
 			{ ["trait.dexterous"] = 8, ["trait.eagle_eyes"] = 8,
 			  ["trait.clumsy"] = -12, ["trait.short_sighted"] = -8 },
 			{ ["background.juggler"] = 12, ["background.hunter"] = 10, ["background.poacher"] = 10,
-			  ["background.bowyer"] = 6, ["background.fletcher"] = 6, ["background.fisherman"] = 3,
-			  ["background.legend_berserker"] = -3, ["background.legend_berserker_commander"] = -3,
+			  ["background.bowyer"] = 6, ["background.fisherman"] = 3,
+			  ["background.legend_berserker"] = -3,
 			  ["background.legend_commander_berserker"] = -3, ["background.brawler"] = -3,
 			  ["background.cripple"] = -3 },
 			{},
@@ -537,8 +549,9 @@ if (!("Skv" in ::getroottable()))
 			{ ["trait.fearless"] = 12, ["trait.brave"] = 12, ["trait.mad"] = 10, ["trait.determined"] = 6, ["trait.cocky"] = 3,
 			  ["trait.fainthearted"] = -12, ["trait.paranoid"] = -10, ["trait.dastard"] = -7, ["trait.insecure"] = -6 },
 			{ ["background.legend_battle_sister"] = 6, ["background.monk"] = 8, ["background.gladiator"] = 6,
-			  ["background.legend_berserker"] = 6, ["background.legend_berserker_commander"] = 6,
+			  ["background.legend_berserker"] = 6,
 			  ["background.legend_commander_berserker"] = 6, ["background.assassin"] = 4,
+			  ["background.assassin_southern"] = 4,
 			  ["background.deserter"] = -10 },
 			{},
 			[]);
@@ -564,7 +577,7 @@ if (!("Skv" in ::getroottable()))
 			{ ["trait.bright"] = 6, ["trait.lucky"] = 5, ["trait.legend_seductive"] = 7, ["trait.legend_gift_of_people"] = 4 },
 			{ ["background.legend_qiyan"] = 11, ["background.minstrel"] = 8, ["background.juggler"] = 8,
 			  ["background.peddler"] = 4, ["background.servant"] = 2,
-			  ["background.legend_berserker"] = -5, ["background.legend_berserker_commander"] = -5,
+			  ["background.legend_berserker"] = -5,
 			  ["background.legend_commander_berserker"] = -5, ["background.brawler"] = -5,
 			  ["background.legend_cannibal"] = -5, ["background.butcher"] = -5 },
 			{},
@@ -669,12 +682,12 @@ if (!("Skv" in ::getroottable()))
 			  ["trait.drunkard"] = -5 };
 		local bgs =
 			{ ["background.poacher"] = 16,
-			  ["background.thief"] = 14, ["background.thief_southern"] = 14,
+			  ["background.thief"] = 14,
 			  ["background.assassin"] = 12, ["background.assassin_southern"] = 12,
 			  ["background.ratcatcher"] = 8, ["background.hunter"] = 8,
 			  ["background.killer_on_the_run"] = 8,
 			  ["background.graverobber"] = 6, ["background.vagabond"] = 5,
-			  ["background.cripple"] = -12, ["background.cripple_southern"] = -12,
+			  ["background.cripple"] = -12,
 			  ["background.hedge_knight"] = -8, ["background.flagellant"] = -5,
 			  ["background.brawler"] = -4 };
 		local perks = { [::Legends.Perk.LegendHidden] = 15, [::Legends.Perk.LegendLurker] = 8,
@@ -1088,7 +1101,8 @@ if (!("Skv" in ::getroottable()))
 		"contract.skv_azari", "contract.skv_ambush", "contract.skv_metringer", "contract.skv_black_forks",
 		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing",
 		"contract.skv_carthica", "contract.skv_hollows", "contract.skv_anvil", "contract.skv_threshold",
-		"contract.skv_zoldos", "contract.skv_fortress", "contract.skv_torment", "contract.skv_fane"
+		"contract.skv_zoldos", "contract.skv_fortress", "contract.skv_torment", "contract.skv_fane",
+		"contract.skv_croak"
 	],
 
 	function forcePost( _contract )
@@ -3100,6 +3114,194 @@ if (!("Skv" in ::getroottable()))
 	return null;
 };
 
+::skvcroak <- function ( _force = false )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.croak: not in a campaign.");
+		return null;
+	}
+
+	if (_force)
+	{
+		::Skv.Once.release("Croak");
+		::World.Flags.remove("SkvOnce.Croak.retired");
+	}
+
+	local act = null;
+	try { act = ::new("scripts/factions/contracts/skv_croak_action"); }
+	catch (e) { ::logInfo("Skv.croak: could not build the action (" + e + ")"); act = null; }
+
+	local C = ::Const.Skv.Croak;
+	local day = ::World.getTime().Days;
+	::logInfo("== Skv.Croak (contract #17) ==");
+	::logInfo("  once.active=" + ::World.Flags.has("SkvOnce.Croak.active")
+		+ " once.retired=" + ::World.Flags.has("SkvOnce.Croak.retired")
+		+ (::Skv.Once.isLocked("Croak") ? "  << BLOCKING" : ""));
+	::logInfo("  score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : ""));
+	local renown = ::World.Assets.getBusinessReputation();
+	::logInfo("  renown=" + renown + " / " + C.RenownGate
+		+ (renown < C.RenownGate ? "  << BLOCKING (a (true) force skips it)" : "") + "   day=" + day);
+	::logInfo("  gate: village + swamp within " + C.SwampRadius + " + \"" + C.Situation + "\"   (NO rarity roll)");
+
+	local swamp = @(s) s.getSurroundingTilesOfType(C.swampTypes(), C.SwampRadius).len();
+	local sit = function ( _s )
+	{
+		try { return _s.hasSituation(C.Situation); }
+		catch (e) { return false; }
+	};
+
+	local open = [];
+	local live = null;
+	local total = 0;
+	local withSituation = 0;
+
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		foreach (c in s.getContracts())
+		{
+			if (c.getType() == "contract.skv_croak") live = { S = s, C = c };
+		}
+		total = total + 1;
+		local hasSit = sit(s);
+		if (hasSit) withSituation = withSituation + 1;
+
+		local ok = false;
+		if (act != null)
+		{
+			try { ok = act.canHost(s); }
+			catch (e) { ::logInfo("  canHost threw on " + s.getName() + ": " + e); ok = false; }
+		}
+
+		local why = null;
+		if (!ok)
+		{
+			if (s.isIsolated()) why = "isolated";
+			else if (!::MSU.isKindOf(s, "legends_village")) why = "not a village";
+			else if (!hasSit) why = "no missing-villagers situation";
+			else if (swamp(s) == 0) why = "no swamp within " + C.SwampRadius;
+			else why = "canHost says no, and this dump cannot say why";
+		}
+		if (ok) open.push(s);
+
+		if (ok || why == null || why == "no missing-villagers situation" || why.slice(0, 8) == "no swamp")
+		{
+			::logInfo("    " + (ok ? "OK  " : "--  ") + s.getName() + "  size " + s.getSize()
+				+ "  swamp " + swamp(s) + "  situation " + (hasSit ? "YES" : "no ")
+				+ "  " + ::Skv.Debug.tilesAway(s) + " tiles"
+				+ (why == null ? "" : "   [" + why + "]"));
+		}
+	}
+	::logInfo("  " + open.len() + " of " + total + " settlements can host now; "
+		+ withSituation + " carry the situation at all."
+		+ (act == null ? "   [⚠ the action would not build -- no verdict]" : ""));
+
+	if (live == null)
+	{
+		local a = ::World.Contracts.getActiveContract();
+		if (a != null && a.getType() == "contract.skv_croak") live = { S = a.getHome(), C = a };
+	}
+	if (live != null)
+	{
+		local m = live.C.m;
+		local acts = ["0 travelling", "1 at the post (fight pending)", "2 fight won (the huts)", "3 done"];
+		local routes = ["0 unchosen", "1 the trail (tracking)", "2 the boat (brawn, party)", "3 asked around (paid)"];
+		local arrivals = ["0 NOT RESOLVED", "1 early (Line)", "2 LATE (Circle + champion warrior)"];
+		local outs = ["0 none", "1 done", "2 done, Cadmus lost", "3 POOR (the fight was lost)"];
+		local pick = function ( _arr, _i ) { return (_i >= 0 && _i < _arr.len()) ? _arr[_i] : (_i + " (UNKNOWN)"); };
+		local bits = function ( _v, _names )
+		{
+			local out = "";
+			foreach (pair in _names) if ((_v & pair[0]) != 0) out = out + (out == "" ? "" : ", ") + pair[1];
+			return out == "" ? "no bits" : out;
+		};
+		::logInfo("  LIVE at " + (live.S == null ? "?" : live.S.getName()) + " -- \"" + live.C.getName()
+			+ "\"  active=" + m.IsActive);
+		::logInfo("    Act=" + pick(acts, m.Act) + "  Route=" + pick(routes, m.Route)
+			+ "  Arrival=" + pick(arrivals, m.Arrival) + "  Outcome=" + pick(outs, m.Outcome));
+		::logInfo("    Bodies=" + m.Bodies + "/3  Concluded=" + m.Concluded + "  Speaker=\"" + m.Speaker + "\"");
+		::logInfo("    Huts=" + m.Huts + "  [" + bits(m.Huts, [[C.HutN, "1 north"], [C.HutE, "2 east"],
+			[C.HutW, "4 west"], [C.HutStore, "8 store"], [C.HutSouth, "16 CADMUS"], [C.HutGear, "32 gear"],
+			[C.HutBodies, "64 bodies tried"], [C.HutCadmusRead, "128 the read spent"]]) + "]");
+		try
+		{
+			::logInfo("    hub -> " + live.C.hubScreen() + "   fee=" + live.C.finalPay()
+				+ "   bounty=" + live.C.bodyPay() + "   moral=" + live.C.moralFor()
+				+ "   fight budget=" + live.C.fightBudget() + "   diff=" + live.C.getDifficultyMult());
+		}
+		catch (e) { ::logInfo("    (hub/budget read threw: " + e + ")"); }
+	}
+
+	if (!_force) return live == null ? null : live.C;
+
+	if (live != null)
+	{
+		::logInfo("Skv.croak: already posted - not posting a second.");
+		return live.C;
+	}
+	if (open.len() == 0)
+	{
+		::logInfo("Skv.croak: no settlement can host it. See the reasons above."
+			+ (withSituation == 0 ? "  ⚠ NOTHING on the map carries the situation right now -- it is written only by beast hunts, at creation, and fades 3 days after they clear." : ""));
+		return null;
+	}
+
+	local ready = [];
+	foreach (h in open)
+	{
+		local hf = ::World.FactionManager.getFaction(h.getFaction());
+		local r = false;
+		try { r = hf.isReadyForContract(::Const.Contracts.ContractCategoryMap.skv_croak_contract); }
+		catch (e) { r = true; }
+		if (r) ready.push(h);
+	}
+	local order = ::Skv.Debug.nearestFirst(ready);
+	local rest = [];
+	foreach (h in open)
+	{
+		local isReady = false;
+		foreach (r in ready) if (r == h) isReady = true;
+		if (!isReady) rest.push(h);
+	}
+	order.extend(::Skv.Debug.nearestFirst(rest));
+	if (ready.len() == 0) ::logInfo("Skv.croak: NO host has a free Hunt/Wildcard slot -- forcing past the slots (Skv.Debug.forcePost).");
+
+	local join = function ( _arr )
+	{
+		local out = "";
+		foreach (i, n in _arr) out = out + (i == 0 ? "" : ", ") + n;
+		return out;
+	};
+
+	::Skv.Once.claim("Croak");
+	local tried = [];
+	foreach (s in order)
+	{
+		local f = ::World.FactionManager.getFaction(s.getFaction());
+		local c = ::new("scripts/contracts/contracts/skv_croak_contract");
+		c.setFaction(f.getID());
+		c.setHome(s);
+		c.setEmployerID(f.getRandomCharacter().getID());
+		::Skv.Debug.forcePost(c);
+
+		foreach (x in s.getContracts())
+		{
+			if (x.getType() == "contract.skv_croak")
+			{
+				::logInfo("Skv.croak: FORCED onto the board at " + s.getName()
+					+ ", " + ::Skv.Debug.tilesAway(s) + " tiles away -- verified present"
+					+ (tried.len() == 0 ? "." : " (refused first at: " + join(tried) + ")."));
+				return c;
+			}
+		}
+		tried.push(s.getName());
+	}
+	::Skv.Once.release("Croak");
+	::logInfo("Skv.croak: ⚠ REFUSED at every host (" + join(tried)
+		+ ") - Legends drops a contract when its category AND Wildcard are full. Wait a few days, or free a slot.");
+	return null;
+};
+
 ::skvitem <- function ( _path = null )
 {
 	local paths = _path != null ? [_path] : [
@@ -3512,4 +3714,117 @@ if (!("Skv" in ::getroottable()))
 	::logInfo("Skv.break: " + moved + " enemies set to " + _state
 		+ ". End your turn, then watch Rally and Warcry in the next behaviour dump.");
 	return true;
+};
+
+::skvfrog <- function ( _kind = null, _scale = null )
+{
+	if (!("Tactical" in ::getroottable()) || ::Tactical == null || ::Tactical.State == null)
+	{
+		::logInfo("Skv.frog: not in a tactical fight. Start one, then run this.");
+		return null;
+	}
+
+	if (_scale != null)
+	{
+		::Const.Skv.Boggard.Scale = _scale;
+	}
+
+	local script = "scripts/entity/tactical/enemies/skv_boggard";
+	local which = _kind == null ? "warren" : _kind.tolower();
+
+	if (which == "scout")     script = "scripts/entity/tactical/enemies/skv_boggard_scout";
+	else if (which == "warrior")   script = "scripts/entity/tactical/enemies/skv_boggard_warrior";
+	else if (which == "seer" || which == "swampseer") script = "scripts/entity/tactical/enemies/skv_boggard_swampseer";
+	else if (which == "base")      script = "scripts/entity/tactical/enemies/skv_boggard";
+	else if (which != "warren")
+	{
+		::logInfo("Skv.frog: unknown kind '" + _kind + "'. Try scout, warrior, seer, base, or no argument for one of each.");
+		return null;
+	}
+
+	if (which == "warren")
+	{
+		local out = [];
+		foreach (k in ["scout", "warrior", "seer"])
+		{
+			local one = ::skvfrog(k);
+			if (one != null) out.push(one);
+		}
+		::logInfo("Skv.frog: a warren of " + out.len() + ".");
+		return out;
+	}
+
+	local anchor = null;
+	try
+	{
+		local mine = ::Tactical.Entities.getInstancesOfFaction(::Const.Faction.Player);
+		foreach (a in mine)
+		{
+			if (a != null && a.isAlive() && a.getTile() != null) { anchor = a; break; }
+		}
+	}
+	catch (e)
+	{
+		::logError("Skv.frog: could not read the player's roster: " + e);
+		return null;
+	}
+
+	if (anchor == null)
+	{
+		::logInfo("Skv.frog: no living brother on the field to stand it next to.");
+		return null;
+	}
+
+	local from = anchor.getTile();
+	local dest = null;
+
+	for ( local r = 2; r <= 3 && dest == null; r = r + 1 )
+	{
+		for ( local i = 0; i < ::Const.Direction.COUNT && dest == null; i = i + 1 )
+		{
+			local t = from;
+			local ok = true;
+
+			for ( local step = 0; step < r; step = step + 1 )
+			{
+				if (!t.hasNextTile(i)) { ok = false; break; }
+				t = t.getNextTile(i);
+			}
+
+			if (ok && t.IsEmpty && t.IsOccupiedByActor == false) dest = t;
+		}
+	}
+
+	if (dest == null)
+	{
+		::logInfo("Skv.frog: no free tile within three of " + anchor.getName() + ". Make room and try again.");
+		return null;
+	}
+
+	local frog = null;
+
+	try
+	{
+		frog = ::Tactical.spawnEntity(script, dest.Coords);
+		frog.setFaction(::Const.Faction.Enemy);
+	}
+	catch (e)
+	{
+		::logError("Skv.frog: the spawn threw: " + e);
+		return null;
+	}
+
+	if (frog == null || !frog.isAlive())
+	{
+		::logError("Skv.frog: spawnEntity returned nothing usable.");
+		return null;
+	}
+
+	local B = ::Const.Skv.Boggard;
+	::logInfo("Skv.frog: " + frog.getName() + " at " + dest.Coords.X + "," + dest.Coords.Y
+		+ " (next to " + anchor.getName() + ")  HP " + frog.getHitpoints() + "/" + frog.getHitpointsMax()
+		+ "  croak=" + frog.getSkills().hasSkill("actives.horrific_scream")
+		+ " tongue=" + frog.getSkills().hasSkill("actives.serpent_hook"));
+	::logInfo("  ::skvfrog() spawns one of each · ::skvfrog(\"seer\") one · tint/scale still live: ::Const.Skv.Boggard.Tint = \"#9cb87a\";");
+	return frog;
 };

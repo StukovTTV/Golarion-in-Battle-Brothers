@@ -668,7 +668,7 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 	{
 		if (_e == null) { ::logError("Skv.Fortress: Snapjaw placed as null"); return; }
 		local white = null;
-		try { white = this.createColor("#ffffff"); } catch (e) {}
+		try { white = this.createColor("#ffffff"); } catch (e) { ::logError("Skv.Fortress: createColor threw: " + e); }
 		local painted = [];
 		foreach (name in ["body", "head", "tail"])
 		{
@@ -679,9 +679,7 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 				spr.Saturation = 0.05;
 				if (white != null) spr.Color = white;
 				spr.setBrightness(1.35);
-				local b = "?";
-				try { b = spr.getBrightness(); } catch (e2) {}
-				painted.push(name + "(sat=" + spr.Saturation + " bright=" + b + ")");
+				painted.push(name + "(sat=" + spr.Saturation + " bright set 1.35)");
 			}
 			catch (e) { ::Skv.dbg("Skv.Fortress: Snapjaw sprite '" + name + "' not painted: " + e); }
 		}

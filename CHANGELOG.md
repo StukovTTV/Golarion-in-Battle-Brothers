@@ -6,9 +6,63 @@ All notable changes to **Golarion Localization** are recorded here. The format l
 
 ## [Unreleased]
 
-- Org-flavored contract categories (Pathfinder, Sczarni, Church, Druid, …): the settlement-board icons
-  are in place, but the categories themselves, and the contract-display cap that keeps the noticeboard
-  within its slot limit, are not yet wired up.
+## [1.2] - playtest
+
+Adds the seventeenth contract: a watch post out in the marsh that has sent no word in a
+fortnight. Also adds the boggards, a new enemy for the swamps.
+
+### Contracts
+- **The Last Croak** (contract #17, once per campaign), adapted from Paizo's *The Last Croak*
+  by Thurston Hillman. Offered by small villages near swamp to a company with some name behind
+  it (300 renown) — and only by a village that is **already losing people to the marsh**, so
+  the job explains trouble the world had put there before you arrived. One to two skulls.
+
+  **Four men watch the water, three at a time, a week on and a week off.** Nobody has come off
+  that post in a fortnight. The village herbalist has stitched every one of them at her own
+  table, and she is not asking you to bring them back — she is asking you to go out there, find
+  out what happened, and come back and tell her.
+
+  **How you get there is what the money is for.** Out in the lane afterwards the company works
+  it out: follow the trail four men wore walking out every week for a year, pole up the channels
+  in the village's flat-bottomed boats, or buy drinks for whoever played dice with the dwarf who
+  could not hold his ale. Your scout, your whole company's backs, or your purse. Arrive before
+  they are ready and you are over the first bridge before anything turns round; arrive late and
+  they come up out of the reeds on both sides of you at once, with their champion's club still
+  wet where their seer marked it.
+
+  **Six huts on stilts, joined by plank bridges.** Afterwards you look into them one at a time:
+  what is left of the post, the sentries' gear, and a survivor nobody expected. He can lead you
+  to the others, who are in the water — and every one you wade out and bring back is paid for
+  and buried.
+
+  **Driven off the stilts is not a failure.** You still know what happened out there, and that
+  is the job she described. You are paid a fraction of the fee for the telling, and the boy and
+  the bodies stay in the marsh.
+
+### Enemies
+- **Boggards.** Squat, wet, the colour of the water, and they cross a bog the way a man crosses
+  his own kitchen. Three of them, drawn from published Pathfinder stat blocks: a **scout** who
+  harries with a sling until you force it into melee, a **warrior** in studded leather who
+  charges, and the **swampseer** that leads them, whose acid eats armour off a man's back. Every
+  one of them has a **croak** that breaks nerve at a distance, and a **tongue** that hits from
+  three tiles away and drags whoever it catches bodily out of your line.
+
+### Art
+- **Skull's Crossing** now shows hand-drawn battlemap art on both of its screens — the wall of carved
+  skulls as you come up on the dam, and the flooded basin once the jaws grind shut. The two images it
+  used before were machine-generated and have been replaced. The maps are by **Racooze**, used with his
+  permission and credited to him and to Paizo; see the credits in the README.
+
+### Dev tools
+- `::skvcroak()` dumps the offer gate for the new contract, listing every settlement with its
+  size, the swamp within reach, whether it carries the missing-villagers trouble, and how far
+  away it is; `::skvcroak(true)` forces the job onto the nearest eligible board.
+
+### Removed
+- The four unused placeholder noticeboard icons (`contract_type_pathfinder`, `_church`, `_szarni`,
+  `_druid`, each with its greyscale twin) have been deleted. They had sat in the repo since v0.92.25
+  waiting on org-flavored contract categories, and that feature is no longer planned. The Legendary
+  icon stays — it is the one of the set actually in use.
 
 ## [1.1] - playtest
 

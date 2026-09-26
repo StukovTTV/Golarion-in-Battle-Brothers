@@ -50,3 +50,6 @@
 
 ::Const.Contracts.ContractCategoryMap.skv_fane_contract <- ::Const.Contracts.Categories.Battle;
 ::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_fane_action");
+
+::Const.Contracts.ContractCategoryMap.skv_croak_contract <- ::Const.Contracts.Categories.Hunt;
+::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_croak_action");
