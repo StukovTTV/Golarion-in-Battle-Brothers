@@ -6,6 +6,33 @@ All notable changes to **Golarion Localization** are recorded here. The format l
 
 ## [Unreleased]
 
+### Contracts
+- **Trailblazer's Bounty** (contract #18, once per campaign), adapted from Paizo's
+  *Trailblazer's Bounty* (Pathfinder Society Scenario #1-05) by Tineke Bolleman. Offered by a
+  town owned by a noble house, with mountains close by, once the nobles know your name.
+
+  **A noble house wants a caravan road over the mountains, mapped before its rivals get there.**
+  The house's scout, Karla, sends you out, and what you are paid depends on the survey you bring
+  back.
+
+  **Four stops on the way.** A rival house's expedition on the same road that you can talk into
+  going home, ravens, a stream to chart and a bridge to trust, a snowfield that slides, a warg
+  who talks, an orc band that may yet swear to your road, and a cave with something very large
+  living in it.
+
+  **Every stop adds to the survey or takes from it.** At the far town it is read and paid:
+  nothing for a survey too thin to use, half for a poor one, the full fee for a good one, and a
+  quarter more for an excellent one. A good survey also teaches one of your brothers the
+  Pathfinder perk.
+
+### Art
+- **The Last Croak** shows the boggards themselves at the watch post: a boggard warrior when you
+  arrive before they are ready, their seer when you arrive late, and the other of the two if you
+  are driven off the stilts. Licensed stock art by **Rick Hershey**, used with the artist's
+  written permission (Publisher's Choice Quality Stock Art © Rick Hershey / Publisher's Choice
+  Stock Art, [patreon.com/StockArt](https://patreon.com/StockArt)), on an Unsplash photograph by
+  **Alexis Presa**.
+
 ## [1.2] - playtest
 
 Adds the seventeenth contract: a watch post out in the marsh that has sent no word in a

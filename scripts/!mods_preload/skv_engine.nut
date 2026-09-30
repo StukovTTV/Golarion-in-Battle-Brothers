@@ -452,19 +452,30 @@ if (!("Skv" in ::getroottable()))
 		};
 	}
 
-	function agility( _contract, _base )
+	function agility( _contract, _base, _need = null )
 	{
-		local r = this.bestByComposition(_contract, _base,
+		local traits =
 			{ ["trait.dexterous"] = 12, ["trait.sure_footing"] = 12, ["trait.lucky"] = 5, ["trait.legend_light"] = 5,
-			  ["trait.clumsy"] = -12, ["trait.clubfooted"] = -12, ["trait.fat"] = -12, ["trait.old"] = -5 },
+			  ["trait.clumsy"] = -12, ["trait.clubfooted"] = -12, ["trait.fat"] = -12, ["trait.old"] = -5 };
+		local bgs =
 			{ ["background.belly_dancer"] = 7,
 			  ["background.juggler"] = 3, ["background.assassin"] = 3, ["background.assassin_southern"] = 3,
 			  ["background.messenger"] = 3,
 			  ["background.gambler"] = 0,
 			  ["background.legend_blacksmith"] = -4, ["background.brawler"] = -4, ["background.butcher"] = -4,
-			  ["background.farmhand"] = -4, ["background.cripple"] = -12 },
-			{ [::Legends.Perk.Dodge] = 15 },
-			this.legInjuries());
+			  ["background.farmhand"] = -4, ["background.cripple"] = -12 };
+		local perks = { [::Legends.Perk.Dodge] = 15 };
+		local inj = this.legInjuries();
+
+		if (_need != null)
+		{
+			local rp = this.countByComposition(_contract, _base, traits, bgs, perks, inj, _need);
+			::Skv.dbg("Skv.Check.agility[party] " + rp.passed + "/" + rp.total + " kept their feet, needed " + rp.needed
+				+ ", avg=" + rp.avg + (rp.ok ? "  PASS" : "  FAIL"));
+			return rp;
+		}
+
+		local r = this.bestByComposition(_contract, _base, traits, bgs, perks, inj);
 		::Skv.dbg("Skv.Check.agility chance=" + r.chance + " roll=" + r.roll + (r.ok ? " PASS" : " FAIL") + " actor=" + _contract.m.ActorName);
 		return r;
 	}
@@ -624,7 +635,7 @@ if (!("Skv" in ::getroottable()))
 		return r;
 	}
 
-	function wits( _contract, _base, _extraBg = null )
+	function wits( _contract, _base, _extraBg = null, _extraPerks = null )
 	{
 		local bg = { ["background.historian"] = 16, ["background.legend_astrologist"] = 14,
 			["background.legend_magister"] = 12, ["background.legend_philosopher"] = 12,
@@ -634,10 +645,16 @@ if (!("Skv" in ::getroottable()))
 			if (id in bg) bg[id] = bg[id] + d;
 			else bg[id] <- d;
 		}
+		local perks = { [::Legends.Perk.LegendScholar] = 8 };
+		if (_extraPerks != null) foreach (id, d in _extraPerks)
+		{
+			if (id in perks) perks[id] = perks[id] + d;
+			else perks[id] <- d;
+		}
 		local r = this.bestByComposition(_contract, _base,
 			{ ["trait.bright"] = 12, ["trait.dumb"] = -10 },
 			bg,
-			{ [::Legends.Perk.LegendScholar] = 8 },
+			perks,
 			[ "injury.brain_damage" ]);
 		::Skv.dbg("Skv.Check.wits chance=" + r.chance + " roll=" + r.roll + (r.ok ? " PASS" : " FAIL") + " actor=" + _contract.m.ActorName);
 		return r;
@@ -1102,7 +1119,7 @@ if (!("Skv" in ::getroottable()))
 		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing",
 		"contract.skv_carthica", "contract.skv_hollows", "contract.skv_anvil", "contract.skv_threshold",
 		"contract.skv_zoldos", "contract.skv_fortress", "contract.skv_torment", "contract.skv_fane",
-		"contract.skv_croak"
+		"contract.skv_croak", "contract.skv_trail"
 	],
 
 	function forcePost( _contract )
@@ -3299,6 +3316,839 @@ if (!("Skv" in ::getroottable()))
 	::Skv.Once.release("Croak");
 	::logInfo("Skv.croak: ⚠ REFUSED at every host (" + join(tried)
 		+ ") - Legends drops a contract when its category AND Wildcard are full. Wait a few days, or free a slot.");
+	return null;
+};
+
+::Skv.Trail <- {
+
+	MinDist             = 16,
+	MaxDist             = 30,
+	MinMountainsCrossed = 2,
+	MaxOceanCrossed     = 0,
+	StopSearch          = 3,
+	PayK                = 2,
+	PayFloor            = 300,
+
+	HostRadius          = 5,
+	LegMaxMult          = 3,
+	PassSearch          = 3,
+	StopSearchWide      = 6,
+
+	FallbackReach       = 16,
+
+	MinStopGap          = 3,
+
+	function terrainName( _type )
+	{
+		foreach (k, v in ::Const.World.TerrainType)
+		{
+			if (v == _type && k != "Land" && k != "COUNT") return k;
+		}
+		return "type " + _type;
+	}
+
+	function lineTiles( _a, _b )
+	{
+		local out = [];
+		local n = _a.getDistanceTo(_b);
+		if (n < 2) return out;
+		local ax = _a.SquareCoords.X, ay = _a.SquareCoords.Y;
+		local bx = _b.SquareCoords.X, by = _b.SquareCoords.Y;
+		local seen = {};
+		for (local i = 1; i < n; i++)
+		{
+			local x = (ax + (bx - ax) * i.tofloat() / n + 0.5).tointeger();
+			local y = (ay + (by - ay) * i.tofloat() / n + 0.5).tointeger();
+			if (!::World.isValidTileSquare(x, y)) continue;
+			local t = ::World.getTileSquare(x, y);
+			if (t.ID in seen) continue;
+			seen[t.ID] <- true;
+			out.push(t);
+		}
+		return out;
+	}
+
+	function countType( _tiles, _type )
+	{
+		local c = 0;
+		foreach (t in _tiles) if (t.Type == _type) c++;
+		return c;
+	}
+
+	function pathLen( _a, _b )
+	{
+		try
+		{
+			local nav = ::World.getNavigator().createSettings();
+			nav.ActionPointCosts = ::Const.World.TerrainTypeNavCost;
+			local p = ::World.getNavigator().findPath(_a, _b, nav, 0);
+			if (p.isEmpty()) return -1;
+			return p.getSize();
+		}
+		catch (e) { ::logError("Skv.trail: findPath threw - " + e); }
+		return -2;
+	}
+
+	function standable( _t )
+	{
+		if (_t.Type == ::Const.World.TerrainType.Ocean) return false;
+		if (_t.Type == ::Const.World.TerrainType.Impassable) return false;
+		if (_t.IsOccupied) return false;
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			if (s.getTile().getDistanceTo(_t) < 4) return false;
+		}
+		return true;
+	}
+
+	function nearestStandable( _t, _r )
+	{
+		if (this.standable(_t)) return _t;
+		local best = null;
+		local bestD = 9999;
+		for (local x = _t.SquareCoords.X - _r; x <= _t.SquareCoords.X + _r; x++)
+		{
+			for (local y = _t.SquareCoords.Y - _r; y <= _t.SquareCoords.Y + _r; y++)
+			{
+				if (!::World.isValidTileSquare(x, y)) continue;
+				local c = ::World.getTileSquare(x, y);
+				local d = c.getDistanceTo(_t);
+				if (d > _r || d >= bestD) continue;
+				if (!this.standable(c)) continue;
+				best = c;
+				bestD = d;
+			}
+		}
+		return best;
+	}
+
+	function pathText( _p )
+	{
+		if (_p == -1) return "NO PATH";
+		if (_p == -2) return "path unreadable (logged)";
+		return _p + " steps";
+	}
+
+	function escortPay( _escort, _steps, _mult )
+	{
+		try
+		{
+			_escort.m.PaymentMult = 1.0;
+			_escort.m.DifficultyMult = _mult;
+		}
+		catch (e)
+		{
+			::logError("Skv.trail: could not pin the escort's multipliers - " + e);
+			return -1;
+		}
+		return this.escortFormula(_escort, _steps);
+	}
+
+	function escortFormula( _c, _steps )
+	{
+		local barter = 0.0;
+		try { barter = ::World.State.getPlayer().getBarterMult(); }
+		catch (e) { ::logError("Skv.trail: getBarterMult threw - " + e); }
+		try
+		{
+			return ::Math.max(150, _steps * (4 + 10 * barter) * _c.getPaymentMult()
+				* ::Math.pow(_c.getDifficultyMult(), ::Const.World.Assets.ContractRewardPOW)
+				* _c.getReputationToPaymentMult()).tointeger();
+		}
+		catch (e) { ::logError("Skv.trail: the escort formula threw - " + e); }
+		return -1;
+	}
+
+	function fullPay( _c, _steps )
+	{
+		local e = this.escortFormula(_c, _steps);
+		if (e < 0)
+		{
+			::logError("Skv.trail: the survey is priced at its floor (" + this.PayFloor + ") because the escort formula failed.");
+			return this.PayFloor;
+		}
+		return ::Math.max(this.PayFloor, (e * this.PayK).tointeger());
+	}
+
+	function house( _s )
+	{
+		local o = null;
+		try { o = _s.getOwner(); }
+		catch (e)
+		{
+			::logError("Skv.trail: getOwner threw on a settlement - " + e);
+			return null;
+		}
+		if (o == null || ::MSU.isNull(o)) return null;
+		try { if (o.getType() != ::Const.FactionType.NobleHouse) return null; }
+		catch (e)
+		{
+			::logError("Skv.trail: the owner's getType threw - " + e);
+			return null;
+		}
+		return o;
+	}
+
+	function hostWhy( _s, _radius = null )
+	{
+		if (_s == null || ::MSU.isNull(_s)) return "no settlement";
+		local r = _radius == null ? this.HostRadius : _radius;
+		if (_s.isMilitary()) return "fort";
+		if (_s.getSize() < 2) return "size 1, a village";
+		if (_s.isIsolated()) return "isolated";
+		local sf = null;
+		try { sf = _s.getFactionOfType(::Const.FactionType.Settlement); }
+		catch (e)
+		{
+			::logError("Skv.trail: getFactionOfType threw on " + _s.getName() + " - " + e);
+			return "settlement faction unreadable (logged)";
+		}
+		if (sf == null) return "no settlement faction";
+		if (this.house(_s) == null) return "not owned by a noble house";
+		if (_s.getSurroundingTilesOfType([::Const.World.TerrainType.Mountains], r).len() == 0)
+			return "no mountains within " + r;
+		return null;
+	}
+
+	function farTowns( _host )
+	{
+		local M = ::Const.World.TerrainType.Mountains;
+		local O = ::Const.World.TerrainType.Ocean;
+		local cands = [];
+		local wet = [];
+		foreach (d in ::World.EntityManager.getSettlements())
+		{
+			if (d == null || d.getID() == _host.getID() || d.isIsolated()) continue;
+			local dist = _host.getTile().getDistanceTo(d.getTile());
+			if (dist < this.MinDist || dist > this.MaxDist) continue;
+			local tiles = this.lineTiles(_host.getTile(), d.getTile());
+			local mc = this.countType(tiles, M);
+			if (mc < this.MinMountainsCrossed) continue;
+			local oc = this.countType(tiles, O);
+			local row = { D = d, Dist = dist, Mc = mc, Oc = oc, Tiles = tiles };
+			if (oc > this.MaxOceanCrossed) wet.push(row);
+			else cands.push(row);
+		}
+		cands.sort(function ( _a, _b )
+		{
+			if (_a.Mc != _b.Mc) return _b.Mc <=> _a.Mc;
+			if (_a.Dist != _b.Dist) return _a.Dist <=> _b.Dist;
+			return _a.D.getID() <=> _b.D.getID();
+		});
+		return { Cands = cands, Wet = wet };
+	}
+
+	function spaced( _c, _avoid )
+	{
+		if (_avoid == null) return true;
+		foreach (a in _avoid)
+		{
+			if (a != null && _c.getDistanceTo(a) < this.MinStopGap) return false;
+		}
+		return true;
+	}
+
+	function nearestSpaced( _t, _r, _avoid )
+	{
+		local best = null;
+		local bestD = 9999;
+		for (local x = _t.SquareCoords.X - _r; x <= _t.SquareCoords.X + _r; x++)
+		{
+			for (local y = _t.SquareCoords.Y - _r; y <= _t.SquareCoords.Y + _r; y++)
+			{
+				if (!::World.isValidTileSquare(x, y)) continue;
+				local c = ::World.getTileSquare(x, y);
+				local d = c.getDistanceTo(_t);
+				if (d > _r || d >= bestD) continue;
+				if (!this.standable(c) || !this.spaced(c, _avoid)) continue;
+				best = c;
+				bestD = d;
+			}
+		}
+		return best;
+	}
+
+	function stopTiers( _k )
+	{
+		local T = ::Const.World.TerrainType;
+		if (_k == 1) return [[T.Hills], [T.Forest, T.AutumnForest, T.SnowyForest]];
+		if (_k == 2) return [[T.Mountains], [T.Snow]];
+		if (_k == 3) return [[T.Hills], [T.SnowyForest, T.Forest]];
+		return [[T.Mountains], [T.Hills]];
+	}
+
+	function stopTerrainText( _k )
+	{
+		local out = "";
+		foreach (tier in this.stopTiers(_k))
+		{
+			foreach (t in tier) out = out + (out == "" ? "" : "/") + this.terrainName(t);
+		}
+		return out;
+	}
+
+	function nearestOfTypes( _t, _r, _types, _avoid )
+	{
+		local best = null;
+		local bestD = 9999;
+		for (local x = _t.SquareCoords.X - _r; x <= _t.SquareCoords.X + _r; x++)
+		{
+			for (local y = _t.SquareCoords.Y - _r; y <= _t.SquareCoords.Y + _r; y++)
+			{
+				if (!::World.isValidTileSquare(x, y)) continue;
+				local c = ::World.getTileSquare(x, y);
+				if (_types.find(c.Type) == null) continue;
+				local d = c.getDistanceTo(_t);
+				if (d > _r || d >= bestD) continue;
+				if (!this.standable(c) || !this.spaced(c, _avoid)) continue;
+				best = c;
+				bestD = d;
+			}
+		}
+		return best;
+	}
+
+	function stopTile( _point, _k, _avoid = null, _strict = true )
+	{
+		if (_point == null) return null;
+		foreach (tier in this.stopTiers(_k))
+		{
+			local t = this.nearestOfTypes(_point, this.StopSearchWide, tier, _avoid);
+			if (t != null) return t;
+		}
+		if (_strict) return null;
+		local t = this.nearestSpaced(_point, this.StopSearchWide, _avoid);
+		if (t == null) t = this.nearestStandable(_point, this.StopSearchWide);
+		return t;
+	}
+
+	function onScene( _t, _k )
+	{
+		if (_t == null) return false;
+		foreach (tier in this.stopTiers(_k))
+		{
+			if (tier.find(_t.Type) != null) return true;
+		}
+		return false;
+	}
+
+	function stopsAlong( _from, _to, _strict = true )
+	{
+		local out = [null, null, null, null];
+		if (_from == null || _to == null) return out;
+		local tiles = this.lineTiles(_from, _to);
+		local n = tiles.len();
+		if (n == 0) return out;
+
+		local prev = _from;
+		for (local k = 1; k <= 4; k++)
+		{
+			local idx = n * k / 5;
+			if (idx >= n) idx = n - 1;
+			local avoid = [prev];
+			if (k == 4) avoid.push(_to);
+			local t = this.stopTile(tiles[idx], k, avoid, _strict);
+			out[k - 1] = t;
+			if (t != null) prev = t;
+		}
+		return out;
+	}
+
+	function fallbackTarget( _host )
+	{
+		local h = _host.getTile();
+		local ms = _host.getSurroundingTilesOfType([::Const.World.TerrainType.Mountains], this.HostRadius);
+		if (ms.len() == 0) return null;
+		local m = null;
+		foreach (t in ms)
+		{
+			if (m == null) { m = t; continue; }
+			local dt = t.getDistanceTo(h);
+			local dm = m.getDistanceTo(h);
+			if (dt < dm || (dt == dm && t.ID < m.ID)) m = t;
+		}
+		local d = m.getDistanceTo(h);
+		if (d < 1) return m;
+		local dx = (m.SquareCoords.X - h.SquareCoords.X).tofloat();
+		local dy = (m.SquareCoords.Y - h.SquareCoords.Y).tofloat();
+		for (local reach = this.FallbackReach; reach > d; reach -= 2)
+		{
+			local s = reach.tofloat() / d;
+			local x = (h.SquareCoords.X + dx * s + 0.5).tointeger();
+			local y = (h.SquareCoords.Y + dy * s + 0.5).tointeger();
+			if (::World.isValidTileSquare(x, y)) return ::World.getTileSquare(x, y);
+		}
+		return m;
+	}
+
+	function stopsFor( _host, _far )
+	{
+		if (_far != null) return this.stopsAlong(_host.getTile(), _far.getTile(), true);
+		return this.stopsAlong(_host.getTile(), this.fallbackTarget(_host), false);
+	}
+
+	function walk( _chain, _capLegs )
+	{
+		local res = { Steps = 0, Broken = false, Why = "", Tight = "" };
+		for (local j = 1; j < _chain.len(); j++)
+		{
+			local a = _chain[j - 1];
+			local b = _chain[j];
+			if (a == null || b == null)
+			{
+
+				local k = b == null ? j : j - 1;
+				if (!res.Broken) res.Why = (k >= 1 && k <= 4)
+					? "stop " + k + ": no free " + this.stopTerrainText(k) + " tile within " + this.StopSearchWide
+					: "leg " + j + " has no stop tile";
+				res.Broken = true;
+				continue;
+			}
+			local gap = a.getDistanceTo(b);
+			if (gap < this.MinStopGap)
+			{
+				local t = "leg " + j + ": its ends stand " + gap + " tiles apart, under " + this.MinStopGap;
+				if (res.Tight == "") res.Tight = t;
+				if (_capLegs)
+				{
+					if (!res.Broken) res.Why = t;
+					res.Broken = true;
+					continue;
+				}
+			}
+			local p = this.pathLen(a, b);
+			if (p < 0)
+			{
+				if (!res.Broken) res.Why = "leg " + j + ": " + this.pathText(p);
+				res.Broken = true;
+				continue;
+			}
+			res.Steps += p;
+			local straight = ::Math.max(1, a.getDistanceTo(b));
+			if (_capLegs && p > this.LegMaxMult * straight)
+			{
+				if (!res.Broken) res.Why = "leg " + j + " is " + p + " steps for " + straight + " tiles";
+				res.Broken = true;
+			}
+		}
+		return res;
+	}
+
+	function plan( _host )
+	{
+		local ft = this.farTowns(_host);
+		local rejected = [];
+		foreach (c in ft.Cands)
+		{
+			local stops = this.stopsAlong(_host.getTile(), c.D.getTile());
+			local chain = [_host.getTile()];
+			chain.extend(stops);
+			chain.push(c.D.getTile());
+			local w = this.walk(chain, true);
+			if (w.Broken)
+			{
+				rejected.push(c.D.getName() + " (" + w.Why + ")");
+				continue;
+			}
+			return { Far = c.D, Stops = stops, Steps = w.Steps, Rejected = rejected };
+		}
+
+		local stops = this.stopsFor(_host, null);
+		local chain = [_host.getTile()];
+		chain.extend(stops);
+		chain.push(_host.getTile());
+		local w = this.walk(chain, false);
+		if (w.Broken) rejected.push("the fallback itself (" + w.Why + ")");
+
+		if (w.Tight != "") rejected.push("the fallback's stops are close, kept as the last resort (" + w.Tight + ")");
+
+		foreach (i, s in stops)
+		{
+			if (s != null && !this.onScene(s, i + 1))
+				rejected.push("fallback stop " + (i + 1) + " is on " + this.terrainName(s.Type)
+					+ ", not " + this.stopTerrainText(i + 1) + ", kept as the last resort");
+		}
+		return { Far = null, Stops = stops, Steps = w.Steps, Rejected = rejected };
+	}
+};
+
+::skvtrail <- function ( _radius = 5 )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.EntityManager == null)
+	{
+		::logInfo("Skv.trail: not in a campaign.");
+		return null;
+	}
+
+	local T = ::Skv.Trail;
+	local M = ::Const.World.TerrainType.Mountains;
+
+	local aware = false;
+	try
+	{
+		local a = ::World.Ambitions.getAmbition("ambition.make_nobles_aware");
+		aware = a != null && a.isDone();
+	}
+	catch (e) { ::logError("Skv.trail: make_nobles_aware lookup threw - " + e); }
+
+	::logInfo("== Skv.Trail (contract #18: the measurement, and each host's CONTRACT ROUTE) ==  day=" + ::World.getTime().Days);
+	::logInfo("  make_nobles_aware=" + (aware ? "DONE" : "not done  << the offer gate would block")
+		+ "   host radius=" + _radius + "   far town " + T.MinDist + "-" + T.MaxDist
+		+ " tiles, crossing >= " + T.MinMountainsCrossed + " mountain tiles and <= "
+		+ T.MaxOceanCrossed + " ocean tiles");
+
+	local houses = [];
+	try { houses = ::World.FactionManager.getFactionsOfType(::Const.FactionType.NobleHouse); }
+	catch (e)
+	{
+		::logError("Skv.trail: getFactionsOfType(NobleHouse) threw - " + e);
+		return null;
+	}
+
+	local escort = null;
+	try { escort = ::new("scripts/contracts/contracts/escort_caravan_contract"); }
+	catch (e) { ::logError("Skv.trail: could not build an escort to price against - " + e); }
+	local hosts = 0;
+	local withFar = 0;
+	local wetOnly = 0;
+	local doubledBack = 0;
+
+	foreach (f in houses)
+	{
+		local mine = f.getSettlements();
+		::logInfo("  HOUSE " + f.getName() + "  (" + mine.len() + " settlements)");
+		foreach (s in mine)
+		{
+			if (s == null) continue;
+			local m3 = s.getSurroundingTilesOfType([M], 3).len();
+			local m5 = s.getSurroundingTilesOfType([M], 5).len();
+			local m8 = s.getSurroundingTilesOfType([M], 8).len();
+
+			local why = T.hostWhy(s, _radius);
+			local ok = why == null;
+			::logInfo("    " + (ok ? "HOST " : "--   ") + s.getName() + "  size " + s.getSize()
+				+ "  mountains r3/r5/r8 = " + m3 + "/" + m5 + "/" + m8
+				+ (ok ? "" : "  [" + why + "]"));
+			if (!ok) continue;
+			hosts++;
+
+			local ft = T.farTowns(s);
+			local cands = ft.Cands;
+			local wet = ft.Wet;
+
+			local pl = T.plan(s);
+
+			if (pl.Far != null) withFar++;
+			local over = "";
+			foreach (i, r in pl.Rejected) over = over + (i == 0 ? "" : "; ") + r;
+			::logInfo("       CONTRACT ROUTE: " + (pl.Far != null ? "to " + pl.Far.getName() : "FALLBACK, into the mountains and back")
+				+ ", the walk " + pl.Steps + " steps" + (over == "" ? "" : "; passed over: " + over));
+
+			local sl = "";
+			foreach (i, st in pl.Stops)
+			{
+				sl = sl + (i == 0 ? "" : "  ·  ") + (i + 1) + " "
+					+ (st == null ? "NONE" : T.terrainName(st.Type) + " " + st.SquareCoords.X + "," + st.SquareCoords.Y);
+			}
+			::logInfo("         the contract's stops: " + sl);
+
+			foreach (w in wet)
+			{
+				::logInfo("       rejected (water): " + w.D.getName() + "  " + w.Dist + " tiles, "
+					+ w.Mc + " mountain tiles, " + w.Oc + " ocean tiles on the line");
+			}
+
+			if (cands.len() == 0 && wet.len() > 0) wetOnly++;
+
+			foreach (i, c in cands)
+			{
+				if (i >= 3) break;
+				::logInfo("       far town " + (i + 1) + ": " + c.D.getName() + "  " + c.Dist
+					+ " tiles, line crosses " + c.Mc + " mountain tiles");
+			}
+
+			local endTile = pl.Far != null ? pl.Far.getTile() : s.getTile();
+			local chain = [{ Name = s.getName(), Tile = s.getTile() }];
+			foreach (i, st in pl.Stops) if (st != null) chain.push({ Name = "stop " + (i + 1), Tile = st });
+			chain.push({ Name = pl.Far != null ? pl.Far.getName() : s.getName() + " (back)", Tile = endTile });
+			local back = false;
+			local total = pl.Steps;
+			local broken = false;
+			for (local j = 1; j < chain.len(); j++)
+			{
+				local a = chain[j - 1];
+				local b = chain[j];
+				local p = T.pathLen(a.Tile, b.Tile);
+				if (p < 0) broken = true;
+				local isBack = pl.Far != null && b.Tile.getDistanceTo(endTile) >= a.Tile.getDistanceTo(endTile);
+				if (isBack) back = true;
+				::logInfo("         leg " + a.Name + " -> " + b.Name + ": "
+					+ a.Tile.getDistanceTo(b.Tile) + " tiles, " + T.pathText(p) + (isBack ? "  BACK" : ""));
+			}
+			if (back) doubledBack++;
+			::logInfo("         the walk: " + (broken ? "BROKEN (a leg has no path)" : total + " steps in all")
+				+ (back ? ", doubles back (allowed)" : ""));
+
+			if (!broken && escort != null)
+			{
+				local line = "         pay (d 0.80 / 0.95 / 1.10): escort ";
+				local ours = "";
+				foreach (i, m in [0.80, 0.95, 1.10])
+				{
+					local e = T.escortPay(escort, total, m);
+					line = line + (i == 0 ? "" : " / ") + e;
+					if (e > 0)
+					{
+						local full = ::Math.max(T.PayFloor, (e * T.PayK).tointeger());
+						ours = ours + (i == 0 ? "" : " | ") + "poor " + (full / 2) + ", full " + full
+							+ ", bonus " + (full + full / 4);
+					}
+				}
+				::logInfo(line);
+				::logInfo("         #18 x" + T.PayK + ": " + ours);
+			}
+		}
+	}
+
+	::logInfo("  " + hosts + " towns could host (size 2+, not a fort, mountains within " + _radius + "); "
+		+ withFar + " of them reach a far town by the contract's route rules, " + (hosts - withFar) + " fall back to the employer"
+		+ " (" + wetOnly + " of those because every candidate crosses water); "
+		+ doubledBack + " of the walks double back.");
+	return null;
+};
+
+::skvtrailperk <- function ( _name = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.getPlayerRoster() == null)
+	{
+		::logInfo("Skv.trailperk: not in a campaign.");
+		return null;
+	}
+
+	local P = ::Legends.Perk.Pathfinder;
+	local inTree = function ( _bro )
+	{
+		try { return _bro.getBackground().getPerk(P) != null; }
+		catch (e) { ::logError("Skv.trailperk: getPerk threw on " + _bro.getName() + " - " + e); }
+		return false;
+	};
+
+	local pool = [];
+	local outside = [];
+	foreach (bro in ::World.getPlayerRoster().getAll())
+	{
+		local has = false;
+		try { has = ::Legends.Perks.has(bro, P); }
+		catch (e)
+		{
+			::logError("Skv.trailperk: Perks.has threw on " + bro.getName() + " - " + e);
+			continue;
+		}
+		if (_name != null)
+		{
+			if (bro.getName() == _name) pool.push(bro);
+		}
+		else if (!has)
+		{
+			pool.push(bro);
+			if (!inTree(bro)) outside.push(bro);
+		}
+	}
+
+	if (pool.len() == 0)
+	{
+		::logInfo("Skv.trailperk: nobody to grant it to"
+			+ (_name != null ? " (no brother named \"" + _name + "\")" : " (every brother already has Pathfinder)"));
+		return null;
+	}
+
+	local from = outside.len() > 0 ? outside : pool;
+	if (_name == null && outside.len() == 0)
+	{
+		::logInfo("Skv.trailperk: every candidate already has Pathfinder in his tree; testing that case instead.");
+	}
+	local bro = from[::Math.rand(0, from.len() - 1)];
+	local wasInTree = inTree(bro);
+
+	local res = { Added = null };
+	try
+	{
+		::Legends.Perks.grant(bro, P, function ( _perk )
+		{
+
+			res.Added = this.getBackground().addPerk(P, 0, false);
+			if (!res.Added) this.getBackground().m.PerkTreeMap[_perk.getID()].IsRefundable = false;
+		}.bindenv(bro));
+	}
+	catch (e)
+	{
+		::logError("Skv.trailperk: Perks.grant threw on " + bro.getName() + " - " + e);
+		return null;
+	}
+
+	local now = false;
+	local refundable = null;
+	try
+	{
+		now = ::Legends.Perks.has(bro, P);
+		local entry = bro.getBackground().getPerk(P);
+		refundable = entry == null ? null : entry.IsRefundable;
+	}
+	catch (e) { ::logError("Skv.trailperk: the read-back threw - " + e); }
+
+	::logInfo("Skv.trailperk: granted Pathfinder to " + bro.getName()
+		+ " -- was in his tree: " + wasInTree
+		+ ", added to his tree now: " + res.Added
+		+ ", has it: " + now
+		+ ", tree entry refundable: " + refundable + " (want false)");
+	::logInfo("Skv.trailperk: now look: his perk screen (shown, taken?), then a Potion of Oblivion"
+		+ " (does Pathfinder stay? are his points right?), then save, reload and look again.");
+	return bro;
+};
+
+::skvtrailpost <- function ( _force = false )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.trailpost: not in a campaign.");
+		return null;
+	}
+	local C = ::Const.Skv.Trail;
+	local key = C.OnceKey;
+	if (_force)
+	{
+		::Skv.Once.release(key);
+		::World.Flags.remove("SkvOnce." + key + ".retired");
+	}
+
+	local aware = false;
+	try
+	{
+		local a = ::World.Ambitions.getAmbition("ambition.make_nobles_aware");
+		aware = a != null && a.isDone();
+	}
+	catch (e) { ::logError("Skv.trailpost: make_nobles_aware lookup threw - " + e); }
+
+	::logInfo("== Skv.Trail (contract #18, the contract) ==  day=" + ::World.getTime().Days);
+	::logInfo("  once.active=" + ::World.Flags.has("SkvOnce." + key + ".active")
+		+ " once.retired=" + ::World.Flags.has("SkvOnce." + key + ".retired")
+		+ (::Skv.Once.isLocked(key) ? "  << BLOCKING" : "")
+		+ "   score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : "")
+		+ "   make_nobles_aware=" + (aware ? "DONE" : "not done  << BLOCKING (a (true) force skips it)"));
+
+	local open = [];
+	local live = null;
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		foreach (c in s.getContracts())
+		{
+			if (c.getType() == "contract.skv_trail") live = { S = s, C = c };
+		}
+		local why = ::Skv.Trail.hostWhy(s);
+		if (why == null) open.push(s);
+
+		if (why == null || why.find("no mountains") == 0)
+		{
+			::logInfo("    " + (why == null ? "HOST " : "--   ") + s.getName() + "  size " + s.getSize()
+				+ "  " + ::Skv.Debug.tilesAway(s) + " tiles" + (why == null ? "" : "   [" + why + "]"));
+		}
+	}
+	::logInfo("  " + open.len() + " town(s) can host (::Skv.Trail.hostWhy, the action's own rule).");
+
+	if (live == null)
+	{
+		local a = ::World.Contracts.getActiveContract();
+		if (a != null && a.getType() == "contract.skv_trail") live = { S = a.getHome(), C = a };
+	}
+	if (live != null)
+	{
+		local c = live.C;
+		local m = c.m;
+		local bits = function ( _v, _n )
+		{
+			local out = "";
+			for (local i = 0; i < _n; i++)
+			{
+				if ((_v & (1 << i)) == 0) continue;
+				out = out + (out == "" ? "" : " ") + i + ((_v & (1 << (i + 8))) != 0 ? "+" : "-");
+			}
+			return out == "" ? "none" : out;
+		};
+		::logInfo("  LIVE at " + (live.S == null ? "?" : live.S.getName()) + "  active=" + m.IsActive
+			+ "  stop=" + m.Stop + "  survey=" + m.DP + " points (floor " + C.PointsFloor + ", full " + C.PointsFull
+			+ ", bonus " + C.PointsBonus + ")  pool=" + m.Payment.Pool + "  diff=" + c.getDifficultyMult());
+		try
+		{
+			local d = c.destination();
+			::logInfo("    far town=" + (d != null ? d.getName() : "none (the fallback: back to the employer)")
+				+ "  house=" + c.houseName() + "  rival=" + c.rivalName()
+				+ "  marker=" + (::MSU.isNull(m.Marker) ? "none" : m.Marker.getName()));
+		}
+		catch (e) { ::logInfo("    (the route read threw: " + e + ")"); }
+		::logInfo("    nobles=" + m.Nobles + "  talks[done+passed / done-failed]=" + bits(m.NobleTalks, 6)
+			+ "  gift=" + m.GiftPaid + "  ravens=" + m.Ravens + "  gin=" + m.Gin
+			+ "  lore=" + m.Lore + " (orc \"" + m.OrcLoreName + "\", snow \"" + m.SnowLoreName + "\")");
+		::logInfo("    stream=" + bits(m.StreamTasks, 7) + "  travel=" + m.Travel
+			+ " [" + c.travelAt(0) + "/" + c.travelAt(1) + "/" + c.travelAt(2) + "]  actor=\"" + m.ActorName
+			+ "\"  rows=" + (m.Rows == null ? 0 : m.Rows.len()));
+	}
+
+	if (!_force) return live == null ? null : live.C;
+	if (live != null)
+	{
+		::logInfo("Skv.trailpost: already posted - not posting a second.");
+		return live.C;
+	}
+	if (open.len() == 0)
+	{
+		::logInfo("Skv.trailpost: no town can host it. See ::skvtrail() for every reason.");
+		return null;
+	}
+
+	local ready = [];
+	local rest = [];
+	foreach (h in open)
+	{
+		local r = false;
+
+		try { r = ::World.FactionManager.getFaction(h.getFaction()).isReadyForContract(::Const.Contracts.ContractCategoryMap.skv_trail_contract); }
+		catch (e)
+		{
+			::logError("Skv.trailpost: isReadyForContract threw at " + h.getName() + ", treated as ready - " + e);
+			r = true;
+		}
+		if (r) ready.push(h);
+		else rest.push(h);
+	}
+	local order = ::Skv.Debug.nearestFirst(ready);
+	order.extend(::Skv.Debug.nearestFirst(rest));
+	if (ready.len() == 0) ::logInfo("Skv.trailpost: NO host has a free Economy slot -- forcing past the slots (Skv.Debug.forcePost).");
+
+	::Skv.Once.claim(key);
+	local tried = "";
+	foreach (s in order)
+	{
+		local f = ::World.FactionManager.getFaction(s.getFaction());
+		local c = ::new("scripts/contracts/contracts/skv_trail_contract");
+		c.setFaction(f.getID());
+		c.setHome(s);
+		c.setEmployerID(f.getRandomCharacter().getID());
+		::Skv.Debug.forcePost(c);
+
+		foreach (x in s.getContracts())
+		{
+			if (x.getType() == "contract.skv_trail")
+			{
+				::logInfo("Skv.trailpost: FORCED onto the board at " + s.getName() + ", "
+					+ ::Skv.Debug.tilesAway(s) + " tiles away -- verified present"
+					+ (tried == "" ? "." : " (refused first at: " + tried + ")."));
+				return c;
+			}
+		}
+		tried = tried + (tried == "" ? "" : ", ") + s.getName();
+	}
+	::Skv.Once.release(key);
+	::logInfo("Skv.trailpost: REFUSED at every host (" + tried + ").");
 	return null;
 };
 

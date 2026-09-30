@@ -1,7 +1,20 @@
 if (!("Skv" in getroottable())) ::Skv <- {};
 ::Skv.XP <- {};
 
+::Skv.XP.pay <- function ( _plan )
+{
+	local rows = [];
+	foreach ( p in _plan )
+		rows.push(::Legends.EventList.changeBroExperience(p.bro, p.amount));
+	return rows;
+}
+
 ::Skv.XP.grant <- function ( _actor, _base, _mult = 1.0 )
+{
+	return ::Skv.XP.pay(::Skv.XP.grantPlan(_actor, _base, _mult));
+}
+
+::Skv.XP.grantPlan <- function ( _actor, _base, _mult = 1.0 )
 {
 	local rows = [];
 	local total = ::Math.round(_base * _mult);
@@ -37,17 +50,22 @@ if (!("Skv" in getroottable())) ::Skv <- {};
 		if (grant <= 0)
 			continue;
 
-		rows.push(::Legends.EventList.changeBroExperience(bro, grant));
+		rows.push({ bro = bro, amount = grant });
 	}
 
 	foreach ( a in actors )
 		if (!(a.getID() in paid) && perActor > 0)
-			rows.push(::Legends.EventList.changeBroExperience(a, perActor));
+			rows.push({ bro = a, amount = perActor });
 
 	return rows;
 }
 
 ::Skv.XP.partyEach <- function ( _each, _mult = 1.0 )
+{
+	return ::Skv.XP.pay(::Skv.XP.partyEachPlan(_each, _mult));
+}
+
+::Skv.XP.partyEachPlan <- function ( _each, _mult = 1.0 )
 {
 	local rows = [];
 	local each = ::Math.round(_each * _mult);
@@ -56,7 +74,7 @@ if (!("Skv" in getroottable())) ::Skv <- {};
 
 	local pool = ::World.getPlayerRoster().getAll().filter(@(_, b) !b.isInReserves());
 	foreach ( bro in pool )
-		rows.push(::Legends.EventList.changeBroExperience(bro, each));
+		rows.push({ bro = bro, amount = each });
 	return rows;
 }
 
@@ -72,6 +90,11 @@ if (!("Skv" in getroottable())) ::Skv <- {};
 }
 
 ::Skv.XP.check <- function ( _r, _mult = 1.0 )
+{
+	return ::Skv.XP.pay(::Skv.XP.checkPlan(_r, _mult));
+}
+
+::Skv.XP.checkPlan <- function ( _r, _mult = 1.0 )
 {
 	if (_r == null || !("ok" in _r) || !_r.ok)
 		return [];
@@ -92,11 +115,35 @@ if (!("Skv" in getroottable())) ::Skv <- {};
 	{
 		if (_r.total <= 0) return [];
 
-		return ::Skv.XP.partyEach(team, _mult);
+		return ::Skv.XP.partyEachPlan(team, _mult);
 	}
 
 	if (_r.actor == null) return [];
-	return ::Skv.XP.grant(_r.actor, solo, _mult);
+	return ::Skv.XP.grantPlan(_r.actor, solo, _mult);
+}
+
+::Skv.XP.checks <- function ( _results, _mult = 1.0 )
+{
+	local order = [];
+	local sum = {};
+	foreach ( r in _results )
+	{
+		foreach ( p in ::Skv.XP.checkPlan(r, _mult) )
+		{
+			local id = p.bro.getID();
+			if (id in sum)
+			{
+				sum[id].amount += p.amount;
+				continue;
+			}
+			sum[id] <- { bro = p.bro, amount = p.amount };
+			order.push(id);
+		}
+	}
+	local plan = [];
+	foreach ( id in order )
+		plan.push(sum[id]);
+	return ::Skv.XP.pay(plan);
 }
 
 ::Skv.XP.party <- function ( _base, _mult = 1.0 )

@@ -53,3 +53,6 @@
 
 ::Const.Contracts.ContractCategoryMap.skv_croak_contract <- ::Const.Contracts.Categories.Hunt;
 ::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_croak_action");
+
+::Const.Contracts.ContractCategoryMap.skv_trail_contract <- ::Const.Contracts.Categories.Economy;
+::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_trail_action");

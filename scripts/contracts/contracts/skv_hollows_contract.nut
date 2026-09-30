@@ -1926,7 +1926,8 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 				}
 				else if (mult >= 1.3)
 				{
-					script = "scripts/entity/tactical/enemies/direwolf_high";
+
+					script = "scripts/entity/tactical/enemies/skv_frenzied_direwolf";
 					id = ::Const.EntityType.Direwolf;
 				}
 

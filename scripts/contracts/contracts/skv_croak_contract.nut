@@ -731,7 +731,9 @@ this.skv_croak_contract <- this.inherit("scripts/contracts/contract", {
 				local tail = late
 					? "\n\nOne of them is already up on the highest bridge with its head turned this way, and it has been there a while. It fills its throat and lets out a sound like a wet drum, and the rest come up out of the reeds on both sides of you at once.\n\nThe big one in the middle carries a club with something written on it in mud, and the marks are still wet."
 					: "\n\nNone of them has looked up yet. The big one in the middle is arguing with a smaller one about something, in a language of grunts and long wet notes, and the company is over the first bridge before either of them turns round.";
-				this.Text = "[img]gfx/ui/events/" + ::Const.Skv.Croak.ImgPost + ".png[/img]{" + opening + tail + "}";
+
+				local img = late ? ::Const.Skv.Croak.ImgSeer : ::Const.Skv.Croak.ImgBoggard;
+				this.Text = "[img]gfx/ui/events/" + img + ".png[/img]{" + opening + tail + "}";
 
 				this.List = c.m.RouteRows == null ? [] : clone c.m.RouteRows;
 				this.List.push(late
@@ -851,7 +853,9 @@ this.skv_croak_contract <- this.inherit("scripts/contracts/contract", {
 			{
 				local c = this.Contract;
 				local C = ::Const.Skv.Croak;
-				this.Text = "[img]gfx/ui/events/" + C.ImgMarsh + ".png[/img]{The planks are a bad place to lose a fight. The company goes back over the bridges the way it came, with the water on both sides and that wet drumming sound following it out, and does not stop until the reeds are between it and the post.\n\nNobody is going back for the boy. Nobody is going into that channel after the other three.\n\nBut the company has seen the post, and it has seen what is living on it, and that is what " + c.m.Speaker + " sent it out here to find out.}";
+
+				local img = c.arrivedLate() ? C.ImgBoggard : C.ImgSeer;
+				this.Text = "[img]gfx/ui/events/" + img + ".png[/img]{The planks are a bad place to lose a fight. The company goes back over the bridges the way it came, with the water on both sides and that wet drumming sound following it out, and does not stop until the reeds are between it and the post.\n\nNobody is going back for the boy. Nobody is going into that channel after the other three.\n\nBut the company has seen the post, and it has seen what is living on it, and that is what " + c.m.Speaker + " sent it out here to find out.}";
 				this.List = [
 					{ id = 1, icon = "ui/icons/regular_damage.png", text = "Cadmus is lost, and the three stay in the water" },
 					{ id = 2, icon = "ui/icons/special.png", text = "You can still tell her what happened out here" }

@@ -217,7 +217,8 @@
 	ImgGozreh  = "skv_gozreh",
 	ImgGogunta = "skv_gogunta",
 
-	ImgPost    = "event_109",
+	ImgBoggard = "skv_boggard_warrior",
+	ImgSeer    = "skv_boggard_seer",
 	ImgHuts    = "event_94",
 	ImgBodies  = "event_103",
 	ImgGear    = "event_98",
