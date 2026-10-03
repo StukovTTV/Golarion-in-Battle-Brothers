@@ -121,8 +121,13 @@ if (!("Skv" in ::getroottable()))
 
 	function previewRows( _paths, _coin = 0, _prefix = "You gain " )
 	{
+		return this.previewItems(this.make(_paths), _coin, _prefix);
+	}
+
+	function previewItems( _items, _coin = 0, _prefix = "You gain " )
+	{
 		local rows = [];
-		foreach (it in this.make(_paths))
+		foreach (it in _items)
 		{
 			local qty = "";
 			local amt2 = it.isAmountShown() ? it.getAmount() : 0;
@@ -4677,4 +4682,248 @@ if (!("Skv" in ::getroottable()))
 		+ " tongue=" + frog.getSkills().hasSkill("actives.serpent_hook"));
 	::logInfo("  ::skvfrog() spawns one of each · ::skvfrog(\"seer\") one · tint/scale still live: ::Const.Skv.Boggard.Tint = \"#9cb87a\";");
 	return frog;
+};
+
+::Skv.Bygones <- {
+
+	function namedHost()
+	{
+		local C = ::Const.Skv.Bygones;
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			try { if (s.getName() == C.HostName) return s; }
+			catch (e) { ::logError("Skv.Bygones: getName threw on a settlement - " + e); }
+		}
+		return null;
+	}
+
+	function hostWhy( _s )
+	{
+		local C = ::Const.Skv.Bygones;
+		if (_s == null || ::MSU.isNull(_s)) return "no settlement";
+		if (!::MSU.isKindOf(_s, C.HostClass)) return "not a fishing village";
+		local named = this.namedHost();
+		if (named != null && named.getID() != _s.getID()) return C.HostName + " is on the map, and only it can host";
+		if (_s.isIsolated()) return "isolated";
+		local sf = null;
+		try { sf = _s.getFactionOfType(::Const.FactionType.Settlement); }
+		catch (e)
+		{
+			::logError("Skv.Bygones: getFactionOfType threw on " + _s.getName() + " - " + e);
+			return "settlement faction unreadable (logged)";
+		}
+		if (sf == null) return "no settlement faction";
+		local h = ::Skv.Trail.house(_s);
+		if (h == null) return "not owned by a noble house";
+		local hr = h.getPlayerRelation();
+		if (hr <= C.HouseRelLo) return "the house dislikes the company (relation " + hr + ", must be above " + C.HouseRelLo + ")";
+		if (hr >= C.HouseRelHi) return "the house is too close to the company (relation " + hr + ", must be below " + C.HouseRelHi + ")";
+		local tr = sf.getPlayerRelation();
+		if (tr <= C.TownRelMin) return "the town distrusts the company (relation " + tr + ", must be above " + C.TownRelMin + ")";
+		return null;
+	}
+
+	function live()
+	{
+		local a = ::World.Contracts.getActiveContract();
+		if (a != null && a.getType() == "contract.skv_bygones") return a;
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			foreach (c in s.getContracts())
+			{
+				if (c.getType() == "contract.skv_bygones") return c;
+			}
+		}
+		return null;
+	}
+};
+
+::skvbygones <- function ( _ignored = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.bygones: not in a campaign.");
+		return null;
+	}
+	local C = ::Const.Skv.Bygones;
+	local key = C.OnceKey;
+	local renown = ::World.Assets.getBusinessReputation();
+	::logInfo("== Skv.Bygones (contract #19) ==  day=" + ::World.getTime().Days);
+	::logInfo("  once.active=" + ::World.Flags.has("SkvOnce." + key + ".active")
+		+ " once.retired=" + ::World.Flags.has("SkvOnce." + key + ".retired")
+		+ (::Skv.Once.isLocked(key) ? "  << BLOCKING" : "")
+		+ "   score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : "")
+		+ "   renown=" + renown + (renown < C.RenownGate ? "  << BLOCKING (needs " + C.RenownGate + ")" : ""));
+	local named = ::Skv.Bygones.namedHost();
+	::logInfo("  " + C.HostName + ": " + (named == null ? "not on this map (any fishing village can host)" : "on the map at " + named.getName() + ", " + ::Skv.Debug.tilesAway(named) + " tiles away (ONLY it can host)"));
+	local open = 0;
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		if (!::MSU.isKindOf(s, C.HostClass)) continue;
+		local why = ::Skv.Bygones.hostWhy(s);
+		if (why == null) open = open + 1;
+		::logInfo("    " + (why == null ? "HOST " : "--   ") + s.getName() + "  " + ::Skv.Debug.tilesAway(s) + " tiles"
+			+ (why == null ? "" : "   [" + why + "]"));
+	}
+	::logInfo("  " + open + " fishing village(s) can host (::Skv.Bygones.hostWhy, the action's own rule).");
+
+	local c = ::Skv.Bygones.live();
+	if (c != null)
+	{
+		local m = c.m;
+		::logInfo("  LIVE at " + (c.getHome() == null ? "?" : c.getHome().getName()) + "  active=" + m.IsActive
+			+ "  act=" + m.Act + "  diff=" + c.getDifficultyMult() + "  pool=" + m.Payment.Pool + "  fee=" + c.finalPay()
+			+ "  house=" + c.houseName());
+		::logInfo("    moral snapshot=" + m.MoralSnapshot + " (penalty decent " + c.moralPenalty(false) + " / ruthless " + c.moralPenalty(true)
+			+ ")  accepted day " + m.DayAccepted + "  arrival day " + m.ArrivalDay + "  late=" + c.arrivedLate()
+			+ "  arenzo base " + m.ArenzoBase + " -> size " + c.arenzoSize());
+		::logInfo("    zefiro=" + m.Zefiro + " checkpoint=" + m.Checkpoint + " noticed=" + m.Noticed + " foxden=" + m.FoxDen
+			+ " knock=" + m.Knock + " garden=" + m.Garden + " ambush=" + m.Ambush + " keepsakes=" + m.Keepsakes
+			+ " mortuary=" + m.Mortuary + " jail=" + m.JailHours + "h");
+		::logInfo("    mireille=" + m.Mireille + " watch=" + m.Watch + " troll=" + m.Troll + " crypt=" + m.Crypt
+			+ " arenzo=" + m.Arenzo + " granted=" + m.Granted
+			+ "  marker=" + (::MSU.isNull(m.Marker) ? "none" : m.Marker.getName() + " at " + m.Marker.getTile().Coords.X + "," + m.Marker.getTile().Coords.Y
+				+ " terrain=" + m.Marker.getTile().Type + (m.Marker.getTile().Type == ::Const.World.TerrainType.Shore ? " (SHORE: should be inland since 1.4.3)" : "")));
+	}
+	return c;
+};
+
+::skvbygonespost <- function ( _force = false )
+{
+	local live = ::skvbygones();
+	if (!_force) return live;
+	local C = ::Const.Skv.Bygones;
+	local key = C.OnceKey;
+	if (live != null)
+	{
+		::logInfo("Skv.bygonespost: already posted - not posting a second.");
+		return live;
+	}
+	::Skv.Once.release(key);
+	::World.Flags.remove("SkvOnce." + key + ".retired");
+
+	local hosts = [];
+	local loose = [];
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		if (!::MSU.isKindOf(s, C.HostClass)) continue;
+		if (::Skv.Bygones.hostWhy(s) == null) { hosts.push(s); continue; }
+		local sf = null;
+		try { sf = s.getFactionOfType(::Const.FactionType.Settlement); } catch (e) { sf = null; }
+		if (sf != null && ::Skv.Trail.house(s) != null && !s.isIsolated()) loose.push(s);
+	}
+	local order = ::Skv.Debug.nearestFirst(hosts);
+	if (hosts.len() == 0)
+	{
+		::logInfo("Skv.bygonespost: NO village passes the host rule -- FORCING at the nearest fishing village with a house (relation band and the " + C.HostName + " rule SKIPPED).");
+		order = ::Skv.Debug.nearestFirst(loose);
+	}
+	if (order.len() == 0)
+	{
+		::logInfo("Skv.bygonespost: no fishing village with a settlement faction and a noble house on this map.");
+		return null;
+	}
+
+	::Skv.Once.claim(key);
+	local tried = "";
+	foreach (s in order)
+	{
+		local f = ::World.FactionManager.getFaction(s.getFaction());
+		local c = ::new("scripts/contracts/contracts/skv_bygones_contract");
+		c.setFaction(f.getID());
+		c.setHome(s);
+		c.setEmployerID(f.getRandomCharacter().getID());
+		::Skv.Debug.forcePost(c);
+
+		foreach (x in s.getContracts())
+		{
+			if (x.getType() == "contract.skv_bygones")
+			{
+				::logInfo("Skv.bygonespost: FORCED onto the board at " + s.getName() + ", "
+					+ ::Skv.Debug.tilesAway(s) + " tiles away -- verified present"
+					+ (tried == "" ? "." : " (refused first at: " + tried + ")."));
+				return c;
+			}
+		}
+		tried = tried + (tried == "" ? "" : ", ") + s.getName();
+	}
+	::Skv.Once.release(key);
+	::logInfo("Skv.bygonespost: REFUSED at every host (" + tried + ").");
+	return null;
+};
+
+::skvbygonesjump <- function ( _to = "crypt" )
+{
+	local c = ::Skv.Bygones.live();
+	if (c == null || !c.m.IsActive)
+	{
+		::logInfo("Skv.bygonesjump: no ACCEPTED Let Bygones Be. Post it with ::skvbygonespost(true) and accept it at the board first.");
+		return false;
+	}
+	local m = c.m;
+	local C = ::Const.Skv.Bygones;
+	if (_to == "city")
+	{
+		m.Act = 0; m.Zefiro = 0; m.Checkpoint = 0; m.Noticed = false; m.FoxDen = 0; m.Knock = 0;
+		m.Mireille = 0; m.Watch = 0; m.Rows = [];
+		if (c.getActiveState() == null || c.getActiveState().ID != "Running") c.setState("Running");
+		c.setScreen(c.cityScreen());
+	}
+	else if (_to == "knock")
+	{
+		m.Act = 0; m.Zefiro = 1; m.Checkpoint = 2; m.Noticed = false;
+		m.FoxDen = C.FoxDoorDone | C.FoxVelia | C.FoxDogDone; m.Knock = 0;
+		m.Mireille = 0; m.Watch = 0; m.Rows = [];
+		if (c.getActiveState() == null || c.getActiveState().ID != "Running") c.setState("Running");
+		c.setScreen("Knock");
+	}
+	else if (_to == "garden")
+	{
+		if (m.Mireille == 0) m.Mireille = 1;
+		c.spawnMarker();
+		if (m.ArrivalDay == 0) m.ArrivalDay = ::World.getTime().Days;
+		m.Act = 2; m.Garden = 0; m.Ambush = false; m.Mortuary = 0; m.Crypt = 0; m.Arenzo = 0; m.Troll = 0; m.Rows = [];
+		if (c.getActiveState() == null || c.getActiveState().ID != "Running") c.setState("Running");
+		c.setScreen("Garden");
+	}
+	else if (_to == "road")
+	{
+		if (m.Mireille == 0) m.Mireille = 1;
+		c.spawnMarker();
+		m.Act = 1;
+		if (c.getActiveState() == null || c.getActiveState().ID != "Running") c.setState("Running");
+		::logInfo("Skv.bygonesjump: on the road; walk to Emberhold.");
+		::skvbygones();
+		return true;
+	}
+	else if (_to == "crypt")
+	{
+		if (m.Mireille == 0) m.Mireille = 1;
+		c.spawnMarker();
+		if (m.ArrivalDay == 0) m.ArrivalDay = ::World.getTime().Days;
+		m.Act = 2; m.Ambush = false; m.Crypt = 0; m.Arenzo = 0; m.Troll = 0; m.Rows = [];
+		if (m.Garden == 0) m.Garden = 2;
+		if (m.Mortuary == 0) m.Mortuary = 2;
+		if (c.getActiveState() == null || c.getActiveState().ID != "Running") c.setState("Running");
+		c.setScreen("Crypt");
+	}
+	else if (_to == "pay")
+	{
+		if (m.Mireille == 0) m.Mireille = 1;
+		if (m.Crypt == 0) m.Crypt = 1;
+		if (m.Arenzo == 0) m.Arenzo = 1;
+		m.Act = 3;
+		c.killMarker();
+		c.setState("Return");
+		c.setScreen("Pay");
+	}
+	else
+	{
+		::logInfo("Skv.bygonesjump: unknown stop \"" + _to + "\". Use \"city\", \"knock\", \"road\", \"garden\", \"crypt\" or \"pay\".");
+		return false;
+	}
+	::World.Contracts.showActiveContract();
+	::logInfo("Skv.bygonesjump: jumped to " + _to + ".");
+	::skvbygones();
+	return true;
 };

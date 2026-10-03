@@ -56,3 +56,6 @@
 
 ::Const.Contracts.ContractCategoryMap.skv_trail_contract <- ::Const.Contracts.Categories.Economy;
 ::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_trail_action");
+
+::Const.Contracts.ContractCategoryMap.skv_bygones_contract <- ::Const.Contracts.Categories.Battle;
+::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_bygones_action");

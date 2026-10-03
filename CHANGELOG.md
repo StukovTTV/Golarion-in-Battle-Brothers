@@ -4,7 +4,65 @@ All notable changes to **Golarion Localization** are recorded here. The format l
 [Keep a Changelog](https://keepachangelog.com). The mod's own version is set in
 `scripts/!mods_preload/mod_golarion.nut` and carried by each GitHub Release.
 
-## [Unreleased]
+## [1.4] - playtest
+
+Adds the nineteenth contract: a noble house wants proof of an old treason, and the trail runs from
+the back streets of a fishing town to a burned keep up the coast. Also fixes the sale price of the
+mod's own valuables.
+
+### Contracts
+- **Let Bygones Be** (contract #19, once per campaign), adapted from Paizo's *Let Bygones Be*
+  (*Faithless and Forgotten, Part 1*, Pathfinder Society Scenario #7-14) by Brian J. Fruzen.
+  Offered by a fishing village owned by a noble house (Corentyn, if your map has one) to a company
+  with 250 renown that the house neither loves nor hates.
+
+  **The house wants the old story told its way.** A century ago it crushed a rival family for
+  treason and burned their keep. Now it wants proof of that treason for its festival, found by
+  outsiders so nobody can call it forged. The local curator knows where the records are, and he
+  is frightened of something closer to home: the watch is hunting a storyteller who keeps
+  telling the children a different version.
+
+  **In town, every door is a choice.** Calm the curator or threaten him, declare yourselves at the
+  harbour checkpoint or talk your way past, and when the watch knocks on the tavern door, get the
+  storyteller out the back, talk, bribe, disguise her, fight the watch with weapons the landlady
+  presses on you, or hand her over for the bounty. What you chose decides what the curator will
+  give you, and what the town and the house think of you afterwards.
+
+  **At the keep, something has been eating.** A garden that someone still tends, a mortuary with
+  the family painted on its walls, and in the crypt a chained troll and the last of the line, who
+  has become a Nachzehrer and grows bigger the longer you keep him waiting. Free the troll to fight
+  beside you or leave it hanging; bind the last of the family for the curator or take his head to
+  the house. Fleeing the crypt still gets you paid for the news, but at a cost to your name.
+
+  **The house remembers which way you went.** Decent and ruthless choices each pay in their own
+  coin, and a company with a reputation finds the choices against its nature a little harder.
+
+### Fixed
+- **The mod's own valuables now sell like the base game's loot.** The cut ruby, the jade
+  figurine, Kita's collar, both banners, the holy symbols of Nethys and Erastil and the amethyst
+  (from *Hollow's Last Hope*, *Master of the Fallen Fortress* and *Fane of Fangs*) were selling
+  for about a sixth of their worth. The cut ruby's description no longer names where it was
+  found, since a second contract hands it out.
+
+### Art
+- **Let Bygones Be** has its own map marker for the burned keep, made from Rick Hershey's
+  mausoleum, and three event images by him: the old docks, the gourd gardener and the chained
+  troll. Licensed stock art by **Rick Hershey**, used with the artist's written permission
+  (Publisher's Choice Quality Stock Art © Rick Hershey / Publisher's Choice Stock Art,
+  [patreon.com/StockArt](https://patreon.com/StockArt)).
+- The tavern door event image is licensed stock art by **Dean Spencer**, cropped and downscaled
+  to the game's event-image size. Some artwork © 2015 Dean Spencer, used with permission. All
+  rights reserved.
+
+### Dev tools
+- `::skvbygones()` reports the offer gate for the new contract and, while it runs, its state;
+  `::skvbygonespost(true)` forces the job onto the nearest eligible board, and
+  `::skvbygonesjump("city" | "knock" | "road" | "garden" | "crypt" | "pay")` jumps a running
+  contract to that point for testing.
+
+## [1.3] - playtest
+
+Adds the eighteenth contract: a noble house's survey of a caravan road over the mountains.
 
 ### Contracts
 - **Trailblazer's Bounty** (contract #18, once per campaign), adapted from Paizo's

@@ -1,0 +1,152 @@
+::Const.Skv.Bygones <- {
+	OnceKey = "Bygones",
+
+	RenownGate = 250,
+
+	HouseRelLo = 25,
+	HouseRelHi = 70,
+	TownRelMin = 25,
+
+	Rarity     = 12,
+
+	HostName = "Corentyn",
+	HostClass = "legends_fishing_village",
+
+	MarkerRadius  = 10,
+	MarkerMinDist = 4,
+	MarkerPathMax = 20,
+	MarkerEdge    = 3,
+
+	DiffLo = 70,
+	DiffHi = 110,
+
+	PayBase     = 350.0,
+
+	PoorPayMult = 0.5,
+	BountyMult  = 0.25,
+	HeadMult    = 0.25,
+
+	TownDone       = 10,
+	TownFled       = 5,
+	HouseDone      = 5,
+	TownMireille   = 5,
+	TownWatchFight = -20,
+	TownArrested   = -5,
+	TownGivenUp    = -5,
+	HouseGivenUp   = 10,
+	TownBound      = 5,
+	HouseHead      = 15,
+	HouseDeclared  = 5,
+
+	DecentFloor     = 45,
+	RuthlessCeiling = 55,
+	PenaltyPerPoint = 1,
+	PenaltyCap      = 30,
+
+	ArenzoName     = "Arenzo Davian",
+	ArenzoBase     = 2,
+	SizeSplitDiff  = 0.90,
+	LateDays       = 7,
+	JailHours      = 72,
+
+	PackBase = 85.0,
+	PackMin  = 50.0,
+
+	TrollName      = "Chained Troll",
+	TrollHPMult    = 0.5,
+	TrollHPStart   = 0.4,
+	TrollMeleeLoss = 20,
+
+	WatchBase = 60.0,
+
+	WatchMin  = 60.0,
+	WatchNoticedExtra = 15.0,
+
+	FoxDoorDone = 1,
+	FoxVelia    = 2,
+	FoxDogDone  = 4,
+	FoxWarned   = 8,
+
+	KnockPassed = 128,
+
+	ZefiroCalmBase   = 55,
+	CheckpointBase   = 50,
+	VeliaBase        = 55,
+	DogBase          = 45,
+	BackDoorBase     = 50,
+	TalkWatchBase    = 45,
+	BribeBase        = 55,
+	DisguiseBase     = 60,
+	GiveUpBase       = 60,
+	GardenBase       = 55,
+	LeshyBase        = 55,
+	MortuaryBase     = 50,
+	NoticedPenalty   = 10,
+	WarnedBonus      = 10,
+	CheckpointFine   = 30,
+
+	BribeMult        = 0.25,
+	ThanksMult       = 0.15,
+
+	MoralCalm   = 1,
+	MoralLean   = -1,
+	MoralSaved  = 2,
+	MoralGivenUp = -3,
+	MoralTend   = 1,
+	MoralClear  = -1,
+	MoralBound  = 1,
+	MoralHead   = -2,
+
+	LeshyLow  = 3,
+	LeshyHigh = 4,
+
+	ItemHolyWater = "scripts/items/tools/holy_water_item",
+	ItemSap       = "scripts/items/weapons/bludgeon",
+	ItemSword     = "scripts/items/weapons/longsword",
+	ItemMace      = "scripts/items/weapons/morning_star",
+	SwordCondition = 0.35,
+	ItemPotion    = "scripts/items/misc/skv_potion_of_cure_light_wounds",
+	ItemTome      = "scripts/items/loot/ornate_tome_item",
+	ItemRuby      = "scripts/items/loot/skv_cut_ruby",
+	ItemBanner    = "scripts/items/loot/skv_faded_banner",
+	ItemSeeds     = "scripts/items/supplies/legend_nuts_and_seeds_item",
+	SeedCount     = 3,
+
+	ItemAntidote  = "scripts/items/accessory/antidote_item",
+	ItemMead      = "scripts/items/supplies/preserved_mead_item",
+	MeadAmount    = 5,
+	ItemCuratorGift = "scripts/items/misc/skv_potion_of_cure_moderate_wounds",
+
+	ArcFlagArenzo = "Skv.Bygones.Arenzo",
+
+	GrantHolyWater = 1,
+	GrantWeapons   = 2,
+	GrantThanks    = 4,
+	GrantKeepsakes = 8,
+	GrantSeeds     = 16,
+	GrantBounty    = 32,
+	GrantHead      = 64,
+	GrantFee       = 128,
+	GrantRelations = 256,
+	GrantRenown    = 512,
+	GrantAntidote  = 1024,
+	GrantMead      = 2048,
+	GrantCuratorGift = 4096,
+
+	ImgOffer   = "event_180",
+	ImgLore    = "event_23",
+	ImgCurator = "event_184",
+	ImgCheckpoint = "event_98",
+	ImgDocks   = "skv_bygones_docks",
+	ImgDen     = "event_24",
+	ImgKnock   = "event_50",
+	ImgEscape  = "skv_bygones_escape",
+	ImgWatch   = "event_50",
+	ImgRecords = "event_184",
+	ImgKeep    = "event_68",
+	ImgGarden  = "skv_bygones_leshy",
+	ImgCrypt   = "event_32",
+	ImgTroll   = "skv_bygones_troll",
+	ImgArenzo  = "event_69",
+	ImgPay     = "event_180"
+};
