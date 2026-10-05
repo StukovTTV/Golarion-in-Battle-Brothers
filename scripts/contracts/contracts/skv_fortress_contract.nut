@@ -1938,10 +1938,13 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 		if (this.m.IsActive)
 		{
 			::Skv.Once.retire("Fortress");
+
 			if (!::MSU.isNull(this.m.Destination))
 			{
 				this.m.Destination.getSprite("selection").Visible = false;
+				this.m.Destination.die();
 			}
+			this.m.Destination = null;
 			if (this.m.Home != null && !this.m.Home.isNull())
 			{
 				this.m.Home.getSprite("selection").Visible = false;

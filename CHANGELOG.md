@@ -4,6 +4,43 @@ All notable changes to **Golarion Localization** are recorded here. The format l
 [Keep a Changelog](https://keepachangelog.com). The mod's own version is set in
 `scripts/!mods_preload/mod_golarion.nut` and carried by each GitHub Release.
 
+## [1.5] - playtest
+
+Adds the twentieth contract: someone is killing freed slaves in a city-state on the coast, and the
+Pathfinder lodge needs outside hands to find out who.
+
+### Contracts
+- **The Rose Street Revenge** (contract #20, once per campaign), adapted from Paizo's *The Rose
+  Street Revenge* (Pathfinder Society Playtest Scenario #1) by Leo Glass, Thurston Hillman, Joe
+  Pasini and Linda Zayas-Palmer. Offered by a coastal city-state to a company with 400 renown
+  that is not already known for its honour.
+
+  **A killer with no face.** Freed men and women are vanishing from the streets, and the lodge's
+  own agent is the latest. Valsin has three leads and nobody to follow them: a guild of cutthroats
+  the streets blame, kobolds in the drains who ask for help against newcomers, and a freedman
+  hiding in the drowned quarter. They wait on the map around the city, in any order you like.
+
+  **Every lead is a choice.** Talk, pose or pay your way to the guild; risk a trapped tunnel or a
+  pit beside the kobolds; win the trust of the ward's guard or give to her fund. A failed check
+  costs blood or a worse fight, seldom the lead itself, but a fight you run from closes its lead
+  for good.
+
+### Art
+- **The Rose Street Revenge** has seven event images of its own. Three kobolds are licensed stock
+  art by **Rick Hershey**, used with the artist's written permission (Publisher's Choice Quality
+  Stock Art © Rick Hershey / Publisher's Choice Stock Art,
+  [patreon.com/StockArt](https://patreon.com/StockArt)), set on an Unsplash marble photograph by
+  **Alexis Presa**. The holy symbol of **Milani** comes unaltered from Paizo's Community Use
+  Package, on the same marble.
+- The sunken ruin is licensed stock art by **Dean Spencer**, cropped and downscaled to the game's
+  event-image size. Some artwork © 2015 Dean Spencer, used with permission. All rights reserved.
+- The cavern is licensed stock art by **Daniel Comerci** (danielcomerci.com), cropped, downscaled
+  and slightly desaturated, used with the artist's permission for this mod only.
+- The brooding knight is by **Christof Grobelski**, from Sine Nomine Publishing's free *Godbound
+  Art Pack*, cropped, downscaled and slightly brightened.
+- The artwork belongs to its artists: the mod's MIT licence covers its code only (see the README,
+  Credits & legal).
+
 ## [1.4] - playtest
 
 Adds the nineteenth contract: a noble house wants proof of an old treason, and the trail runs from
@@ -53,12 +90,6 @@ mod's own valuables.
 - The tavern door event image is licensed stock art by **Dean Spencer**, cropped and downscaled
   to the game's event-image size. Some artwork © 2015 Dean Spencer, used with permission. All
   rights reserved.
-
-### Dev tools
-- `::skvbygones()` reports the offer gate for the new contract and, while it runs, its state;
-  `::skvbygonespost(true)` forces the job onto the nearest eligible board, and
-  `::skvbygonesjump("city" | "knock" | "road" | "garden" | "crypt" | "pay")` jumps a running
-  contract to that point for testing.
 
 ## [1.3] - playtest
 
@@ -143,11 +174,6 @@ fortnight. Also adds the boggards, a new enemy for the swamps.
   Legendary contract icon and the two Unsplash item icons are credited to their sources, and the
   README has a contact section.
 
-### Dev tools
-- `::skvcroak()` dumps the offer gate for the new contract, listing every settlement with its
-  size, the swamp within reach, whether it carries the missing-villagers trouble, and how far
-  away it is; `::skvcroak(true)` forces the job onto the nearest eligible board.
-
 ### Removed
 - The four unused placeholder noticeboard icons (`contract_type_pathfinder`, `_church`, `_szarni`,
   `_druid`, each with its greyscale twin) have been deleted. They had sat in the repo since v0.92.25
@@ -194,11 +220,6 @@ not who they say they are.
 - Nothing is cut off the ceustodaemon any more. It inherited the nachzehrer's drops and was leaving
   teeth, horns and growth pearls behind; a bound guardian of Abaddon owns nothing and leaves nothing.
   The wolves still drop what wolves drop.
-
-### Dev tools
-- The force switches (`::skvfane(true)`, `::skvtorment(true)`, `::skvzoldos(true)`, `::skvfortress(true)`)
-  now post the job at the **nearest** eligible town instead of a random one, and say how many tiles
-  away it is. `::skvfane()` also prints the distance to every town it lists.
 
 ## [1.0] - playtest
 
@@ -516,10 +537,9 @@ that shipped months ago.
   Take some of them home without killing it and she pays you half, without apology, because half is what
   half a job is worth.
 
-### Shared engine (`::Skv`)
-- **Settlement wealth is now one shared term instead of a copy in every contract that wanted it, and
-  fixing it changed what some towns pay.** Two contracts each carried their own hand written version, and
-  both used the same wrong baseline for what an average settlement is worth. Measured on a live map, 11
+### Gameplay
+- **Some towns now pay differently.** Two contracts read a settlement's wealth against the same wrong
+  baseline for what an average settlement is worth. Measured on a live map, 11
   of 26 settlements were being read incorrectly: every fort and every city state. The Choking Tower had
   been pinned at its own ceiling the whole time, so its wealth term was doing nothing at all.
 - **A whole company can now be asked to react at once.** Some checks are answered by your best man and
@@ -713,16 +733,16 @@ fight, and rounds the shared skill-check engine out across all six character att
   room (7 points) to leave in triumph; lose the games or sell the man out and the job fails. Reports back
   to the noble for goal-scaled experience and a bonus for warning him of the Sczarni plot.
 
-### Shared engine (`::Skv`)
-- `::Skv.Check` gains four more **composition flavors**: **`brawn`** (raw strength), **`handEye`** (a
-  steady hand and true eye), **`nerve`** (courage / Will), and **`guile`** vs **`charm`** (cold cunning at
-  cards vs. warm social showmanship), so a check now exists for every character axis. The **gambler's
-  gamble** turns the Gambler background into a wildcard: a random ±5 swing on the roll instead of a flat
-  bonus, while the Lucky trait stays a dependable +5.
-- New **in-town / no-travel crawl** pattern (a contract that plays as a chain of screens where you stand,
-  with no world marker to walk to), and a **per-brother hazard** beat that applies a real injury which
-  carries into the following battle.
-- **Debug logging** is now gated behind an in-game setting (off by default). Turn on *Debug logging
+### Gameplay
+- Skill checks now cover every side of a man: **brawn** (raw strength), a **steady hand and true eye**,
+  **nerve** (courage and will), and **guile** against **charm** (cold cunning at cards against warm
+  showmanship). The **Gambler** background becomes a wildcard: a random ±5 swing on the roll instead of
+  a flat bonus, while the Lucky trait stays a dependable +5.
+- Some contracts now play out **where you stand**, as a chain of screens with no marker to walk to, and
+  some hazards **injure one brother for real**, an injury that carries into the following battle.
+
+### Settings
+- **Debug logging** is now behind an in-game setting (off by default). Turn on *Debug logging
   (log.html)* in the mod's MSU settings to capture diagnostics for a bug report.
 
 ## [0.92] - playtest
@@ -747,19 +767,18 @@ screen.
 - New settlement-board **contract-type icons**: a redesigned Legendary plus **Pathfinder, Church,
   Druid, and Sczarni** (each with a greyscale variant), groundwork for org-flavored contract categories.
 
-### Shared engine (`::Skv`)
-- `::Skv.Check` gains **stat-free composition checks**: `agility` and `perception` pick the
-  best-suited *active* brother by his traits, background, and perks (no combat stats), and `scaledBase`
-  makes a check's difficulty track the contract's skull rating (with an in-game toggle). First use: the
-  ambush's two-stage spot-then-cross pit-trap, which can split its reward between two brothers.
-- **`::Skv.XP`**: a brother now earns **experience for passing a skill check**: a base award split
-  between the one who did it and the watching company, difficulty-scaled, wired across every checking
-  contract.
-- **Reusable goblin rosters** (`GolarionKobolds` / `GolarionKoboldsCasters`) so small scripted-fight
-  budgets buy an appropriately sized warband instead of being floored up to a crowd.
-- **Loadout from a contract**: open your company's inventory and gear screen from inside a contract
-  (a breather between fights, say) and return to the job afterwards, rather than being dropped back to
-  the world map.
+### Gameplay
+- **Agility and perception checks** pick your best-suited brother by his traits, background and perks,
+  not his combat stats, and a check's difficulty can follow the contract's skulls (an in-game toggle).
+  First use: the ambush's pit-trap, spotted by one brother and crossed by another, which can split its
+  reward between them.
+- A brother now earns **experience for passing a skill check**: an award split between the one who did
+  it and the watching company, scaled by difficulty, in every contract that has checks.
+- Small scripted fights against goblins buy an appropriately sized warband instead of being floored up
+  to a crowd.
+- **Gear from inside a contract**: open your company's inventory and gear screen from inside a
+  contract (a breather between fights, say) and return to the job afterwards, rather than being
+  dropped back to the world map.
 
 ### Tuning & fixes
 - Check-XP defaults retuned to a leaner spread (a smaller total, ~a third to the doer).
@@ -789,12 +808,10 @@ Adds the seventh contract and the scripted-combat tech behind it.
   coin, renown, moral, and mood outcomes, and background-aware reactions (pious vs. criminal brothers).
   Offered in the north and the southern city-states.
 
-### Shared engine (`::Skv`)
-- Scripted tactical combat launched straight from a contract screen, spawned from a **contract-owned,
-  pure-skeleton budget menu** (no vampire/hound leak from the stock undead list), with difficulty scaled
-  to company strength and an optional champion via `makeMiniboss`.
-- `::Skv.Loot.haul` now backs crawl loot, the crypt trophy, and the buy-back; `::Skv.Check` drives the
-  crypt-door lockpick.
+### Gameplay
+- Contracts can now start a fight straight from one of their screens, with an enemy list of their own
+  (the crypt holds skeletons only, no vampires or hounds from the stock undead list), difficulty scaled
+  to company strength, and sometimes a champion.
 
 ### Tuning
 - Azari release values: offer rate **13%**, door fee **620**, base pay pool **1000**, per-room loot
@@ -817,13 +834,6 @@ First tracked release. The mod is playable and stable; ongoing work is tuning, n
 - **The Wolves of the Green**: a noble bounty on great wolves that is not the hunt it looks like.
 - **Skull's Crossing**: a world-reactive job that appears only when a town is in real drought.
 - **Shadows on the Frontier**: a highland watchtower defense.
-
-### Shared engine (`::Skv`)
-- `::Skv.Once`: once-per-campaign offer gate (one live offer at a time; retires on accept-and-conclude).
-- `::Skv.Loot`: iconed loot rendered as Legends' own reward rows (item icons, quality frames, "+N" stacks).
-- `::Skv.Check`: roster skill-checks by background ladder.
-- `::Skv.Cfg`: MSU settings integration.
-- `::Skv.Debug`: dev-console helper (`::skvc()` lists where the mod's contracts have posted).
 
 ### Settings
 - One shared **Contract frequency (weight)** dial in MSU (`m.Score`, 0 = off, default 2), applied to

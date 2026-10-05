@@ -1080,10 +1080,13 @@ this.skv_azari_contract <- this.inherit("scripts/contracts/contract", {
 		if (this.m.IsActive)
 		{
 			::Skv.Once.retire("Azari");
+
 			if (!::MSU.isNull(this.m.Site))
 			{
 				this.m.Site.getSprite("selection").Visible = false;
+				this.m.Site.die();
 			}
+			this.m.Site = null;
 			if (this.m.Home != null && !this.m.Home.isNull())
 			{
 				this.m.Home.getSprite("selection").Visible = false;

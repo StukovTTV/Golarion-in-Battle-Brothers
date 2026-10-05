@@ -2,6 +2,8 @@ Golarion Localization (mod_golarion), a free fan mod for Battle Brothers with th
 
 Golarion Localization uses trademarks and/or copyrights owned by Paizo Inc., used under Paizo's Community Use Policy (paizo.com/licenses/communityuse). We are expressly prohibited from charging you to use or access this content. Golarion Localization is not published, endorsed, or specifically approved by Paizo. For more information about Paizo Inc. and Paizo products, visit paizo.com.
 
+The mod's MIT licence covers its code only. The artwork belongs to its artists and is used with their permission or under their licence; do not reuse it elsewhere unless its own licence, as credited in the README, allows that.
+
 Credits (the adapted adventures and their authors, and every art source) and contact:
 https://github.com/StukovTTV/Golarion-in-Battle-Brothers
 (README, sections "Credits & legal" and "Contact")

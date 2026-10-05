@@ -371,10 +371,13 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 		if (this.m.IsActive)
 		{
 			::Skv.Once.retire("Watchtower");
+
 			if (!::MSU.isNull(this.m.Destination))
 			{
 				this.m.Destination.getSprite("selection").Visible = false;
+				this.m.Destination.die();
 			}
+			this.m.Destination = null;
 		}
 	}
 

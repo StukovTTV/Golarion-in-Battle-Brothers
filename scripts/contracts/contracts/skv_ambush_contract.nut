@@ -787,10 +787,13 @@ this.skv_ambush_contract <- this.inherit("scripts/contracts/contract", {
 		if (this.m.IsActive)
 		{
 			::Skv.Once.retire("Ambush");
+
 			if (!::MSU.isNull(this.m.Site))
 			{
 				this.m.Site.getSprite("selection").Visible = false;
+				this.m.Site.die();
 			}
+			this.m.Site = null;
 			if (this.m.Destination != null && !this.m.Destination.isNull())
 			{
 				this.m.Destination.getSprite("selection").Visible = false;

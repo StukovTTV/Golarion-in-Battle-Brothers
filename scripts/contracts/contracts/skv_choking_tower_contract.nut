@@ -1614,10 +1614,12 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		if (this.m.IsActive)
 		{
 			::Skv.Once.retire("ChokingTower");
+
 			if (!::MSU.isNull(this.m.Destination))
 			{
 				this.m.Destination.getSprite("selection").Visible = false;
 			}
+			this.despawnSite();
 		}
 	}
 

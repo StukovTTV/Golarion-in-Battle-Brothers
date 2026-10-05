@@ -389,10 +389,13 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 		if (this.m.IsActive)
 		{
 			::Skv.Once.retire("SkullsCrossing");
+
 			if (!::MSU.isNull(this.m.Destination))
 			{
 				this.m.Destination.getSprite("selection").Visible = false;
+				this.m.Destination.die();
 			}
+			this.m.Destination = null;
 		}
 	}
 

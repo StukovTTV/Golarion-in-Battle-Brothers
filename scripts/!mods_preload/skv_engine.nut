@@ -4927,3 +4927,462 @@ if (!("Skv" in ::getroottable()))
 	::skvbygones();
 	return true;
 };
+
+::Skv.Rose <- {
+
+	function isSolidGround( _t )
+	{
+		local T = ::Const.World.TerrainType;
+		return _t.Type != T.Ocean && _t.Type != T.Shore && _t.Type != T.Impassable;
+	}
+
+	function nearMapEdge( _t )
+	{
+		local E = ::Const.Skv.Rose.SiteEdge;
+		local ms = ::World.getMapSize();
+		return _t.SquareCoords.X <= E || _t.SquareCoords.X >= ms.X - E
+			|| _t.SquareCoords.Y <= E || _t.SquareCoords.Y >= ms.Y - E;
+	}
+
+	function landSteps( _from, _to )
+	{
+		try
+		{
+			local nav = ::World.getNavigator().createSettings();
+			nav.ActionPointCosts = ::Const.World.TerrainTypeNavCost_Flat;
+			local p = ::World.getNavigator().findPath(_from, _to, nav, 0);
+			if (p.isEmpty()) return -1;
+			return p.getSize();
+		}
+		catch (e) { ::logError("Skv.Rose: findPath threw - " + e); }
+		return -2;
+	}
+
+	function isCityState( _s )
+	{
+		local fac = null;
+		try { fac = ::World.FactionManager.getFaction(_s.getFaction()); }
+		catch (e)
+		{
+			::logError("Skv.Rose: getFaction threw on a settlement - " + e);
+			return false;
+		}
+		return fac != null && fac.getType() == ::Const.FactionType.OrientalCityState;
+	}
+
+	function cityStates()
+	{
+		local out = [];
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			if (this.isCityState(s)) out.push(s);
+		}
+		return out;
+	}
+
+	function namedHost()
+	{
+		local C = ::Const.Skv.Rose;
+		foreach (s in this.cityStates())
+		{
+			try { if (s.getName() == C.HostName) return s; }
+			catch (e) { ::logError("Skv.Rose: getName threw on a city-state - " + e); }
+		}
+		return null;
+	}
+
+	function candidates( _s )
+	{
+		local C = ::Const.Skv.Rose;
+		local home = _s.getTile();
+		local shores = _s.getSurroundingTilesOfType([::Const.World.TerrainType.Shore], C.SiteRadius);
+		local out = { Tiles = [], Edge = 0, Shores = shores.len() };
+		local seen = {};
+		foreach (sh in shores)
+		{
+
+			for (local i = 0; i != 6; i = ++i)
+			{
+				if (!sh.hasNextTile(i)) continue;
+				local t = sh.getNextTile(i);
+				if (t.IsOccupied || !this.isSolidGround(t)) continue;
+				if (t.getDistanceTo(home) < C.SiteMinDist) continue;
+				local key = t.Coords.X + "," + t.Coords.Y;
+				if (key in seen) continue;
+				seen[key] <- true;
+				if (this.nearMapEdge(t)) { out.Edge = out.Edge + 1; continue; }
+				out.Tiles.push(t);
+			}
+		}
+		return out;
+	}
+
+	function spacedPick( _tiles, _n, _gap )
+	{
+		local best = [];
+		for (local i = 0; i < _tiles.len(); i = ++i)
+		{
+			local pick = [ _tiles[i] ];
+			for (local j = 0; j < _tiles.len() && pick.len() < _n; j = ++j)
+			{
+				if (j == i) continue;
+				local ok = true;
+				foreach (p in pick)
+				{
+					if (p.getDistanceTo(_tiles[j]) < _gap) { ok = false; break; }
+				}
+				if (ok) pick.push(_tiles[j]);
+			}
+			if (pick.len() >= _n) return pick;
+			if (pick.len() > best.len()) best = pick;
+		}
+		return best;
+	}
+
+	function coastWhy( _s )
+	{
+		local C = ::Const.Skv.Rose;
+		local c = this.candidates(_s);
+		if (c.Shores == 0) return "no coast within " + C.SiteRadius + " tiles";
+		if (c.Tiles.len() < C.SiteCount)
+			return "only " + c.Tiles.len() + " inland tile(s) beside the coast (" + c.Edge + " more at the map edge)";
+		local p = this.spacedPick(c.Tiles, C.SiteCount, C.SiteSpacing);
+		if (p.len() < C.SiteCount)
+			return "no " + C.SiteCount + " sites " + C.SiteSpacing + " tiles apart among " + c.Tiles.len() + " candidates (best " + p.len() + ")";
+		return null;
+	}
+
+	function hostWhy( _s )
+	{
+		local C = ::Const.Skv.Rose;
+		if (_s == null || ::MSU.isNull(_s)) return "no settlement";
+		if (!this.isCityState(_s)) return "not a city-state";
+		if (_s.isIsolated()) return "isolated";
+		if (_s.getSize() < 2) return "size < 2";
+		local why = this.coastWhy(_s);
+		if (why != null) return why;
+		local named = this.namedHost();
+		if (named != null && named.getID() != _s.getID() && this.coastWhy(named) == null)
+			return C.HostName + " is on the map and can host, so only it hosts";
+		return null;
+	}
+
+	function walkReport( _s )
+	{
+		local C = ::Const.Skv.Rose;
+		local home = _s.getTile();
+		local out = { Walk = [], Cut = 0, Far = 0, Pick = 0 };
+		foreach (t in this.candidates(_s).Tiles)
+		{
+			local n = this.landSteps(home, t);
+			if (n < 0) { out.Cut = out.Cut + 1; continue; }
+			if (n > C.SitePathMax) { out.Far = out.Far + 1; continue; }
+			out.Walk.push(t);
+		}
+		out.Pick = this.spacedPick(out.Walk, C.SiteCount, C.SiteSpacing).len();
+		return out;
+	}
+};
+
+::skvrose <- function ( _ignored = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.rose: not in a campaign.");
+		return null;
+	}
+	local C = ::Const.Skv.Rose;
+	local R = ::Skv.Rose;
+	local key = C.OnceKey;
+	local renown = ::World.Assets.getBusinessReputation();
+	local moral = -1;
+	try { moral = ::World.Assets.getMoralReputation(); }
+	catch (e) { ::logError("Skv.rose: getMoralReputation threw - " + e); }
+	::logInfo("== Skv.Rose (contract #20, gate diagnostic) ==  day=" + ::World.getTime().Days);
+	::logInfo("  once.active=" + ::World.Flags.has("SkvOnce." + key + ".active")
+		+ " once.retired=" + ::World.Flags.has("SkvOnce." + key + ".retired")
+		+ (::Skv.Once.isLocked(key) ? "  << BLOCKING" : "")
+		+ "   score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : "")
+		+ "   renown=" + renown + (renown < C.RenownGate ? "  << BLOCKING (needs " + C.RenownGate + ")" : "")
+		+ "   moral=" + moral + (moral >= C.MoralMax ? "  << BLOCKING (must be below " + C.MoralMax + ")" : ""));
+	::logInfo("  sites: radius " + C.SiteRadius + ", min " + C.SiteMinDist + " out, " + C.SiteSpacing + " apart, edge " + C.SiteEdge
+		+ ", walk <= " + C.SitePathMax + " steps (::Const.Skv.Rose, live-editable)");
+	local named = R.namedHost();
+	::logInfo("  " + C.HostName + ": " + (named == null ? "not on this map (any city-state that passes can host)"
+		: "on the map, " + ::Skv.Debug.tilesAway(named) + " tiles away"
+			+ (R.coastWhy(named) == null ? " (it passes, so ONLY it hosts)" : " (it fails the coast, so any other city-state may host)")));
+	local all = R.cityStates();
+	local open = 0;
+	foreach (s in all)
+	{
+		local why = R.hostWhy(s);
+		if (why == null) open = open + 1;
+		local c = R.candidates(s);
+		local w = R.walkReport(s);
+		::logInfo("    " + (why == null ? "HOST " : "--   ") + s.getName() + "  " + ::Skv.Debug.tilesAway(s) + " tiles"
+			+ "  shore " + c.Shores + "  candidates " + c.Tiles.len() + " (+" + c.Edge + " at edge)"
+			+ "  spaced " + R.spacedPick(c.Tiles, C.SiteCount, C.SiteSpacing).len() + "/" + C.SiteCount
+			+ "  walkable " + w.Walk.len() + " (cut " + w.Cut + ", far " + w.Far + ")"
+			+ "  walkable spaced " + w.Pick + "/" + C.SiteCount
+			+ (why == null ? "" : "   [" + why + "]"));
+	}
+	::logInfo("  " + open + " of " + all.len() + " city-state(s) can host (::Skv.Rose.hostWhy, the future gate's own rule)."
+		+ (open > 0 ? "" : "  << THIS MAP WOULD NEVER OFFER #20"));
+	return open;
+};
+
+::Skv.Rose.ringTiles <- function ( _s )
+{
+	local C = ::Const.Skv.Rose;
+	local home = _s.getTile();
+	local r = C.SiteRadius;
+	local out = [];
+	for (local x = home.SquareCoords.X - r; x <= home.SquareCoords.X + r; x = ++x)
+	{
+		for (local y = home.SquareCoords.Y - r; y <= home.SquareCoords.Y + r; y = ++y)
+		{
+			if (!::World.isValidTileSquare(x, y)) continue;
+			local t = ::World.getTileSquare(x, y);
+			local d = t.getDistanceTo(home);
+			if (d < C.SiteMinDist || d > r) continue;
+			if (t.IsOccupied || !this.isSolidGround(t) || this.nearMapEdge(t)) continue;
+			out.push(t);
+		}
+	}
+	return out;
+};
+
+::Skv.Rose.live <- function ()
+{
+	local a = ::World.Contracts.getActiveContract();
+	if (a != null && a.getType() == "contract.skv_rose") return a;
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		foreach (c in s.getContracts())
+		{
+			if (c.getType() == "contract.skv_rose") return c;
+		}
+	}
+	return null;
+};
+
+::Skv.Rose.gateReport <- ::skvrose;
+
+::skvrose <- function ( _ignored = null )
+{
+	local open = ::Skv.Rose.gateReport();
+	if (open == null) return null;
+	local c = ::Skv.Rose.live();
+	if (c == null)
+	{
+		::logInfo("  no live Rose Street Revenge (::skvrosepost(true) posts one at the nearest host).");
+		return null;
+	}
+	local m = c.m;
+	local C = ::Const.Skv.Rose;
+	local home = c.getHome();
+	::logInfo("  LIVE at " + (home == null ? "?" : home.getName()) + "  active=" + m.IsActive
+		+ "  state=" + (c.getActiveState() == null ? "?" : c.getActiveState().ID)
+		+ "  act=" + m.Act + "  diff=" + c.getDifficultyMult() + "  pool=" + m.Payment.Pool + "  fee=" + c.finalPay()
+		+ "  accepted day " + m.DayAccepted);
+	::logInfo("    leads=" + m.Leads + " found=" + m.Found + " (T=" + c.foundCount() + ") wordSent=" + m.WordSent
+		+ " wordDue=" + c.wordDue() + " cold=" + c.coldCase() + (c.coldCase() ? " (THE CONTRACT FAILS: all leads closed, nothing found)" : "")
+		+ " granted=" + m.Granted + " screen=" + (c.getActiveScreen() == null ? "none" : c.getActiveScreen().ID));
+	::logInfo("    rumours=" + m.Rumours + " snips=" + m.Snips + " alley=" + m.Alley + " captive=" + m.Captive
+		+ " tunnel=" + m.Tunnel + " sewer=" + m.Sewer + " ziraya=" + m.Ziraya + " climb=" + m.Climb + " attic=" + m.Attic
+		+ " descent=" + m.Descent + " door=" + m.Door + " finale=" + m.Finale + " evidence=" + m.Evidence);
+	::logInfo("    fights: alley budget " + c.alleyBudget() + " (" + (c.alleyCircle() ? "Circle" : "Line") + ")"
+		+ "  fazgyn joins=" + c.fazgynJoins() + "  finale budget " + c.finaleBudget() + " remna=" + c.remnaJoins()
+		+ " (" + (c.finaleCircle() ? "Circle" : "Line") + ")");
+	for (local k = 0; k < 4; k = k + 1)
+	{
+		local mk = c.marker(k);
+		if (::MSU.isNull(mk))
+		{
+			::logInfo("    " + C.Sites[k].Name + ": none");
+			continue;
+		}
+		local t = mk.getTile();
+		local steps = home == null ? -3 : ::Skv.Rose.landSteps(home.getTile(), t);
+		::logInfo("    " + C.Sites[k].Name + ": at " + t.Coords.X + "," + t.Coords.Y + " terrain=" + t.Type
+			+ (t.Type == ::Const.World.TerrainType.Shore ? " (SHORE: must not happen)" : "")
+			+ (home == null ? "" : "  " + t.getDistanceTo(home.getTile()) + " tiles, " + steps + " steps from the host"));
+	}
+	return c;
+};
+
+::skvrosepost <- function ( _force = false )
+{
+	local live = ::skvrose();
+	if (!_force) return live;
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null) return null;
+	local C = ::Const.Skv.Rose;
+	local key = C.OnceKey;
+	if (live != null)
+	{
+		::logInfo("Skv.rosepost: already posted - not posting a second.");
+		return live;
+	}
+	local skipped = [];
+	if (::Skv.Cfg.score() <= 0) skipped.push("the frequency dial (off)");
+	if (::Skv.Once.isLocked(key)) skipped.push("the once-lock");
+	if (::World.Assets.getBusinessReputation() < C.RenownGate) skipped.push("renown (" + ::World.Assets.getBusinessReputation() + " < " + C.RenownGate + ")");
+	local moral = -1;
+	try { moral = ::World.Assets.getMoralReputation(); }
+	catch (e) { ::logError("Skv.rosepost: getMoralReputation threw - " + e); }
+	if (moral >= C.MoralMax) skipped.push("moral (" + moral + ", must be below " + C.MoralMax + ")");
+	::Skv.Once.release(key);
+	::World.Flags.remove("SkvOnce." + key + ".retired");
+
+	local hosts = [];
+	local loose = [];
+	foreach (s in ::Skv.Rose.cityStates())
+	{
+		if (::Skv.Rose.hostWhy(s) == null) { hosts.push(s); continue; }
+		if (!s.isIsolated()) loose.push(s);
+	}
+	local order = ::Skv.Debug.nearestFirst(hosts);
+	if (hosts.len() == 0)
+	{
+		::logInfo("Skv.rosepost: NO city-state passes ::Skv.Rose.hostWhy -- FORCING at the nearest city-state that is not isolated (the coast and the "
+			+ C.HostName + " rule SKIPPED; the accept falls back for its markers, and says so).");
+		order = ::Skv.Debug.nearestFirst(loose);
+	}
+	if (order.len() == 0)
+	{
+		::logInfo("Skv.rosepost: no city-state that is not isolated on this map.");
+		return null;
+	}
+
+	::Skv.Once.claim(key);
+	local tried = "";
+	foreach (s in order)
+	{
+		local f = ::World.FactionManager.getFaction(s.getFaction());
+		if (f == null) { tried = tried + (tried == "" ? "" : ", ") + s.getName() + " (no faction)"; continue; }
+		local c = ::new("scripts/contracts/contracts/skv_rose_contract");
+		c.setFaction(f.getID());
+		c.setHome(s);
+		c.setEmployerID(f.getRandomCharacter().getID());
+		::Skv.Debug.forcePost(c);
+
+		foreach (x in s.getContracts())
+		{
+			if (x.getType() == "contract.skv_rose")
+			{
+				::logInfo("Skv.rosepost: FORCED onto the board at " + s.getName() + ", "
+					+ ::Skv.Debug.tilesAway(s) + " tiles away -- verified present"
+					+ (tried == "" ? "" : " (refused first at: " + tried + ")")
+					+ ". Gates stepped over: board readiness, hasContractExclusion and the " + C.Rarity + " % roll"
+					+ (skipped.len() == 0 ? "" : ", " + c.joinList(skipped, ", ")) + ".");
+				return c;
+			}
+		}
+		tried = tried + (tried == "" ? "" : ", ") + s.getName();
+	}
+	::Skv.Once.release(key);
+	::logInfo("Skv.rosepost: REFUSED at every host (" + tried + ").");
+	return null;
+};
+
+::skvrosejump <- function ( _to = "finale", _found = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null) return false;
+	local c = ::Skv.Rose.live();
+	if (c == null || !c.m.IsActive)
+	{
+		::logInfo("Skv.rosejump: no ACCEPTED Rose Street Revenge. Post it with ::skvrosepost(true) and accept it at the board first.");
+		return false;
+	}
+	local m = c.m;
+	local C = ::Const.Skv.Rose;
+	if (_found != null)
+	{
+		m.Found = _found.tointeger() & C.LeadBits;
+		::logInfo("Skv.rosejump: Found set to " + m.Found + ".");
+	}
+	local running = c.getActiveState() != null && c.getActiveState().ID == "Running";
+	if (_to == "docks" || _to == "drain" || _to == "quarter")
+	{
+		local k = _to == "docks" ? C.KindDocks : (_to == "drain" ? C.KindDrain : C.KindQuarter);
+		local bit = C.Sites[k].Bit;
+		m.Act = 0;
+		m.Leads = m.Leads & ~bit;
+		if (k == C.KindDocks) { m.Alley = 0; m.Snips = 0; m.Rumours = 0; m.Captive = 0; }
+		else if (k == C.KindDrain) { m.Sewer = 0; m.Tunnel = 0; }
+		else { m.Ziraya = 0; m.Climb = 0; m.Attic = 0; }
+		m.Rows = [];
+		if (!running) c.setState("Running");
+		try { c.spawnSite(k); }
+		catch (e) { ::logError("Skv.rosejump: could not spawn " + C.Sites[k].Name + " - " + e); }
+		c.updateObjectives();
+		c.setScreen(c.leadScreen(k));
+	}
+	else if (_to == "cold")
+	{
+
+		if (m.Found != 0) ::logInfo("Skv.rosejump: \"cold\" needs Found = 0; Found " + m.Found + " -> 0.");
+		m.Found = 0;
+		m.Act = 0;
+		m.WordSent = false;
+		m.Leads = C.LeadBits;
+		if (m.Alley == 0) m.Alley = 2;
+		if (m.Sewer == 0) m.Sewer = 2;
+		m.Finale = 0;
+		m.Rows = [];
+		if (!running) c.setState("Running");
+		c.killAll();
+		c.updateObjectives();
+
+		c.setScreen(null);
+	}
+	else if (_to == "word" && m.Found == 0)
+	{
+
+		::logInfo("Skv.rosejump: \"word\" refused - Found is 0 and the Word comes only after a find. Pass a found value, e.g. ::skvrosejump(\"word\", 1).");
+		return false;
+	}
+	else if (_to == "word")
+	{
+		m.Act = 0;
+		m.WordSent = false;
+		m.Rows = [];
+		if (!running) c.setState("Running");
+
+		c.setScreen(null);
+	}
+	else if (_to == "finale")
+	{
+		m.Act = 0;
+		m.WordSent = true;
+		m.Finale = 0;
+		m.Door = 0;
+		m.Descent = 0;
+		m.Rows = [];
+		if (!running) c.setState("Running");
+		try { c.spawnSite(C.KindSinkhole); }
+		catch (e) { ::logError("Skv.rosejump: could not spawn the sinkhole - " + e); }
+		c.updateObjectives();
+		c.setScreen("Sinkhole");
+	}
+	else if (_to == "pay")
+	{
+		if (m.Finale == 0) m.Finale = 1;
+		m.Act = 1;
+		m.Evidence = 0;
+		m.Rows = [];
+		c.killAll();
+		c.setState("Return");
+		c.setScreen("Pay");
+	}
+	else
+	{
+		::logInfo("Skv.rosejump: unknown stop \"" + _to + "\". Use \"docks\", \"drain\", \"quarter\", \"word\", \"cold\", \"finale\" or \"pay\".");
+		return false;
+	}
+	if (c.getActiveScreen() != null) ::World.Contracts.showActiveContract();
+	else ::logInfo("Skv.rosejump: \"" + _to + "\" opens on the next world tick (close the console; unpause if the world is paused).");
+	::logInfo("Skv.rosejump: jumped to " + _to + ".");
+	::skvrose();
+	return true;
+};

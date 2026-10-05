@@ -59,6 +59,22 @@
 ::Const.Skv.KoboldSpriteLayers <- ["quiver", "body", "injury_body", "armor",
                                    "head", "injury", "helmet", "helmet_damage", "body_blood"];
 
+::Const.Skv.faceKobold <- function ( _e, _flip )
+{
+	foreach (layer in ::Const.Skv.KoboldSpriteLayers)
+	{
+		try
+		{
+			local sp = _e.getSprite(layer);
+			if (sp != null) sp.setHorizontalFlipping(_flip);
+		}
+		catch (e)
+		{
+			::Skv.dbg("Skv.kobold: facing failed on '" + layer + "' - " + e);
+		}
+	}
+};
+
 ::Const.Skv.dressKobold <- function ( _e, _tint )
 {
 

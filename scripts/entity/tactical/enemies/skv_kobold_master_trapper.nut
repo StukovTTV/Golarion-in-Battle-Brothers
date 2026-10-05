@@ -66,4 +66,10 @@ this.skv_kobold_master_trapper <- this.inherit("scripts/entity/tactical/enemies/
 		}
 	}
 
+	function onFactionChanged()
+	{
+		this.goblin.onFactionChanged();
+		::Const.Skv.faceKobold(this, this.isAlliedWithPlayer());
+	}
+
 });

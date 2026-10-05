@@ -68,4 +68,9 @@ this.skv_kobold_guilecaster <- this.inherit("scripts/entity/tactical/enemies/leg
 		}
 	}
 
+	function onDeath( _killer, _skill, _tile, _fatalityType )
+	{
+		this.goblin.onDeath(_killer, _skill, _tile, _fatalityType);
+	}
+
 });

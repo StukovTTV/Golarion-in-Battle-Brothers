@@ -59,3 +59,6 @@
 
 ::Const.Contracts.ContractCategoryMap.skv_bygones_contract <- ::Const.Contracts.Categories.Battle;
 ::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_bygones_action");
+
+::Const.Contracts.ContractCategoryMap.skv_rose_contract <- ::Const.Contracts.Categories.Battle;
+::Const.FactionTrait.Actions[::Const.FactionTrait.OrientalCityState].push("scripts/factions/contracts/skv_rose_action");
