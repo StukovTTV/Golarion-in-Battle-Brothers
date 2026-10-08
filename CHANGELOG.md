@@ -4,6 +4,31 @@ All notable changes to **Golarion Localization** are recorded here. The format l
 [Keep a Changelog](https://keepachangelog.com). The mod's own version is set in
 `scripts/!mods_preload/mod_golarion.nut` and carried by each GitHub Release.
 
+## [1.6] - playtest
+
+Adds rumour sites: places that only appear on the map once a tavern tells you about them, and the
+first two of them to find.
+
+### World sites
+- **Tavern rumours that lead somewhere.** A rumour, bought or overheard, can now name a place
+  nobody had marked. The place appears on your map, uncovered, and the rumour tells you which way
+  and how far. Each site turns up at most once per campaign, and only in taverns near the land it
+  belongs to.
+- **The Silent Nation.** Heard in towns near the snow. A glacier in the far north where the dead
+  stand frozen in their ranks, and the ice has started to give them up. A hard fight from the first
+  day, and a harder one the longer it waits.
+- **M'botuu.** Heard in towns near the marshes. A boggard village under its chief, Sepoko: not a
+  war camp but a home, and the company will be judged for what it does there.
+
+### Art
+- The two sites' map markers are adapted from asset packs by **William Minish (Minish
+  Cartography)**, used under the [Creative Commons Attribution 4.0 licence (CC BY
+  4.0)](https://creativecommons.org/licenses/by/4.0/): the Silent Nation from the barrow tomb in
+  *Isometric Assets No. 32: Iron Age* (scaled down, desaturated, darkened, tinted a cold blue-grey,
+  its highlights lightened and its base blended into snow), and M'botuu from a tent under a dead
+  tree in *Isometric Assets No. 22: Orkish / Nomadic* (recoloured, its outline simplified by hand,
+  and scaled down).
+
 ## [1.5] - playtest
 
 Adds the twentieth contract: someone is killing freed slaves in a city-state on the coast, and the
