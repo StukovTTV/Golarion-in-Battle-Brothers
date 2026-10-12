@@ -886,6 +886,8 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			function update()
 			{
 
+				if (::Skv.Screens.hold(this.Contract)) return;
+
 				if (this.Contract.m.TowerDone)
 				{
 					if (this.Contract.m.Home != null && !this.Contract.m.Home.isNull())

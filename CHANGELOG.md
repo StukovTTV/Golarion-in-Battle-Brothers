@@ -4,6 +4,50 @@ All notable changes to **Golarion Localization** are recorded here. The format l
 [Keep a Changelog](https://keepachangelog.com). The mod's own version is set in
 `scripts/!mods_preload/mod_golarion.nut` and carried by each GitHub Release.
 
+## [1.7] - playtest
+
+Adds the twenty-first contract: the Pathfinder lodge has four letters to deliver in one city, and
+nobody of its own to carry them.
+
+### Contracts
+- **In Service to Lore** (contract #21, once per campaign, from 1.7.6), adapted from Paizo's *In
+  Service to Lore*, written by Adam Daigle: the opening part of *First Steps*, an introductory
+  scenario series for the Pathfinder Society. Offered by a city-state, by a large town, or by a
+  fort whose lord has heard of the company. It asks for no renown, so a young company can take it.
+
+  **Four doors, any order.** Valsin has promised a favour to four friends of the lodge: a
+  shopkeeper, a servant of the Dawnflower, an old sage, and the envoy of Cheliax. Each is marked
+  on the map around the city, and each says what is needed only when you knock. You may return to
+  Valsin whenever you like; an errand left open then stays undone.
+
+  **Your reputation decides what you can do.** Not every favour is one an honourable company can do, and
+  not every kindness is one a lawless company would stop for. What the company is known for is
+  read once, when you accept, and some choices are simply not offered to you.
+
+  **Paid by the errand.** A failed check costs blood, time or a harder fight, seldom the errand
+  itself. Three errands done are a success, and two still complete the contract.
+
+### Creatures
+- **Giant Rats and Dire Rats.** Two new beasts for cellars and warehouses: quick, unarmoured, and
+  dangerous in numbers, with a bite that poisons.
+
+### Art
+- Two of the contract's map markers, the Shining Star and the Envoy's House, are adapted from
+  *Isometric Assets No. 0* by **William Minish (Minish Cartography)**, used under the [Creative
+  Commons Attribution 4.0 licence (CC BY
+  4.0)](https://creativecommons.org/licenses/by/4.0/): the elven house and a Nuremberg house
+  (shadow removed, colours enhanced, a dilate filter applied, colour levels adjusted, and scaled
+  down).
+- Two event images use licensed stock art by **Rick Hershey**: Publisher's Choice Quality Stock
+  Art © Rick Hershey / Publisher's Choice Stock Art,
+  [patreon.com/StockArt](https://patreon.com/StockArt).
+- One event image is licensed stock art by **Henrik "Bag" Karppinen**, used with the artist's
+  permission.
+- One event image is a 19th-century natural history plate shared on Unsplash by **The New York
+  Public Library** under the Unsplash License.
+- One new item icon is adapted from licensed ink stock art by **William McAusland**
+  (Outland Arts), coloured by hand. His credit line is in the README.
+
 ## [1.6] - playtest
 
 Adds rumour sites: places that only appear on the map once a tavern tells you about them, and the

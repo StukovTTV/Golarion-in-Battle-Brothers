@@ -202,6 +202,8 @@ this.skv_metringer_contract <- this.inherit("scripts/contracts/contract", {
 			function update()
 			{
 
+				if (::Skv.Screens.hold(this.Contract)) return;
+
 				if (this.Contract.m.Leg == 3)
 				{
 					if (this.Contract.isPlayerAt(this.Contract.m.Home))

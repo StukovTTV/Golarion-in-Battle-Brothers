@@ -1350,6 +1350,8 @@ this.skv_rose_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				local c = this.Contract;
 				local C = ::Const.Skv.Rose;
 
@@ -1595,6 +1597,8 @@ this.skv_rose_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				local c = this.Contract;
 				if (c.m.Act != 1) return;
 				if (c.m.Home == null || c.m.Home.isNull()) return;

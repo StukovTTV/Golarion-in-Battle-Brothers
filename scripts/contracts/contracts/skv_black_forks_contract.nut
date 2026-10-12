@@ -116,6 +116,8 @@ this.skv_black_forks_contract <- this.inherit("scripts/contracts/contract", {
 			function update()
 			{
 
+				if (::Skv.Screens.hold(this.Contract)) return;
+
 				if (this.Contract.m.SiteCleared)
 				{
 					if (this.Contract.isPlayerAt(this.Contract.m.Home))

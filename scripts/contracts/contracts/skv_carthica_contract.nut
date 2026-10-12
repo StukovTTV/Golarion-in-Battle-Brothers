@@ -98,6 +98,8 @@ this.skv_carthica_contract <- this.inherit("scripts/contracts/contract", {
 			function update()
 			{
 
+				if (::Skv.Screens.hold(this.Contract)) return;
+
 				if (this.Contract.m.FightWon)
 				{
 					this.Contract.m.FightWon = false;

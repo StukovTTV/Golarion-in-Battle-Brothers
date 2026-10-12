@@ -1794,6 +1794,8 @@ this.skv_trail_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				local c = this.Contract;
 
 				local f = this.Flags.get("F18");

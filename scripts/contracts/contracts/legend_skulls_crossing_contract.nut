@@ -135,6 +135,8 @@ this.legend_skulls_crossing_contract <- this.inherit("scripts/contracts/contract
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				if (::MSU.isNull(this.Contract.m.Destination))
 				{
 					return;

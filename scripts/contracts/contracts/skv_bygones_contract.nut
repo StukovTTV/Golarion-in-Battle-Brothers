@@ -843,6 +843,8 @@ this.skv_bygones_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				local c = this.Contract;
 				local C = ::Const.Skv.Bygones;
 
@@ -1109,6 +1111,8 @@ this.skv_bygones_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				local c = this.Contract;
 				if (c.m.Act != 3) return;
 				if (c.m.Home == null || c.m.Home.isNull()) return;

@@ -136,6 +136,8 @@ this.legend_watchtower_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				if (::MSU.isNull(this.Contract.m.Destination))
 				{
 					this.Contract.setScreen("Cleared");

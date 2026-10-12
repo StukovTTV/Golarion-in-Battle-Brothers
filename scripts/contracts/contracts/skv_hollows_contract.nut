@@ -1684,6 +1684,8 @@ this.skv_hollows_contract <- this.inherit("scripts/contracts/contract", {
 			function update()
 			{
 
+				if (::Skv.Screens.hold(this.Contract)) return;
+
 				this.Contract.updateDeathToll();
 
 				if (this.Flags.get("IsVictory"))

@@ -156,6 +156,8 @@ this.skv_ambush_contract <- this.inherit("scripts/contracts/contract", {
 			function update()
 			{
 
+				if (::Skv.Screens.hold(this.Contract)) return;
+
 				if (this.Contract.m.FightWon)
 				{
 					this.Contract.m.FightWon = false;
@@ -243,6 +245,8 @@ this.skv_ambush_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 
 				if (this.Contract.m.Destination != null && !this.Contract.m.Destination.isNull() && this.Contract.isPlayerAt(this.Contract.m.Destination))
 				{

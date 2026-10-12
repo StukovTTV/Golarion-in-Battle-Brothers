@@ -143,6 +143,8 @@ this.skv_den_hunt_contract <- this.inherit("scripts/contracts/contract", {
 			function update()
 			{
 
+				if (::Skv.Screens.hold(this.Contract)) return;
+
 				if (this.Contract.m.Den == null || this.Contract.m.Den.isNull() || !this.Contract.m.Den.isAlive())
 				{
 					this.Contract.setScreen("Cleared");

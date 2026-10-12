@@ -165,6 +165,49 @@ if (!("Skv" in ::getroottable()))
 	function isRetired( _key ) { return ::World.Flags.has(this.retiredFlag(_key)); }
 };
 
+::Skv.Screens <- {
+
+	function canShow()
+	{
+		try
+		{
+			local st = ::World.State;
+			local es = st.getEventScreen();
+			if (es.isVisible() || es.isAnimating()) return false;
+			if (st.getCurrentTown() == null && st.getMenuStack().hasBacksteps()) return false;
+			return true;
+		}
+		catch (e)
+		{
+
+			::logError("Skv.Screens: could not read the world state's screens; assuming a screen can open - " + e);
+			return true;
+		}
+	}
+
+	function hold( _c )
+	{
+		if (!this.canShow()) return true;
+		if (_c == null) return false;
+
+		local set = false;
+		try { set = _c.getActiveScreen() != null; }
+		catch (e)
+		{
+			::logError("Skv.Screens: getActiveScreen threw; not holding - " + e);
+			return false;
+		}
+		if (!set) return false;
+
+		local a = ::World.Contracts.getActiveContract();
+		if (a == null || a.getID() != _c.getID()) return false;
+
+		::logInfo("Skv.Screens: " + _c.getName() + " has a screen set and nothing showing -> showing it again.");
+		::World.Contracts.showActiveContract();
+		return true;
+	}
+};
+
 ::Skv.Spawn <- {
 
 	function fill( _into, _list, _budget, _fac, _label = "fight", _fallback = null, _minibossify = 0 )
@@ -605,13 +648,66 @@ if (!("Skv" in ::getroottable()))
 	function lockpick( _contract, _base )
 	{
 		local r = this.bestByComposition(_contract, _base,
-			{ ["trait.dexterous"] = 16, ["trait.clumsy"] = -16 },
+			{ ["trait.dexterous"] = 16, ["trait.clumsy"] = -16, ["effect.skv_opening_wand"] = 20 },
 			{ ["background.thief"] = 26, ["background.graverobber"] = 14, ["background.killer_on_the_run"] = 14,
 			  ["background.assassin"] = 16, ["background.assassin_southern"] = 16, ["background.vagabond"] = 8 },
 			{ [::Legends.Perk.QuickHands] = 5 },
 			this.handEyeInjuries());
 		::Skv.dbg("Skv.Check.lockpick chance=" + r.chance + " roll=" + r.roll + (r.ok ? " PASS" : " FAIL") + " actor=" + _contract.m.ActorName);
+		this.spendWand(r);
 		return r;
+	}
+
+	function wandOf( _bro )
+	{
+		local items = _bro.getItems();
+		foreach (it in items.getAllItemsAtSlot(::Const.ItemSlot.Bag))
+		{
+			if (it.getID() == "accessory.skv_opening_wand") return it;
+		}
+		local acc = items.getItemAtSlot(::Const.ItemSlot.Accessory);
+		if (acc != null && acc.getID() == "accessory.skv_opening_wand") return acc;
+		return null;
+	}
+
+	function spendWand( _r )
+	{
+		if (_r == null || _r.actor == null) return;
+
+		local wand = null;
+		try { wand = this.wandOf(_r.actor); }
+		catch (e)
+		{
+			::logError("Skv.Check.lockpick: could not read " + _r.actor.getName() + "'s bag and accessory slots; no wand charge spent: " + e);
+			return;
+		}
+
+		if (wand == null) return;
+
+		local left = wand.spendCharge();
+		if (left > 0)
+		{
+
+			_r.wandRow <- _r.actor.getName() + "'s wand had " + left + " charge" + (left == 1 ? "" : "s") + " left.";
+			::logInfo("Skv.Wand: a charge spent by " + _r.actor.getName() + ", " + left + " left.");
+			return;
+		}
+
+		try
+		{
+
+			if (wand.getCurrentSlotType() == ::Const.ItemSlot.Bag) _r.actor.getItems().removeFromBag(wand);
+			else _r.actor.getItems().unequip(wand);
+			if (this.wandOf(_r.actor) != null)
+				::logError("Skv.Wand: the spent wand is still on " + _r.actor.getName() + " after its removal; it gives no bonus (0 charges) but is not gone.");
+			_r.wandRow <- _r.actor.getName() + "'s wand crumbled to dust.";
+			::logInfo("Skv.Wand: the last charge spent by " + _r.actor.getName() + "; the wand crumbled.");
+		}
+		catch (e)
+		{
+			_r.wandRow <- _r.actor.getName() + "'s wand was spent.";
+			::logError("Skv.Wand: the wand is at 0 but could not be removed from " + _r.actor.getName() + ": " + e);
+		}
 	}
 
 	function disarm( _contract, _base )
@@ -4684,6 +4780,227 @@ if (!("Skv" in ::getroottable()))
 	return frog;
 };
 
+::skvrat <- function ( _kind = null, _n = 1 )
+{
+	if (!("Tactical" in ::getroottable()) || ::Tactical == null || ::Tactical.State == null)
+	{
+		::logInfo("Skv.rat: not in a tactical fight. Start one, then run this.");
+		return null;
+	}
+
+	local which = _kind == null ? "giant" : _kind.tolower();
+
+	if (which == "nest")
+	{
+		local out = [];
+		foreach (k in ["giant", "giant", "giant", "dire"])
+		{
+			local one = ::skvrat(k, 1);
+			if (one != null) out.extend(one);
+		}
+		::logInfo("Skv.rat: a nest of " + out.len() + ".");
+		return out;
+	}
+
+	local script = null;
+	if (which == "giant") script = "scripts/entity/tactical/enemies/skv_giant_rat";
+	else if (which == "dire") script = "scripts/entity/tactical/enemies/skv_dire_rat";
+	else
+	{
+		::logInfo("Skv.rat: unknown kind '" + _kind + "'. Try giant, dire, nest, or no argument.");
+		return null;
+	}
+
+	local anchor = null;
+	try
+	{
+		foreach (a in ::Tactical.Entities.getInstancesOfFaction(::Const.Faction.Player))
+		{
+			if (a != null && a.isAlive() && a.getTile() != null) { anchor = a; break; }
+		}
+	}
+	catch (e)
+	{
+		::logError("Skv.rat: could not read the player's roster: " + e);
+		return null;
+	}
+
+	if (anchor == null)
+	{
+		::logInfo("Skv.rat: no living brother on the field to stand it next to.");
+		return null;
+	}
+
+	local fac = ::Const.Faction.Beasts;
+
+	local out = [];
+
+	for ( local k = 0; k < _n; k = k + 1 )
+	{
+
+		local from = anchor.getTile();
+		local dest = null;
+
+		for ( local r = 2; r <= 3 && dest == null; r = r + 1 )
+		{
+			for ( local i = 0; i < ::Const.Direction.COUNT && dest == null; i = i + 1 )
+			{
+				local t = from;
+				local ok = true;
+
+				for ( local step = 0; step < r; step = step + 1 )
+				{
+					if (!t.hasNextTile(i)) { ok = false; break; }
+					t = t.getNextTile(i);
+				}
+
+				if (ok && t.IsEmpty && t.IsOccupiedByActor == false) dest = t;
+			}
+		}
+
+		if (dest == null)
+		{
+			::logInfo("Skv.rat: no free tile within three of " + anchor.getName() + ". Make room and try again.");
+			break;
+		}
+
+		local rat = null;
+
+		try
+		{
+			rat = ::Tactical.spawnEntity(script, dest.Coords);
+			rat.setFaction(fac);
+		}
+		catch (e)
+		{
+			::logError("Skv.rat: the spawn threw: " + e);
+			break;
+		}
+
+		if (rat == null || !rat.isAlive())
+		{
+			::logError("Skv.rat: spawnEntity returned nothing usable.");
+			break;
+		}
+
+		out.push(rat);
+		local sk = rat.getSkills();
+		::logInfo("Skv.rat: " + rat.getName() + " at " + dest.Coords.X + "," + dest.Coords.Y
+			+ "  HP " + rat.getHitpoints() + "/" + rat.getHitpointsMax()
+			+ "  armour " + rat.getArmor(::Const.BodyPart.Body) + "/" + rat.getArmor(::Const.BodyPart.Head)
+			+ "  scale " + rat.m.SkvScale
+			+ "  body " + rat.getSprite("body").getBrush().Name + " head " + rat.getSprite("head").getBrush().Name);
+		::logInfo("  racial.spider=" + sk.hasSkill("racial.spider")
+			+ " backstabber=" + sk.hasSkill(::Legends.Perks.getID(::Legends.Perk.Backstabber))
+			+ " coup=" + sk.hasSkill(::Legends.Perks.getID(::Legends.Perk.CoupDeGrace))
+			+ " ninelives=" + sk.hasSkill(::Legends.Perks.getID(::Legends.Perk.NineLives))
+			+ " tumble=" + sk.hasSkill(::Legends.Perks.getID(::Legends.Perk.LegendTumble))
+			+ " (legendary=" + ::Legends.isLegendaryDifficulty() + ")"
+			+ " werewolf_bite(must be false)=" + sk.hasSkill("actives.werewolf_bite")
+			+ " pathfinder(must be false)=" + sk.hasSkill(::Legends.Perks.getID(::Legends.Perk.Pathfinder)));
+
+		foreach (id in ["actives.skv_rat_bite", "actives.skv_rat_claws"])
+		{
+			local s = sk.getSkillByID(id);
+			if (s == null) continue;
+
+			try
+			{
+				local p = sk.buildPropertiesForUse(s, null);
+				::logInfo("  " + id + ": damage " + p.DamageRegularMin + "-" + p.DamageRegularMax
+					+ " x" + p.DamageTotalMult + "  armour mult " + p.DamageArmorMult
+					+ "  head chance " + p.HitChance[::Const.BodyPart.Head] + "% (total, base 25)"
+					+ "  AP " + s.getActionPointCost() + " fatigue " + s.getFatigueCost());
+			}
+			catch (e)
+			{
+				::logError("Skv.rat: could not build " + id + "'s properties for use: " + e);
+			}
+		}
+	}
+
+	::logInfo("  ::skvrat() one Giant Rat | ::skvrat(\"dire\") | ::skvrat(\"nest\") | ::skvrat(\"giant\", 4)   (faction " + fac + ")");
+	return out;
+};
+
+::skvwand <- function ( _charges = 11 )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.getPlayerRoster() == null)
+	{
+		::logInfo("Skv.wand: no campaign loaded.");
+		return null;
+	}
+
+	foreach (bro in ::World.getPlayerRoster().getAll())
+	{
+		local worn = ::Skv.Check.wandOf(bro);
+		if (worn != null)
+		{
+			::logInfo("Skv.wand: " + bro.getName() + " already carries a wand (" + worn.getAmountString()
+				+ "). Move it to the stash and run this again, so BEFORE is a check with no wand.");
+			return null;
+		}
+	}
+
+	local stand = { m = { ActorName = "" } };
+	local before = null;
+
+	try
+	{
+		before = ::Skv.Check.lockpick(stand, 40);
+	}
+	catch (e)
+	{
+		::logError("Skv.wand: lockpick threw before the wand was given: " + e);
+		return null;
+	}
+
+	::logInfo("Skv.wand: BEFORE (no new wand): pick " + stand.m.ActorName + " chance " + before.chance
+		+ " roll " + before.roll + (before.ok ? " PASS" : " FAIL")
+		+ "  wandRow=" + (("wandRow" in before) ? before.wandRow : "(none)")
+		+ ("wandRow" in before ? "   WARNING: a wand was ALREADY worn by the pick" : "   (expected: none)"));
+
+	local wand = ::new("scripts/items/accessory/skv_opening_wand_item");
+	wand.m.Charges = ::Math.max(1, ::Math.min(_charges, wand.m.ChargesMax));
+
+	local who = null;
+	foreach (bro in ::World.getPlayerRoster().getAll())
+	{
+		if (bro.isInReserves()) continue;
+		local put = false;
+		try { put = bro.getItems().addToBag(wand); }
+		catch (e)
+		{
+			::logError("Skv.wand: addToBag threw putting the wand into " + bro.getName() + "'s bag: " + e);
+			return null;
+		}
+		if (put) { who = bro; break; }
+	}
+
+	if (who == null)
+	{
+		::logInfo("Skv.wand: no active brother has a free bag slot. Free one and run it again.");
+		return null;
+	}
+
+	if (::Skv.Check.wandOf(who) != wand)
+	{
+		::logError("Skv.wand: addToBag said yes, but " + who.getName() + "'s bag does not hold the wand.");
+		return null;
+	}
+
+	::logInfo("Skv.wand: " + who.getName() + " carries it in a bag slot (" + wand.getAmountString() + "), marker="
+		+ who.getSkills().hasSkill("effect.skv_opening_wand"));
+
+	local after = ::Skv.Check.lockpick(stand, 40);
+	::logInfo("Skv.wand: AFTER: pick " + stand.m.ActorName + " chance " + after.chance
+		+ " roll " + after.roll + (after.ok ? " PASS" : " FAIL")
+		+ "  wandRow=" + (("wandRow" in after) ? after.wandRow : "(none: the carrier was not the pick)")
+		+ "  still carried=" + (::Skv.Check.wandOf(who) == wand)
+		+ "  charges " + wand.getAmountString());
+	return wand;
+};
+
 ::Skv.Bygones <- {
 
 	function namedHost()
@@ -5384,5 +5701,638 @@ if (!("Skv" in ::getroottable()))
 	else ::logInfo("Skv.rosejump: \"" + _to + "\" opens on the next world tick (close the console; unpause if the world is paused).");
 	::logInfo("Skv.rosejump: jumped to " + _to + ".");
 	::skvrose();
+	return true;
+};
+
+::Skv.Lore <- {
+
+	function nearMapEdge( _t )
+	{
+		local E = ::Const.Skv.Lore.SiteEdge;
+		local ms = ::World.getMapSize();
+		return _t.SquareCoords.X <= E || _t.SquareCoords.X >= ms.X - E
+			|| _t.SquareCoords.Y <= E || _t.SquareCoords.Y >= ms.Y - E;
+	}
+
+	function ringTiles( _s )
+	{
+		local C = ::Const.Skv.Lore;
+		local R = ::Skv.Rose;
+		local home = _s.getTile();
+		local r = C.SiteRadius;
+		local out = [];
+		for (local x = home.SquareCoords.X - r; x <= home.SquareCoords.X + r; x = ++x)
+		{
+			for (local y = home.SquareCoords.Y - r; y <= home.SquareCoords.Y + r; y = ++y)
+			{
+				if (!::World.isValidTileSquare(x, y)) continue;
+				local t = ::World.getTileSquare(x, y);
+				local d = t.getDistanceTo(home);
+				if (d < C.SiteMinDist || d > r) continue;
+				if (t.IsOccupied || !R.isSolidGround(t) || this.nearMapEdge(t)) continue;
+				out.push(t);
+			}
+		}
+		return out;
+	}
+
+	function touchesShore( _t )
+	{
+		for (local i = 0; i != 6; i = ++i)
+		{
+			if (!_t.hasNextTile(i)) continue;
+			if (_t.getNextTile(i).Type == ::Const.World.TerrainType.Shore) return true;
+		}
+		return false;
+	}
+
+	function shuffled( _a )
+	{
+		local pool = clone _a;
+		local out = [];
+		while (pool.len() > 0)
+		{
+			local i = ::Math.rand(0, pool.len() - 1);
+			out.push(pool[i]);
+			pool.remove(i);
+		}
+		return out;
+	}
+
+	function shoreFirst( _tiles )
+	{
+		local shore = [];
+		local rest = [];
+		foreach (t in _tiles)
+		{
+			if (this.touchesShore(t)) shore.push(t);
+			else rest.push(t);
+		}
+		local out = this.shuffled(shore);
+		out.extend(this.shuffled(rest));
+		return out;
+	}
+
+	function factionOf( _s )
+	{
+		try { return ::World.FactionManager.getFaction(_s.getFaction()); }
+		catch (e) { ::logError("Skv.Lore: getFaction threw on a settlement - " + e); }
+		return null;
+	}
+
+	function rarity( _faction )
+	{
+		local C = ::Const.Skv.Lore;
+		try
+		{
+			if (_faction != null)
+			{
+				local t = _faction.getType();
+				if (t == ::Const.FactionType.OrientalCityState) return C.RaritySouth;
+				if (t == ::Const.FactionType.NobleHouse)        return C.RarityNoble;
+			}
+		}
+		catch (e)
+		{
+			::logError("Skv.Lore.rarity failed (using the northern rate): " + e);
+		}
+		return C.RarityNorth;
+	}
+
+	function kindOf( _s )
+	{
+		local f = this.factionOf(_s);
+		if (f == null) return null;
+		local mil = false;
+		try { mil = _s.isMilitary(); }
+		catch (e)
+		{
+			::logError("Skv.Lore: isMilitary threw at " + _s.getName() + " - " + e);
+			return null;
+		}
+		if (mil) return "military";
+		if (f.getType() == ::Const.FactionType.OrientalCityState) return "city-state";
+		return "civilian";
+	}
+
+	function postsHere( _s )
+	{
+		local f = this.factionOf(_s);
+		if (f == null) return false;
+		local t = f.getType();
+		if (t == ::Const.FactionType.Settlement || t == ::Const.FactionType.OrientalCityState) return true;
+		return t == ::Const.FactionType.NobleHouse && this.kindOf(_s) == "military";
+	}
+
+	function hostWhy( _s )
+	{
+		local C = ::Const.Skv.Lore;
+		if (_s == null || ::MSU.isNull(_s)) return "no settlement";
+		if (_s.isIsolated()) return "isolated";
+		local f = this.factionOf(_s);
+		if (f == null) return "its faction did not resolve";
+		local t = f.getType();
+		local k = this.kindOf(_s);
+		if (k == null) return "its kind could not be read";
+		if (k == "military")
+		{
+			if (t != ::Const.FactionType.NobleHouse) return "military, but its owner (faction type " + t + ") is not a noble house";
+
+			if (!::Skv.Anvil.noblesAware()) return "military, waiting on the make_nobles_aware ambition";
+		}
+		else if (t == ::Const.FactionType.Settlement)
+		{
+			if (_s.getSize() < C.HostSize) return "civilian, size " + _s.getSize() + " (needs " + C.HostSize + ")";
+		}
+		else if (t != ::Const.FactionType.OrientalCityState)
+		{
+
+			return "its faction (type " + t + ") cannot post it";
+		}
+		local ring = this.ringTiles(_s);
+		local p = ::Skv.Rose.spacedPick(ring, C.SiteCount, C.SiteSpacing);
+		if (p.len() < C.SiteCount)
+			return "only " + p.len() + " of " + C.SiteCount + " markers " + C.SiteSpacing + " apart among " + ring.len() + " ring tiles";
+		return null;
+	}
+
+	function live()
+	{
+		local a = ::World.Contracts.getActiveContract();
+		if (a != null && a.getType() == "contract.skv_lore") return a;
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			foreach (c in s.getContracts())
+			{
+				if (c.getType() == "contract.skv_lore") return c;
+			}
+		}
+		return null;
+	}
+
+	function ratBudget( _dm, _scaled, _ratcatcher )
+	{
+		local C = ::Const.Skv.Lore;
+		return C.RatBase * _dm * _scaled * (_ratcatcher ? C.RatcatcherMult : 1.0);
+	}
+
+	function alleyBudget( _dm, _scaled, _trim )
+	{
+		local C = ::Const.Skv.Lore;
+		return C.AlleyBase * _dm * _scaled * (_trim ? C.AlleyTrimMult : 1.0);
+	}
+
+	function nameGang( _units, _from, _cb )
+	{
+		local C = ::Const.Skv.Lore;
+		local idx = [];
+		for (local i = _from; i < _units.len(); i = i + 1)
+		{
+			local u = _units[i];
+			idx.push({ I = i, C = ("Cost" in u) ? u.Cost : 0 });
+		}
+		idx.sort(function ( _a, _b )
+		{
+			if (_a.C != _b.C) return _a.C > _b.C ? -1 : 1;
+			return _a.I <=> _b.I;
+		});
+		local n = ::Math.min(C.GangNames.len(), idx.len());
+		for (local k = 0; k < n; k = k + 1)
+		{
+			local u = _units[idx[k].I];
+			if ("Name" in u) u.Name = C.GangNames[k];
+			else u.Name <- C.GangNames[k];
+			if (_cb != null)
+			{
+				if ("Callback" in u) u.Callback = _cb;
+				else u.Callback <- _cb;
+			}
+		}
+		return n;
+	}
+
+	function scriptName( _u )
+	{
+		if (!("Script" in _u) || _u.Script == null) return "?";
+		local s = _u.Script;
+		local p = -1;
+		local q = s.find("/");
+		while (q != null)
+		{
+			p = q;
+			q = s.find("/", p + 1);
+		}
+		return s.slice(p + 1);
+	}
+};
+
+::skvlore <- function ( _ignored = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.lore: not in a campaign.");
+		return null;
+	}
+	local C = ::Const.Skv.Lore;
+	local L = ::Skv.Lore;
+	local key = C.OnceKey;
+	local moral = -1;
+	try { moral = ::World.Assets.getMoralReputation(); }
+	catch (e) { ::logError("Skv.lore: getMoralReputation threw - " + e); }
+	::logInfo("== Skv.Lore (contract #21, In Service to Lore) ==  day=" + ::World.getTime().Days);
+	::logInfo("  once.active=" + ::World.Flags.has("SkvOnce." + key + ".active")
+		+ " once.retired=" + ::World.Flags.has("SkvOnce." + key + ".retired")
+		+ (::Skv.Once.isLocked(key) ? "  << BLOCKING" : "")
+		+ "   score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : "")
+		+ "   make_nobles_aware=" + (::Skv.Anvil.noblesAware() ? "done (military hosts open)" : "not done (military hosts closed)")
+		+ "   moral=" + moral + " (band at accept: " + (moral >= C.LawfulMin ? "lawful" : (moral < C.LawlessMax && moral >= 0 ? "lawless" : "neutral")) + ")");
+	::logInfo("  rarity per faction update (#21's own): town " + C.RarityNorth + " %, city-state " + C.RaritySouth + " %, noble house " + C.RarityNoble + " %");
+	::logInfo("  ring: " + C.SiteMinDist + "-" + C.SiteRadius + " tiles, " + C.SiteCount + " markers " + C.SiteSpacing + " apart, edge " + C.SiteEdge
+		+ "; at accept NEAR " + C.NearRadius + " tiles / " + C.NearPathMax + " steps first, else " + C.SitePathMax + " steps (::Const.Skv.Lore, live-editable)");
+	local all = 0;
+	local open = 0;
+	local skipped = 0;
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		if (!L.postsHere(s))
+		{
+			skipped = skipped + 1;
+			continue;
+		}
+		all = all + 1;
+
+		local f = L.factionOf(s);
+		local why = L.hostWhy(s);
+		if (why == null) open = open + 1;
+		local kind = L.kindOf(s);
+		local coast = 0;
+		try { coast = s.getSurroundingTilesOfType([::Const.World.TerrainType.Shore], C.SiteRadius).len(); }
+		catch (e) { ::logError("Skv.lore: getSurroundingTilesOfType threw at " + s.getName() + " - " + e); }
+		local ring = L.ringTiles(s);
+		local shore = 0;
+		foreach (t in ring) if (L.touchesShore(t)) shore = shore + 1;
+		local pick = ::Skv.Rose.spacedPick(L.shoreFirst(ring), C.SiteCount, C.SiteSpacing);
+
+		local pickShore = false;
+		foreach (t in pick) if (L.touchesShore(t)) pickShore = true;
+		local karela = pick.len() < C.SiteCount ? "none" : (pickShore ? "by the shore (ring pick; the accept may differ)" : "any (the ring pick holds no shore tile)");
+		local ready = "?";
+		try
+		{
+			ready = (f.getType() == ::Const.FactionType.Settlement
+				? f.isReadyForContract(::Const.Contracts.ContractCategoryMap.skv_lore_contract)
+				: f.isReadyForContract()) ? "ready" : "full/cooldown";
+		}
+		catch (e) { ::logError("Skv.lore: isReadyForContract threw at " + s.getName() + " - " + e); }
+		::logInfo("    " + (why == null ? "HOST " : "--   ") + s.getName() + "  " + ::Skv.Debug.tilesAway(s) + " tiles"
+			+ "  " + (kind == null ? "?" : kind) + " size " + s.getSize()
+			+ "  " + (coast > 0 ? "coast" : "INLAND")
+			+ "  ring " + ring.len() + " (shore " + shore + ")  spaced " + pick.len() + "/" + C.SiteCount
+			+ "  Karela " + karela + "  board " + ready
+			+ (why == null ? "" : "   [" + why + "]"));
+	}
+	::logInfo("  " + open + " of " + all + " settlement(s) can host (::Skv.Lore.hostWhy, the gate's own rule; "
+		+ skipped + " owned by other faction types not listed)." + (open > 0 ? "" : "  << THIS MAP WOULD NEVER OFFER #21"));
+
+	local c = L.live();
+	if (c == null)
+	{
+		::logInfo("  no live In Service to Lore (::skvlorepost(true) posts one at the nearest host).");
+		return null;
+	}
+	local m = c.m;
+	local home = c.getHome();
+	::logInfo("  LIVE at " + (home == null ? "?" : home.getName()) + "  active=" + m.IsActive
+		+ "  state=" + (c.getActiveState() == null ? "?" : c.getActiveState().ID)
+		+ "  act=" + m.Act + "  diff=" + c.getDifficultyMult() + "  pool=" + m.Payment.Pool + "  fee=" + c.fee()
+		+ "  accepted day " + m.DayAccepted + "  band=" + m.Band
+		+ "  screen=" + (c.getActiveScreen() == null ? "none" : c.getActiveScreen().ID));
+	::logInfo("    closed=" + m.Closed + " done=" + m.Done + " (" + c.doneCount() + " done of " + c.closedCount() + " closed)"
+		+ "  tails rolled=" + c.tailsRolled() + " spotted=" + c.tailsSpotted() + " spotter=" + (m.Spotter == "" ? "-" : m.Spotter)
+		+ "  rats=" + m.Rats + " entry=" + m.Entry + "  alley=" + (m.Alley & 0x0F) + " named=" + c.alleyNamed()
+		+ "  tier now=" + c.tierName(c.tier()) + "  granted=" + m.Granted);
+	::logInfo("    fights: rats budget " + c.ratBudget() + " (" + (c.ratsRoused() ? "Circle" : "Line") + (c.ratcatcher() ? ", Ratcatcher" : "") + ")"
+		+ "  alley budget " + c.alleyBudget() + " (" + (c.alleyCircle() ? "Circle" : "Line")
+		+ (c.alleyTrim() ? ", trimmed" : "") + (c.alleySlow() ? ", named slowed" : "") + ")");
+
+	::logInfo("    karela=" + m.Karela + " (1 refused, 2 taken)  crate=" + m.Crate + " (odd pass, even fail: crane, brace, skiff)  dive=" + m.Dive
+		+ " (1 saved, 2 lost, 3 let go)  goods=" + m.Goods + " (1 spare goods and powder, 2 stripped, 4 powder used; powder held=" + c.powderHeld() + ")");
+	::logInfo("    baltwin: gossip=" + m.Gossip + " (1 pass, 2 fail, 3 skipped)  medicine=" + m.Medicine + " (1 handed over, 2 kept, 3 forced)  secrets=" + m.Secrets
+		+ " (1 drink, 2 stash, 4 labour; 8/16/32 tried; 64 wary; found " + c.secretsFound() + ")  report=" + m.Report + " (1 all, 2 soft, 3 silence then soft, 4 silence alone)");
+	::logInfo("    sage: moves=" + m.Moves + "  vault=" + m.Vault + " (1 study, 2 basket, 4 jar, 8 plain, 16 rune, 32 steel = map out, 64 key missed, 128 study passed, 256 jar named)  blue=" + m.Blue
+		+ " (tail penalty " + c.bluePenalty() + ")");
+	::logInfo("    zarta: imp=" + m.Imp + " (1/2 talk tried/passed, 4/8 blade tried/passed, 16 attempted; case in hand=" + c.caseInHand() + ")  case=" + m.Case
+		+ " (1 carried, 2 locks passed, 3 scratched, 4 lost)  opener=" + m.Opener + " (1 kept, 2 returned)");
+	::logInfo("    way back: gang=" + m.Gang + "  ledford=" + m.Ledford + " (1 spared, 2 watch, 3 finished)  revealed=" + m.Revealed + " (1 the imp, 2 the purse)  zarta=" + m.Zarta
+		+ " (1 told, 2 the visit, 3 nothing)  next screen at the host=" + (m.Act >= 1 ? c.wayBackScreen() : "-"));
+	::logInfo("    shares of fee " + c.fee() + ": karela " + c.karelaPay() + "  report all/soft " + c.reportPay(1) + "/" + c.reportPay(2) + "  silence " + c.silencePay()
+		+ "  purse " + c.pursePay() + "  watch " + c.watchPay() + "  cut " + c.cutPay() + "  visit " + c.visitPay()
+		+ "  || at Pay now: map " + c.mapPay() + " + case " + c.casePay() + " + finder " + c.finderPay() + " + wage " + c.wagePay() + " = " + c.payTotal()
+		+ ", renown " + c.tierRenown(c.tier()) + ", relation " + c.tierRelation(c.tier()));
+	local bitNames = [ "ShopRefuse", "Ratcatcher", "Crate", "KarelaPay", "Strip", "Kept", "Forced", "Silence", "Report", "Thanks", "MapOut", "AlleyAfter", "Pay", "Envoy2" ];
+	local set = [];
+	foreach (i, nm in bitNames) if ((m.Granted & (1 << i)) != 0) set.push(nm);
+	::logInfo("    granted=" + m.Granted + ": " + (set.len() == 0 ? "none" : c.joinList(set, ", ")));
+	for (local k = 0; k < 4; k = k + 1)
+	{
+		local mk = c.marker(k);
+		if (::MSU.isNull(mk))
+		{
+			::logInfo("    " + C.Sites[k].Name + ": none" + (c.isClosed(C.Sites[k].Bit) ? " (closed)" : "  << OPEN ERRAND WITHOUT A MARKER"));
+			continue;
+		}
+		local t = mk.getTile();
+		local steps = home == null ? -3 : ::Skv.Rose.landSteps(home.getTile(), t);
+		::logInfo("    " + C.Sites[k].Name + ": at " + t.Coords.X + "," + t.Coords.Y + " terrain=" + t.Type
+			+ (t.Type == ::Const.World.TerrainType.Shore ? " (SHORE: must not happen)" : "")
+			+ (L.touchesShore(t) ? " shore-side" : "")
+			+ (home == null ? "" : "  " + t.getDistanceTo(home.getTile()) + " tiles, " + steps + " steps from the host"));
+	}
+	return c;
+};
+
+::skvlorepost <- function ( _force = false )
+{
+	local live = ::skvlore();
+	if (!_force) return live;
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null) return null;
+	local C = ::Const.Skv.Lore;
+	local L = ::Skv.Lore;
+	local key = C.OnceKey;
+	if (live != null)
+	{
+		::logInfo("Skv.lorepost: already posted - not posting a second.");
+		return live;
+	}
+	local skipped = [];
+	if (::Skv.Cfg.score() <= 0) skipped.push("the frequency dial (off)");
+	if (::Skv.Once.isLocked(key)) skipped.push("the once-lock");
+	::Skv.Once.release(key);
+	::World.Flags.remove("SkvOnce." + key + ".retired");
+
+	local hosts = [];
+	local loose = [];
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		if (L.hostWhy(s) == null) { hosts.push(s); continue; }
+		if (!s.isIsolated() && L.postsHere(s)) loose.push(s);
+	}
+	local order = ::Skv.Debug.nearestFirst(hosts);
+	local forced = false;
+	if (hosts.len() == 0)
+	{
+		::logInfo("Skv.lorepost: NO settlement passes ::Skv.Lore.hostWhy -- FORCING at the nearest settlement that is not isolated "
+			+ "(its host rule SKIPPED, the reason is printed; the accept falls back for its markers, and says so).");
+		order = ::Skv.Debug.nearestFirst(loose);
+		forced = true;
+	}
+	if (order.len() == 0)
+	{
+		::logInfo("Skv.lorepost: no settlement on this map can post it.");
+		return null;
+	}
+
+	::Skv.Once.claim(key);
+	local tried = "";
+	foreach (s in order)
+	{
+		local f = ::World.FactionManager.getFaction(s.getFaction());
+		if (f == null) { tried = tried + (tried == "" ? "" : ", ") + s.getName() + " (no faction)"; continue; }
+		local c = ::new("scripts/contracts/contracts/skv_lore_contract");
+		c.setFaction(f.getID());
+		c.setHome(s);
+		c.setEmployerID(f.getRandomCharacter().getID());
+		::Skv.Debug.forcePost(c);
+
+		foreach (x in s.getContracts())
+		{
+			if (x.getType() == "contract.skv_lore")
+			{
+				::logInfo("Skv.lorepost: FORCED onto the board at " + s.getName() + " (" + L.kindOf(s) + ", size " + s.getSize() + "), "
+					+ ::Skv.Debug.tilesAway(s) + " tiles away -- verified present"
+					+ (tried == "" ? "" : " (refused first at: " + tried + ")")
+					+ ". Gates stepped over: board readiness, hasContractExclusion and the rarity roll ("
+					+ L.rarity(f) + " %)" + (skipped.len() == 0 ? "" : ", " + c.joinList(skipped, ", "))
+					+ (forced ? ", AND THE HOST RULE [" + L.hostWhy(s) + "]" : "") + ".");
+				return c;
+			}
+		}
+		tried = tried + (tried == "" ? "" : ", ") + s.getName();
+	}
+	::Skv.Once.release(key);
+	::logInfo("Skv.lorepost: REFUSED at every host (" + tried + ").");
+	return null;
+};
+
+::skvlorejump <- function ( _to = "street", _done = null, _band = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null) return false;
+	local c = ::Skv.Lore.live();
+	if (c == null || !c.m.IsActive)
+	{
+		::logInfo("Skv.lorejump: no ACCEPTED In Service to Lore. Post it with ::skvlorepost(true) and accept it at the board first.");
+		return false;
+	}
+	local m = c.m;
+	local C = ::Const.Skv.Lore;
+
+	local stops = {
+		karela    = { K = C.KindKarela,  Set = function ( _m ) {} },
+		pier      = { K = C.KindKarela,  Set = function ( _m ) { _m.Karela = 2; } },
+		rats      = { K = C.KindKarela,  Set = function ( _m ) { _m.Karela = 2; _m.Entry = 1; } },
+		crate     = { K = C.KindKarela,  Set = function ( _m ) { _m.Karela = 2; _m.Entry = 1; _m.Rats = 1; } },
+		delivered = { K = C.KindKarela,  Set = function ( _m ) { _m.Karela = 2; _m.Entry = 1; _m.Rats = 1; _m.Crate = 1; _m.Goods = _m.Goods | 1; } },
+		baltwin   = { K = C.KindBaltwin, Set = function ( _m ) {} },
+		house     = { K = C.KindBaltwin, Set = function ( _m ) { _m.Gossip = 3; _m.Medicine = 1; } },
+		report    = { K = C.KindBaltwin, Set = function ( _m ) { _m.Gossip = 3; _m.Medicine = 1; _m.Secrets = 63; }, S = "Report" },
+		sage      = { K = C.KindSage,    Set = function ( _m ) {} },
+		vault     = { K = C.KindSage,    Set = function ( _m ) {}, S = "Vault" },
+		envoy     = { K = C.KindEnvoy,   Set = function ( _m ) {} },
+		bedroom   = { K = C.KindEnvoy,   Set = function ( _m ) { _m.Imp = 16; } },
+		["case"]  = { K = C.KindEnvoy,   Set = function ( _m ) { _m.Imp = 19; _m.Revealed = 1; } }
+	};
+	local wayBack = { street = true, after = true, lost = true, pay = true, envoy2 = true };
+	if (!(_to in stops) && !(_to in wayBack))
+	{
+		::logInfo("Skv.lorejump: unknown stop \"" + _to + "\". Errands: \"karela\", \"pier\", \"rats\", \"crate\", \"delivered\", \"baltwin\", \"house\", \"report\", "
+			+ "\"sage\", \"vault\", \"envoy\", \"bedroom\", \"case\". The way back: \"street\", \"after\", \"lost\", \"pay\", \"envoy2\".");
+		return false;
+	}
+	if (_done != null)
+	{
+		m.Done = _done.tointeger() & C.AllBits;
+		m.Closed = m.Closed | m.Done;
+		::logInfo("Skv.lorejump: Done set to " + m.Done + ", Closed now " + m.Closed + ".");
+	}
+	if (_band != null)
+	{
+		local b = _band.tointeger();
+		m.Band = (b == 1 || b == 2) ? b : 0;
+		::logInfo("Skv.lorejump: Band set to " + m.Band + " (0 neutral, 1 lawful: no [R] buttons, 2 lawless: no [K] buttons).");
+	}
+	local running = c.getActiveState() != null && c.getActiveState().ID == "Running";
+	if (_to in stops)
+	{
+		local stop = stops[_to];
+		local k = stop.K;
+		local bit = C.Sites[k].Bit;
+		m.Act = 0;
+
+		if (m.Alley != 0 || m.Gang != 0 || m.Ledford != 0)
+			::logInfo("Skv.lorejump: the alley reset for an errand stop (alley " + m.Alley + " -> 0, gang " + m.Gang + " -> 0, ledford " + m.Ledford + " -> 0).");
+		m.Alley = 0;
+		m.Gang = 0;
+		m.Ledford = 0;
+		m.Closed = m.Closed & ~bit;
+		m.Done = m.Done & ~bit;
+
+		if (k == C.KindKarela) { m.Karela = 0; m.Entry = 0; m.Rats = 0; m.Crate = 0; m.Dive = 0; m.Goods = m.Goods & 4; }
+		else if (k == C.KindBaltwin) { m.Gossip = 0; m.Medicine = 0; m.Secrets = 0; m.Report = 0; }
+		else if (k == C.KindSage) { m.Moves = C.VaultMoves; m.Vault = 0; m.Blue = 0; }
+		else { m.Imp = 0; m.Case = 0; m.Opener = 0; if (m.Revealed == 1) m.Revealed = 0; }
+		stop.Set(m);
+		m.Rows = [];
+		if (!running) c.setState("Running");
+		for (local j = 0; j < 4; j = j + 1)
+		{
+			if (c.isClosed(C.Sites[j].Bit)) c.killSite(j);
+		}
+		try { c.spawnOne(k); }
+		catch (e) { ::logError("Skv.lorejump: could not spawn " + C.Sites[k].Name + " - " + e); }
+		c.updateObjectives();
+		local s = ("S" in stop) ? stop.S : c.errandScreen(k);
+		::logInfo("Skv.lorejump: errand " + C.Sites[k].Who + " reopened at \"" + _to + "\" -> screen " + (s == null ? "none" : s));
+		c.setScreen(s);
+	}
+	else
+	{
+		m.Closed = C.AllBits;
+		m.Rows = [];
+		if (_to == "street")
+		{
+			m.Act = 1;
+			m.Alley = 0;
+			m.Gang = 0;
+			m.Ledford = 0;
+		}
+		else if (_to == "after" || _to == "lost")
+		{
+			local named = (m.Alley >> 4) & 0x0F;
+			if ((m.Alley & 0x0F) == 0 && named == 0) { named = C.GangNames.len(); if (m.Gang < named) m.Gang = named + 2; }
+			m.Alley = ((named & 0x0F) << 4) | (_to == "after" ? 1 : 2);
+			m.Act = 2;
+			m.Ledford = 0;
+
+			if (_to == "after" && m.Revealed == 0 && (m.Imp & 16) != 0) m.Revealed = 2;
+			if (_to == "lost" && c.isDone(C.Sites[C.KindEnvoy].Bit)) m.Case = 4;
+		}
+		else if (_to == "pay")
+		{
+			if ((m.Alley & 0x0F) == 0) m.Alley = (m.Alley & 0xF0) | 1;
+			if (c.alleyWon() && m.Ledford == 0) m.Ledford = 1;
+			m.Act = 2;
+		}
+		else
+		{
+			if ((m.Alley & 0x0F) == 0) m.Alley = (m.Alley & 0xF0) | 1;
+			if (c.alleyWon() && m.Ledford == 0) m.Ledford = 1;
+			if (m.Revealed == 0) m.Revealed = 2;
+			m.Zarta = 0;
+			m.Act = 3;
+		}
+		if (!running) c.setState("Running");
+		c.killAll();
+		c.updateObjectives();
+		local s = _to == "street" ? "Street" : (_to == "after" ? "AlleyAfter" : (_to == "lost" ? "AlleyLost" : (_to == "pay" ? "Pay" : "Envoy2")));
+		c.setScreen(s);
+	}
+	if (c.getActiveScreen() != null) ::World.Contracts.showActiveContract();
+	else ::logInfo("Skv.lorejump: \"" + _to + "\" has no screen to open (that errand is closed?).");
+	::logInfo("Skv.lorejump: jumped to " + _to + ". closed=" + m.Closed + " done=" + m.Done + " act=" + m.Act + " alley=" + m.Alley + " band=" + m.Band + " granted=" + m.Granted);
+	::skvlore();
+	return true;
+};
+
+::skvlorefill <- function ( _dm = null, _scaled = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.lorefill: not in a campaign.");
+		return null;
+	}
+	local C = ::Const.Skv.Lore;
+	local L = ::Skv.Lore;
+	local scaled = _scaled;
+	local route = "given";
+	if (scaled == null)
+	{
+		local c = L.live();
+		if (c != null) { scaled = c.getScaledDifficultyMult(); route = "the live #21"; }
+		else
+		{
+			foreach (s in ::World.EntityManager.getSettlements())
+			{
+				local cs = s.getContracts();
+				if (cs.len() == 0) continue;
+				scaled = cs[0].getScaledDifficultyMult();
+				route = "a " + cs[0].getType() + " on " + s.getName() + "'s board";
+				break;
+			}
+		}
+		if (scaled == null)
+		{
+			scaled = 0.75;
+			route = "ASSUMED 0.75 (no contract on any board to ask)";
+		}
+	}
+	local dms = _dm == null ? [0.70, 0.90, 1.05] : [_dm];
+	local beasts = 0;
+	local bandits = 0;
+	try { beasts = ::World.FactionManager.getFactionOfType(::Const.FactionType.Beasts).getID(); }
+	catch (e) { ::logError("Skv.lorefill: no Beasts faction (scratch units carry faction 0) - " + e); }
+	try { bandits = ::World.FactionManager.getFactionOfType(::Const.FactionType.Bandits).getID(); }
+	catch (e) { ::logError("Skv.lorefill: no Bandits faction (scratch units carry faction 0) - " + e); }
+	::logInfo("== Skv.lorefill (#21's two lists, no fight) ==  scaled=" + scaled + " (" + route + ")");
+	local show = function ( _label, _units, _budget )
+	{
+		local order = clone _units;
+		order.sort(function ( _a, _b )
+		{
+			local ca = ("Cost" in _a) ? _a.Cost : 0;
+			local cb = ("Cost" in _b) ? _b.Cost : 0;
+			return cb <=> ca;
+		});
+		local spent = 0;
+		local parts = [];
+		foreach (u in order)
+		{
+			local cost = ("Cost" in u) ? u.Cost : 0;
+			spent = spent + cost;
+			parts.push(::Skv.Lore.scriptName(u) + " " + cost + (("Name" in u) && u.Name != "" ? " \"" + u.Name + "\"" : "")
+				+ (("Variant" in u) && u.Variant > 0 ? " (champion)" : ""));
+		}
+		local line = "";
+		foreach (i, p in parts) line = line + (i == 0 ? "" : ", ") + p;
+		::logInfo("    " + _label + ": budget " + _budget + " -> " + _units.len() + " units, descriptor cost " + spent + ": " + line);
+	};
+	foreach (dm in dms)
+	{
+		::logInfo("  DM " + dm + ":");
+		foreach (catcher in [false, true])
+		{
+			local b = L.ratBudget(dm, scaled, catcher);
+			local into = [];
+			::Skv.Spawn.fill(into, ::Const.World.Spawn.GolarionRats, b, beasts, "Lore/fill rats", ::Const.World.Spawn.GolarionRats);
+			show(catcher ? "rats, Ratcatcher" : "rats", into, b);
+		}
+		foreach (trim in [false, true])
+		{
+			local b = L.alleyBudget(dm, scaled, trim);
+			local into = [];
+			::Skv.Spawn.fill(into, ::Const.World.Spawn.GolarionAlleyGang, b, bandits, "Lore/fill alley", ::Const.World.Spawn.GolarionAlleyGang);
+			local n = L.nameGang(into, 0, null);
+			show((trim ? "alley, trimmed" : "alley") + " (" + n + " named)", into, b);
+		}
+	}
 	return true;
 };

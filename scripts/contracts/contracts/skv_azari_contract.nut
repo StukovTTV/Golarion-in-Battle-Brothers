@@ -115,6 +115,8 @@ this.skv_azari_contract <- this.inherit("scripts/contracts/contract", {
 			function update()
 			{
 
+				if (::Skv.Screens.hold(this.Contract)) return;
+
 				if (this.Contract.m.CryptWon && !this.Contract.m.CryptResolved)
 				{
 					this.Contract.m.CryptResolved = true;

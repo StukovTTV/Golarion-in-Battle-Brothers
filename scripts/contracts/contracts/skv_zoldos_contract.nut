@@ -599,6 +599,8 @@ this.skv_zoldos_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				if (::MSU.isNull(this.Contract.m.Destination))
 				{
 					return;
@@ -758,6 +760,8 @@ this.skv_zoldos_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				local c = this.Contract;
 				if (c.m.Reported != 0) return;
 				if (c.m.Home == null || c.m.Home.isNull()) return;

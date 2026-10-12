@@ -484,6 +484,8 @@ this.skv_anvil_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				local c = this.Contract;
 
 				if (c.m.Fought && !c.m.Won && !c.m.Paid)

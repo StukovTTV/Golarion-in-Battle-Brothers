@@ -1039,6 +1039,8 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				if (::MSU.isNull(this.Contract.m.Destination))
 				{
 					return;
@@ -1126,6 +1128,8 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 
 				if (this.Contract.isPlayerAt(this.Contract.m.Home))
 				{

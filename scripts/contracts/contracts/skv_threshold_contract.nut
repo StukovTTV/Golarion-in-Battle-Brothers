@@ -666,6 +666,8 @@ this.skv_threshold_contract <- this.inherit("scripts/contracts/contract", {
 
 			function update()
 			{
+
+				if (::Skv.Screens.hold(this.Contract)) return;
 				local c = this.Contract;
 				local home = c.m.Home;
 				if (home == null || home.isNull())
