@@ -424,6 +424,22 @@ this.skv_lore_contract <- this.inherit("scripts/contracts/contract", {
 		return C.TierSuccess;
 	}
 
+	function outcomeOf( _t )
+	{
+		local C = ::Const.Skv.Lore;
+		if (_t == C.TierSuccess) return C.OutcomeSuccess;
+		if (_t == C.TierPoor) return C.OutcomePoor;
+		return C.OutcomeFailed;
+	}
+
+	function recordOutcome( _v )
+	{
+		local C = ::Const.Skv.Lore;
+		::World.Flags.set(C.ArcFlagOutcome, _v);
+		::logInfo("Skv.Lore: outcome recorded, " + C.ArcFlagOutcome + "=" + _v
+			+ " (" + C.OutcomeSuccess + " success, " + C.OutcomePoor + " poor, " + C.OutcomeFailed + " failed, " + C.OutcomeAbandoned + " cancelled or abandoned)");
+	}
+
 	function tierName( _t )
 	{
 		local C = ::Const.Skv.Lore;
@@ -1478,6 +1494,8 @@ this.skv_lore_contract <- this.inherit("scripts/contracts/contract", {
 		::logInfo("Skv.Lore: CLOSED. tier=" + this.tierName(t) + " done=" + this.m.Done + " closed=" + this.m.Closed + " alley=" + this.m.Alley
 			+ " ledford=" + this.m.Ledford + " revealed=" + this.m.Revealed + " zarta=" + this.m.Zarta + " band=" + this.m.Band + " granted=" + this.m.Granted);
 		this.m.Rows = [];
+
+		this.recordOutcome(this.outcomeOf(t));
 		::World.Contracts.finishActiveContract(t == C.TierFailed);
 		return 0;
 	}
@@ -1652,6 +1670,8 @@ this.skv_lore_contract <- this.inherit("scripts/contracts/contract", {
 		_vars.push(["SKVTOWN", this.townName()]);
 		_vars.push(["SKVNAME", "[color=#9dbccb]"]);
 		_vars.push(["SKVNAME_OFF", "[/color]"]);
+		_vars.push(["SKVLOC", "[color=#b39dbc]"]);
+		_vars.push(["SKVLOC_OFF", "[/color]"]);
 	}
 
 	function start()
@@ -2052,7 +2072,7 @@ this.skv_lore_contract <- this.inherit("scripts/contracts/contract", {
 			function start()
 			{
 				local c = this.Contract;
-				this.Text = c.img(::Const.Skv.Lore.ImgLodge) + "{%SKVNAME%Valsin%SKVNAME_OFF% of the Pathfinder lodge has four sealed letters on his table and nobody free to carry them.%SPEECH_ON%Four friends of this lodge each need a favour done, and I have promised all four. One letter is for Karela, who keeps a shop called the Pickled Imp. One is for Ollysta Zadrian, who serves the Dawnflower at the Shining Star. One is for Amenopheus, whom people call the Sapphire Sage. The last is for the Paracountess Zarta Dralneen, the envoy of Cheliax.\n\nEach of them will tell you what is needed when you arrive. Visit them in any order you like, do as they ask, and come back to me when you are finished. I need outside hands for this. There is no advance. I pay when you return.%SPEECH_OFF%}";
+				this.Text = c.img(::Const.Skv.Lore.ImgLodge) + "{%SKVNAME%Valsin%SKVNAME_OFF% of the Pathfinder lodge has four sealed letters on his table and nobody free to carry them.%SPEECH_ON%Four friends of this lodge each need a favour done, and I have promised all four. One letter is for %SKVNAME%Karela%SKVNAME_OFF%, who keeps a shop called the %SKVLOC%Pickled Imp%SKVLOC_OFF%. One is for %SKVNAME%Ollysta Zadrian%SKVNAME_OFF%, who serves the %SKVNAME%Dawnflower%SKVNAME_OFF% at the %SKVLOC%Shining Star%SKVLOC_OFF%. One is for %SKVNAME%Amenopheus%SKVNAME_OFF%, whom people call the %SKVNAME%Sapphire Sage%SKVNAME_OFF%. The last is for the Paracountess %SKVNAME%Zarta Dralneen%SKVNAME_OFF%, the envoy of %SKVLOC%Cheliax%SKVLOC_OFF%.\n\nEach of them will tell you what is needed when you arrive. Visit them in any order you like, do as they ask, and come back to me when you are finished. I need outside hands for this. There is no advance. I pay when you return.%SPEECH_OFF%}";
 				this.Options = [
 					{
 						Text = "{We'll run your errands.}",
@@ -2092,7 +2112,7 @@ this.skv_lore_contract <- this.inherit("scripts/contracts/contract", {
 			],
 			function start()
 			{
-				this.Text = this.Contract.img(::Const.Skv.Lore.ImgLodge) + "{%randombrother% has heard one of the names before.%SPEECH_ON%Karela. If it is the same man, half the thieves and smugglers on the waterfront answer to him. He pays what he promises. He also never asks an honest man for a favour.%SPEECH_OFF%%randombrother2% knows the temple, though not the woman.%SPEECH_ON%The Shining Star belongs to the Dawnflower. Her people feed beggars and nurse the sick, and they expect everyone else to do the same.%SPEECH_OFF%Of the other two the company has only tavern talk. A sage out of Osirion will be old and patient, and slow to trust a stranger. As for Cheliax, people say that its nobles sign contracts with devils and call it good government.}";
+				this.Text = this.Contract.img(::Const.Skv.Lore.ImgLodge) + "{%SKVNAME%%randombrother%%SKVNAME_OFF% has heard one of the names before.%SPEECH_ON%%SKVNAME%Karela%SKVNAME_OFF%. If it is the same man, half the thieves and smugglers on the waterfront answer to him. He pays what he promises. He also never asks an honest man for a favour.%SPEECH_OFF%%SKVNAME%%randombrother2%%SKVNAME_OFF% knows the temple, though not the woman.%SPEECH_ON%The %SKVLOC%Shining Star%SKVLOC_OFF% belongs to the %SKVNAME%Dawnflower%SKVNAME_OFF%. Her people feed beggars and nurse the sick, and they expect everyone else to do the same.%SPEECH_OFF%Of the other two the company has only tavern talk. A sage out of %SKVLOC%Osirion%SKVLOC_OFF% will be old and patient, and slow to trust a stranger. As for %SKVLOC%Cheliax%SKVLOC_OFF%, people say that its nobles sign contracts with devils and call it good government.}";
 			}
 		});
 
@@ -3318,6 +3338,9 @@ this.skv_lore_contract <- this.inherit("scripts/contracts/contract", {
 		if (this.m.IsActive)
 		{
 			::Skv.Once.retire(::Const.Skv.Lore.OnceKey);
+
+			if (!::World.Flags.has(::Const.Skv.Lore.ArcFlagOutcome))
+				this.recordOutcome(::Const.Skv.Lore.OutcomeAbandoned);
 
 			this.killAll();
 		}

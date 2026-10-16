@@ -50,10 +50,10 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 	function towerAlchemicals()
 	{
 		return [
-			"scripts/items/tools/acid_flask_item",
-			"scripts/items/tools/smoke_bomb_item",
-			"scripts/items/tools/daze_bomb_item",
-			"scripts/items/tools/fire_bomb_item",
+			"scripts/items/tools/skv_alchemists_acid_item",
+			"scripts/items/tools/skv_smokestick_item",
+			"scripts/items/tools/skv_thunderstone_item",
+			"scripts/items/tools/skv_alchemists_fire_item",
 		];
 	}
 
@@ -126,7 +126,7 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 			{ Name = "a wall-scythe on a cable",        Pool = this.Const.Injury.CuttingBody,  Hp = [10, 18], Salvage = null,                                     Alert = false },
 			{ Name = "a counterweighted falling block", Pool = this.Const.Injury.BluntHead,    Hp = [8, 16], Salvage = null,                                      Alert = false },
 			{ Name = "a floor plated in live skymetal", Pool = null,                           Hp = [6, 13], Salvage = "scripts/items/loot/glittering_rock_item", Alert = false },
-			{ Name = "a venting of pale gas",           Pool = null,                           Hp = [3, 7],  Salvage = "scripts/items/tools/daze_bomb_item",      Alert = false, Floored = true },
+			{ Name = "a venting of pale gas",           Pool = null,                           Hp = [3, 7],  Salvage = "scripts/items/tools/skv_smokestick_item",  Alert = false, Floored = true },
 		];
 	}
 
@@ -135,9 +135,9 @@ this.skv_choking_tower_contract <- this.inherit("scripts/contracts/contract", {
 		return [
 			{ Name = "a poisoned needle",             Pool = this.Const.Injury.PiercingBody, Hp = [4, 9],  Salvage = null,                                       Alert = false },
 			{ Name = "a spring-blade set in the lid", Pool = this.Const.Injury.CuttingBody,  Hp = [6, 12], Salvage = null,                                       Alert = false },
-			{ Name = "a fire glyph",                  Pool = this.Const.Injury.Burning,      Hp = [8, 15], Salvage = "scripts/items/tools/fire_bomb_item",       Alert = false },
-			{ Name = "a rigged phial of acid",        Pool = this.Const.Injury.Burning,      Hp = [8, 15], Salvage = "scripts/items/tools/acid_flask_item",      Alert = false },
-			{ Name = "a puffer of grey dust",         Pool = null,                           Hp = [3, 7],  Salvage = "scripts/items/tools/daze_bomb_item",       Alert = false, Floored = true },
+			{ Name = "a fire glyph",                  Pool = this.Const.Injury.Burning,      Hp = [8, 15], Salvage = "scripts/items/tools/skv_alchemists_fire_item",  Alert = false },
+			{ Name = "a rigged phial of acid",        Pool = this.Const.Injury.Burning,      Hp = [8, 15], Salvage = "scripts/items/tools/skv_alchemists_acid_item",  Alert = false },
+			{ Name = "a puffer of grey dust",         Pool = null,                           Hp = [3, 7],  Salvage = "scripts/items/tools/skv_thunderstone_item",     Alert = false, Floored = true },
 			{ Name = "a shock-ward wired to a bell",  Pool = null,                           Hp = [6, 12], Salvage = "scripts/items/loot/glittering_rock_item",  Alert = true  },
 		];
 	}

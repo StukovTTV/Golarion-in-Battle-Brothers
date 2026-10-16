@@ -63,4 +63,10 @@ this.skv_kobold_blade <- this.inherit("scripts/entity/tactical/enemies/goblin_fi
 		}
 	}
 
+	function onFactionChanged()
+	{
+		this.goblin.onFactionChanged();
+		::Const.Skv.faceKobold(this, this.isAlliedWithPlayer());
+	}
+
 });

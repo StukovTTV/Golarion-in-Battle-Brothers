@@ -67,3 +67,8 @@
 ::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_lore_action");
 ::Const.FactionTrait.Actions[::Const.FactionTrait.OrientalCityState].push("scripts/factions/contracts/skv_lore_action");
 ::Const.FactionTrait.Actions[::Const.FactionTrait.NobleHouse].push("scripts/factions/contracts/skv_lore_action");
+
+::Const.Contracts.ContractCategoryMap.skv_delve_contract <- ::Const.Contracts.Categories.Battle;
+::Const.FactionTrait.Actions[::Const.FactionTrait.Settlement].push("scripts/factions/contracts/skv_delve_action");
+::Const.FactionTrait.Actions[::Const.FactionTrait.OrientalCityState].push("scripts/factions/contracts/skv_delve_action");
+::Const.FactionTrait.Actions[::Const.FactionTrait.NobleHouse].push("scripts/factions/contracts/skv_delve_action");

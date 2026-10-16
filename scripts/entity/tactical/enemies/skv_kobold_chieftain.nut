@@ -99,4 +99,10 @@ this.skv_kobold_chieftain <- this.inherit("scripts/entity/tactical/enemies/gobli
 		this.goblin.onDeath(_killer, _skill, _tile, _fatalityType);
 	}
 
+	function onFactionChanged()
+	{
+		this.goblin.onFactionChanged();
+		::Const.Skv.faceKobold(this, this.isAlliedWithPlayer());
+	}
+
 });

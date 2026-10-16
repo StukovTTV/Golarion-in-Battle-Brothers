@@ -1986,15 +1986,21 @@ this.skv_threshold_contract <- this.inherit("scripts/contracts/contract", {
 								catch (e) { ::logError("Skv.Threshold: medicine setAmount failed: " + e); }
 							}
 
+							local flasks = ::Skv.Loot.make([
+								"scripts/items/tools/skv_alchemists_fire_item",
+								"scripts/items/tools/skv_alchemists_fire_item"
+							]);
+
 							local items = [];
 							foreach (it in sickle)   items.push(it);
 							foreach (it in supplies) items.push(it);
+							foreach (it in flasks)   items.push(it);
 
 							local rows = ::Skv.Loot.haul(items);
 							::Skv.dbg("Skv.Threshold: Okulou's pack taken - items=" + items.len() + " enchanted=" + marked);
 
 							c2.say("The Flooded Reach",
-								"[img]gfx/ui/events/event_89.png[/img]{Four stoppered draughts in a roll of cloth, labelled in a careful round hand by somebody who expected to be reading them in a hurry.\n\nTwo clay flasks bedded in sawdust, waxed shut and marked with a stroke of red. Nobody opens those, and nobody is carrying them into forty feet of black water either, so they go back against the wall for whoever comes down here next.\n\nAt the bottom, wrapped twice in oilcloth, a sickle. The blade is cut to the shape of a quill feather and the handle finishes in a pen nib, and it is far too fine a thing to be at the bottom of a canvas bag under a canal. It has never been near a crop in its life.\n\nThere is a name inked inside the flap in the same careful hand, and it is a boy's.}",
+								"[img]gfx/ui/events/event_89.png[/img]{Four stoppered draughts in a roll of cloth, labelled in a careful round hand by somebody who expected to be reading them in a hurry.\n\nTwo clay flasks bedded in sawdust, waxed shut and marked with a stroke of red, and a faint smell of lamp oil comes through the wax. Sealed like that, they will take forty feet of black water better than whoever carries them, so they go into the pack with the rest.\n\nAt the bottom, wrapped twice in oilcloth, a sickle. The blade is cut to the shape of a quill feather and the handle finishes in a pen nib, and it is far too fine a thing to be at the bottom of a canvas bag under a canal. It has never been near a crop in its life.\n\nThere is a name inked inside the flap in the same careful hand, and it is a boy's.}",
 								rows, "");
 							return "Result";
 						}

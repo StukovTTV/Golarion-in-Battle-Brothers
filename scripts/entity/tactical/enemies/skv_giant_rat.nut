@@ -103,7 +103,8 @@ this.skv_giant_rat <- this.inherit("scripts/entity/tactical/enemies/direwolf", {
 			+ " armour " + b.ArmorMax[this.Const.BodyPart.Body]
 			+ " bite=" + this.m.Skills.hasSkill("actives.skv_rat_bite")
 			+ " claws=" + this.m.Skills.hasSkill("actives.skv_rat_claws")
-			+ " poison=" + this.m.Skills.hasSkill("racial.spider"));
+			+ " poison=" + this.m.Skills.hasSkill("racial.spider")
+			+ " vermin=" + this.m.Skills.hasSkill("racial.skv_vermin"));
 	}
 
 	function addRatKit()
@@ -120,6 +121,9 @@ this.skv_giant_rat <- this.inherit("scripts/entity/tactical/enemies/direwolf", {
 		try { ::Legends.Traits.grant(this, ::Legends.Trait.RacialSpider); }
 		catch (e) { ::logError("Skv.Rat: no spider racial (no poison, no pack courage): " + e); }
 
+		try { this.m.Skills.add(this.new("scripts/skills/racial/skv_vermin")); }
+		catch (e) { ::logError("Skv.Rat: no Vermin racial (a Ratcatcher hits it no harder): " + e); }
+
 		try { ::Legends.Perks.grant(this, ::Legends.Perk.Backstabber); }
 		catch (e) { ::logError("Skv.Rat: keeps no Backstabber: " + e); }
 
@@ -135,6 +139,24 @@ this.skv_giant_rat <- this.inherit("scripts/entity/tactical/enemies/direwolf", {
 		{
 			try { ::Legends.Perks.grant(this, ::Legends.Perk.LegendTumble); }
 			catch (e) { ::logError("Skv.Rat: no Tumble on Legendary: " + e); }
+		}
+	}
+
+	function onFactionChanged()
+	{
+		this.actor.onFactionChanged();
+		local flip = this.isAlliedWithPlayer();
+		foreach (layer in ["body", "head", "head_frenzy", "injury", "body_blood"])
+		{
+			try
+			{
+				local sp = this.getSprite(layer);
+				if (sp != null) sp.setHorizontalFlipping(flip);
+			}
+			catch (e)
+			{
+				::Skv.dbg("Skv.Rat: facing failed on '" + layer + "' - " + e);
+			}
 		}
 	}
 

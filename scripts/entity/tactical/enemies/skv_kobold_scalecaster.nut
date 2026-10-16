@@ -80,4 +80,10 @@ this.skv_kobold_scalecaster <- this.inherit("scripts/entity/tactical/enemies/gob
 		this.goblin.onDeath(_killer, _skill, _tile, _fatalityType);
 	}
 
+	function onFactionChanged()
+	{
+		this.goblin.onFactionChanged();
+		::Const.Skv.faceKobold(this, this.isAlliedWithPlayer());
+	}
+
 });

@@ -100,7 +100,7 @@
 	LeshyLow  = 3,
 	LeshyHigh = 4,
 
-	ItemHolyWater = "scripts/items/tools/holy_water_item",
+	ItemHolyWater = "scripts/items/tools/skv_blessed_water_item",
 	ItemSap       = "scripts/items/weapons/bludgeon",
 	ItemSword     = "scripts/items/weapons/longsword",
 	ItemMace      = "scripts/items/weapons/morning_star",

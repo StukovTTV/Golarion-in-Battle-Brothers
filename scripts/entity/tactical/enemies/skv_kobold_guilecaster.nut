@@ -73,4 +73,10 @@ this.skv_kobold_guilecaster <- this.inherit("scripts/entity/tactical/enemies/leg
 		this.goblin.onDeath(_killer, _skill, _tile, _fatalityType);
 	}
 
+	function onFactionChanged()
+	{
+		this.goblin.onFactionChanged();
+		::Const.Skv.faceKobold(this, this.isAlliedWithPlayer());
+	}
+
 });

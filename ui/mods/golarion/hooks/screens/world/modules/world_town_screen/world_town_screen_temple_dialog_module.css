@@ -1,0 +1,19 @@
+/*
+ *  Golarion Localization -- the temple's "Buy" button (the item pass, step 5, 1.8.28; the
+ *  script is the .js beside this file). The footer's own button bar is a 16rem box centred
+ *  with margin auto, holding Leave (vanilla world_town_screen_temple_dialog_module.css). Ours
+ *  sits apart from it at the footer's left edge, the same size as Leave (17.5rem, line-height
+ *  3.0rem) and centred vertically the same way (the bar's 4.3rem height, margin auto).
+ */
+.world-town-screen > .l-temple-dialog-container .footer .golarion-temple-buy-button
+{
+    top: 0;
+    bottom: 0;
+    left: 2.0rem;
+    width: 17.5rem;
+    height: 4.3rem;
+    position: absolute;
+    margin: auto 0;
+
+    line-height: 3.0rem;
+}

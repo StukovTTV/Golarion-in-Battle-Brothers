@@ -4,6 +4,73 @@ All notable changes to **Golarion Localization** are recorded here. The format l
 [Keep a Changelog](https://keepachangelog.com). The mod's own version is set in
 `scripts/!mods_preload/mod_golarion.nut` and carried by each GitHub Release.
 
+## [1.8] - playtest
+
+Adds the twenty-second contract, the second part of *First Steps*: a lady of the Lantern Lodge wants her
+family's sword brought out of a ruin in the hills. Also adds a set of Pathfinder's adventuring gear, and
+the shops that sell it.
+
+### Contracts
+- **To Delve the Dungeon Deep** (contract #22, once per campaign), adapted from Paizo's *To Delve the
+  Dungeon Deep*, written by Stephen Radney-MacFarland: the second part of *First Steps*, an introductory
+  scenario series for the Pathfinder Society. It is offered only after the company has completed *In
+  Service to Lore*, by a city-state, a large town, or a fort whose lord has heard of the company, and
+  only where there are hills nearby. It asks for no renown.
+
+  **A sword under a fallen keep.** Amara Li of the Lantern Lodge carries an old debt of honour: a jade
+  sword her family once gave to a Qadiran general, lost when an earthquake brought his keep down on it.
+  The ruin has been found in the hills, and the lodge's own people did not all come back from it. She
+  pays when the sword is in her hands, and not before.
+
+  **Your reputation decides what you can do.** As in *In Service to Lore*, what the company is known for
+  is read when you accept, and some choices are simply not offered to you.
+
+  **A failed check rarely ends the job.** It costs blood, time or a harder fight instead.
+
+- **Earlier contracts give the new gear.** Contracts that handed out Legends' alchemical pots, each worth
+  more than a thousand crowns and refilled after every battle with Alchemy Tools, now give the new
+  single-use items instead. Where a contract asks you to spend fire or blessed water, the new items and
+  Legends' own both work.
+
+### Items
+- Potion of Cure Light Wounds
+- Potion of Cure Moderate Wounds
+- Potion of Protection from Evil
+- Potion of Blur
+- Alchemist's Fire
+- Alchemist's Acid
+- Thunderstone
+- Smokestick
+- Vial of Blessed Water
+- Bracers of Protection
+- Pearl of Power
+
+### Shops
+- **The new gear can be bought.** A city-state's alchemist sells the alchemy and the potions of the
+  arcane schools. Every temple now has a shelf of blessed potions and holy water, opened with a new
+  **Buy** button on its screen; the priests sell, but buy nothing. Legends' black markets carry all of
+  it, at a black market's prices. Village and fort markets sell none of it.
+- **Every temple serves a god**, named on its screens. When the company's reputation fits the god (good,
+  neutral or evil), the priests ask a fifth less.
+
+### Creatures
+- **Giant and Dire Rats** take a little more damage from a Ratcatcher.
+
+### Fixed
+- Kobolds and rats that change sides in the middle of a fight now turn to face their new side.
+
+### Art
+- Six potion and flask icons, and the matching flasks in hand, use licensed stock art by **Ivy Sun**
+  (*Potions and Elixirs*). One map marker, a ring of ruined walls, is from Ivy Sun's *Painterly Map
+  Symbols*.
+- Six item icons, and three of them in hand, use trinket art by **RedDyeNo5** from the free Trinket Art
+  Asset Pack ([patreon.com/posts/14426563](https://www.patreon.com/posts/14426563)), used with the
+  artist's permission.
+- Two event images use licensed stock art by **Rick Hershey**: Publisher's Choice Quality Stock Art ©
+  Rick Hershey / Publisher's Choice Stock Art, [patreon.com/StockArt](https://patreon.com/StockArt).
+- One event image is licensed stock art by **Dean Spencer**, used with permission.
+- One event image shows the mark of the **Lantern Lodge** from Paizo's Community Use Package, unaltered.
+
 ## [1.7] - playtest
 
 Adds the twenty-first contract: the Pathfinder lodge has four letters to deliver in one city, and

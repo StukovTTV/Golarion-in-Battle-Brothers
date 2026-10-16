@@ -11,9 +11,10 @@ this.skv_potion_of_cure_light_wounds <- this.inherit("scripts/items/accessory/ac
 
 		this.m.ID = "misc.skv_potion_of_cure_light_wounds";
 		this.m.Name = "Potion of Cure Light Wounds";
-		this.m.Description = "A squat bottle bound at the neck with waxed cord, a few dried sprigs still tucked under the binding, and most of a finger's depth of something amber left in the bottom of it. It has sat in the dark long enough that nobody can say who brewed it, and the dwarves who could have read the mark pressed into the wax have been dead four hundred years. Whatever is left in it will close a cut and take the ache out of a man. It will not give him his week back.";
 
-		this.m.Icon = "misc/skv_potion_cure_light_wounds.png";
+		this.m.Description = "A slender glass vial, its cork sealed over with wax, and most of a finger's depth of something red left in the bottom of it. It has sat in the dark long enough that nobody can say who brewed it, or what the mark pressed into the wax once meant. Whatever is left in it will close a cut and take the ache out of a man. It will not give him his week back.";
+
+		this.m.Icon = "misc/skv_potion_cure_light_vial.png";
 
 		this.m.SlotType = ::Const.ItemSlot.Bag;
 

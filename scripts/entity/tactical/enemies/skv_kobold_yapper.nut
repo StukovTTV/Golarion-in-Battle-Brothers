@@ -68,4 +68,10 @@ this.skv_kobold_yapper <- this.inherit("scripts/entity/tactical/enemies/goblin_f
 		}
 	}
 
+	function onFactionChanged()
+	{
+		this.goblin.onFactionChanged();
+		::Const.Skv.faceKobold(this, this.isAlliedWithPlayer());
+	}
+
 });

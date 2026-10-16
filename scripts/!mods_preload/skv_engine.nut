@@ -1220,7 +1220,9 @@ if (!("Skv" in ::getroottable()))
 		"contract.skv_choking_tower", "contract.skv_den_hunt", "contract.legend_watchtower", "contract.legend_skulls_crossing",
 		"contract.skv_carthica", "contract.skv_hollows", "contract.skv_anvil", "contract.skv_threshold",
 		"contract.skv_zoldos", "contract.skv_fortress", "contract.skv_torment", "contract.skv_fane",
-		"contract.skv_croak", "contract.skv_trail"
+		"contract.skv_croak", "contract.skv_trail",
+
+		"contract.skv_bygones", "contract.skv_rose", "contract.skv_lore", "contract.skv_delve"
 	],
 
 	function forcePost( _contract )
@@ -4780,7 +4782,7 @@ if (!("Skv" in ::getroottable()))
 	return frog;
 };
 
-::skvrat <- function ( _kind = null, _n = 1 )
+::skvrat <- function ( _kind = null, _n = 1, _ally = false )
 {
 	if (!("Tactical" in ::getroottable()) || ::Tactical == null || ::Tactical.State == null)
 	{
@@ -4795,7 +4797,7 @@ if (!("Skv" in ::getroottable()))
 		local out = [];
 		foreach (k in ["giant", "giant", "giant", "dire"])
 		{
-			local one = ::skvrat(k, 1);
+			local one = ::skvrat(k, 1, _ally);
 			if (one != null) out.extend(one);
 		}
 		::logInfo("Skv.rat: a nest of " + out.len() + ".");
@@ -4831,7 +4833,17 @@ if (!("Skv" in ::getroottable()))
 		return null;
 	}
 
-	local fac = ::Const.Faction.Beasts;
+	local fac = 0;
+	if (_ally == true) fac = ::Const.Faction.PlayerAnimals;
+	else
+	{
+		try { fac = ::World.FactionManager.getFactionOfType(::Const.FactionType.Beasts).getID(); }
+		catch (e)
+		{
+			::logError("Skv.rat: the campaign's beast faction could not be read; no rat - " + e);
+			return null;
+		}
+	}
 
 	local out = [];
 
@@ -5946,6 +5958,8 @@ if (!("Skv" in ::getroottable()))
 		+ "   score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : "")
 		+ "   make_nobles_aware=" + (::Skv.Anvil.noblesAware() ? "done (military hosts open)" : "not done (military hosts closed)")
 		+ "   moral=" + moral + " (band at accept: " + (moral >= C.LawfulMin ? "lawful" : (moral < C.LawlessMax && moral >= 0 ? "lawless" : "neutral")) + ")");
+
+	::logInfo("  outcome record " + C.ArcFlagOutcome + ": " + ::Skv.Delve.partOneRecordText());
 	::logInfo("  rarity per faction update (#21's own): town " + C.RarityNorth + " %, city-state " + C.RaritySouth + " %, noble house " + C.RarityNoble + " %");
 	::logInfo("  ring: " + C.SiteMinDist + "-" + C.SiteRadius + " tiles, " + C.SiteCount + " markers " + C.SiteSpacing + " apart, edge " + C.SiteEdge
 		+ "; at accept NEAR " + C.NearRadius + " tiles / " + C.NearPathMax + " steps first, else " + C.SitePathMax + " steps (::Const.Skv.Lore, live-editable)");
@@ -6069,6 +6083,12 @@ if (!("Skv" in ::getroottable()))
 	if (::Skv.Once.isLocked(key)) skipped.push("the once-lock");
 	::Skv.Once.release(key);
 	::World.Flags.remove("SkvOnce." + key + ".retired");
+
+	if (::World.Flags.has(C.ArcFlagOutcome))
+	{
+		::logInfo("Skv.lorepost: clearing the earlier outcome record " + C.ArcFlagOutcome + "=" + ::World.Flags.getAsInt(C.ArcFlagOutcome));
+		::World.Flags.remove(C.ArcFlagOutcome);
+	}
 
 	local hosts = [];
 	local loose = [];
@@ -6335,4 +6355,2381 @@ if (!("Skv" in ::getroottable()))
 		}
 	}
 	return true;
+};
+
+::Skv.Delve <- {
+
+	function partOneRecord()
+	{
+		local key = ::Const.Skv.Lore.ArcFlagOutcome;
+		if (!::World.Flags.has(key)) return null;
+		return ::World.Flags.getAsInt(key);
+	}
+
+	function partOneRecordText()
+	{
+		local L = ::Const.Skv.Lore;
+		local r = this.partOneRecord();
+		if (r == null) return "none";
+		if (r == L.OutcomeSuccess) return r + " (success)";
+		if (r == L.OutcomePoor) return r + " (poor)";
+		if (r == L.OutcomeFailed) return r + " (failed)";
+		if (r == L.OutcomeAbandoned) return r + " (cancelled or abandoned)";
+		return r + " (UNKNOWN value)";
+	}
+
+	function partOneDone()
+	{
+		if (!::Skv.Once.isRetired(::Const.Skv.Lore.OnceKey)) return false;
+		local r = this.partOneRecord();
+		if (r == null) return true;
+		return r >= ::Const.Skv.Lore.OutcomePoor;
+	}
+
+	function rarity( _faction )
+	{
+		local C = ::Const.Skv.Delve;
+		try
+		{
+			if (_faction != null)
+			{
+				local t = _faction.getType();
+				if (t == ::Const.FactionType.OrientalCityState) return C.RaritySouth;
+				if (t == ::Const.FactionType.NobleHouse)        return C.RarityNoble;
+			}
+		}
+		catch (e)
+		{
+			::logError("Skv.Delve.rarity failed (using the northern rate): " + e);
+		}
+		return C.RarityNorth;
+	}
+
+	function hostWhy( _s )
+	{
+		local C = ::Const.Skv.Delve;
+		local L = ::Skv.Lore;
+		if (_s == null || ::MSU.isNull(_s)) return "no settlement";
+		if (_s.isIsolated()) return "isolated";
+		local f = L.factionOf(_s);
+		if (f == null) return "its faction did not resolve";
+		local t = f.getType();
+		local k = L.kindOf(_s);
+		if (k == null) return "its kind could not be read";
+		if (k == "military")
+		{
+			if (t != ::Const.FactionType.NobleHouse) return "military, but its owner (faction type " + t + ") is not a noble house";
+
+			if (!::Skv.Anvil.noblesAware()) return "military, waiting on the make_nobles_aware ambition";
+		}
+		else if (t == ::Const.FactionType.Settlement)
+		{
+			if (_s.getSize() < C.HostSize) return "civilian, size " + _s.getSize() + " (needs " + C.HostSize + ")";
+		}
+		else if (t != ::Const.FactionType.OrientalCityState)
+		{
+			return "its faction (type " + t + ") cannot post it";
+		}
+
+		local hills = this.hillsInRange(_s);
+		if (hills < 0) return "its hills could not be read";
+		if (hills == 0) return "no hills " + C.SiteMinDist + " to " + C.SiteMaxDist + " tiles out for the keep";
+		return null;
+	}
+
+	function hillTiles( _s )
+	{
+		local C = ::Const.Skv.Delve;
+		local out = [];
+		try
+		{
+			local home = _s.getTile();
+			foreach (t in _s.getSurroundingTilesOfType([::Const.World.TerrainType.Hills], C.SiteMaxDist))
+			{
+				if (t.getDistanceTo(home) >= C.SiteMinDist) out.push(t);
+			}
+		}
+		catch (e)
+		{
+			::logError("Skv.Delve: the hills list threw at " + _s.getName() + " - " + e);
+			return null;
+		}
+		return out;
+	}
+
+	function hillsInRange( _s )
+	{
+		local tiles = this.hillTiles(_s);
+		return tiles == null ? -1 : tiles.len();
+	}
+
+	function siteTiles( _s )
+	{
+		local C = ::Const.Skv.Delve;
+		local out = { Tiles = [], Hills = -1, Edge = 0, Busy = 0, Town = 0, Site = 0 };
+		local hills = this.hillTiles(_s);
+		if (hills == null) return out;
+		out.Hills = hills.len();
+		local townMin = ::Math.max(C.SiteMinDist, 4);
+		local siteMin = C.SiteMinDist == 0 ? 0 : ::Math.min(4, C.SiteMinDist - 1);
+		local ms = ::World.getMapSize();
+		local towns = [];
+		foreach (s in ::World.EntityManager.getSettlements()) towns.push(s.getTile());
+		local sites = [];
+		if (siteMin > 0)
+		{
+			foreach (v in ::World.EntityManager.getLocations()) sites.push(v.getTile());
+		}
+		foreach (t in hills)
+		{
+			local x = t.SquareCoords.X;
+			local y = t.SquareCoords.Y;
+			if (x <= 3 || x >= ms.X - 3 || y <= 3 || y >= ms.Y - 3) { out.Edge = out.Edge + 1; continue; }
+			if (t.IsOccupied) { out.Busy = out.Busy + 1; continue; }
+			local bad = false;
+			foreach (st in towns)
+			{
+				if (st.getDistanceTo(t) < townMin) { bad = true; break; }
+			}
+			if (bad) { out.Town = out.Town + 1; continue; }
+			foreach (lt in sites)
+			{
+				if (t.getDistanceTo(lt) < siteMin) { bad = true; break; }
+			}
+			if (bad) { out.Site = out.Site + 1; continue; }
+			out.Tiles.push(t);
+		}
+		return out;
+	}
+
+	function roomKey( _i )
+	{
+		local R = ::Const.Skv.Delve.Rooms;
+		if (typeof _i != "integer" || _i < 0 || _i >= R.len()) return "?" + _i;
+		return R[_i].Key;
+	}
+
+	function deckText( _rooms )
+	{
+		if (_rooms == null) return "none";
+		local s = "";
+		foreach (i, r in _rooms) s = s + (i == 0 ? "" : ", ") + this.roomKey(r);
+		return s;
+	}
+
+	function orderBreak( _rooms )
+	{
+		foreach (rule in ::Const.Skv.Delve.OrderRules)
+		{
+			local at = _rooms.find(rule.Room);
+			if (at == null) continue;
+			local ok = false;
+			foreach (a in rule.After)
+			{
+				local b = _rooms.find(a);
+				if (b != null && b < at) { ok = true; break; }
+			}
+			if (!ok) return this.roomKey(rule.Room) + " stands before " + this.deckText(rule.After) + " (one of them must come first)";
+		}
+		return null;
+	}
+
+	function drawDeck()
+	{
+		local C = ::Const.Skv.Delve;
+		local R = C.Rooms;
+
+		local drawn = null;
+		for (local t = 0; t < C.DrawTries && drawn == null; t = t + 1)
+		{
+			local pick = ::Skv.Lore.shuffled(C.Pool).slice(0, C.DrawCount);
+			local f = 0;
+			foreach (r in pick)
+			{
+				if (R[r].Front) f = f + 1;
+			}
+			if (f >= C.DrawMinFront && pick.len() - f >= C.DrawMinDeep) drawn = pick;
+		}
+		if (drawn == null)
+		{
+			drawn = clone C.DrawFallback;
+			::logError("Skv.Delve: no pick of " + C.DrawCount + " pool rooms passed in " + C.DrawTries
+				+ " tries (DrawMinFront " + C.DrawMinFront + ", DrawMinDeep " + C.DrawMinDeep + "); using the fallback " + this.deckText(drawn) + ".");
+		}
+
+		local front = [];
+		local deep = clone C.DeckDeep;
+		foreach (r in drawn)
+		{
+			if (R[r].Front) front.push(r);
+			else deep.push(r);
+		}
+
+		local mid = null;
+		for (local t = 0; t < C.DrawTries && mid == null; t = t + 1)
+		{
+			local m = ::Skv.Lore.shuffled(deep);
+			if (this.orderBreak(m) == null) mid = m;
+		}
+		if (mid == null)
+		{
+
+			mid = deep;
+			::logError("Skv.Delve: no order of the deep rooms passed the rules in " + C.DrawTries
+				+ " tries; using the unshuffled order " + this.deckText(mid) + ".");
+		}
+
+		local deck = clone C.DeckHead;
+		deck.extend(front);
+		deck.push(C.DeckHinge);
+		deck.extend(mid);
+		deck.extend(C.DeckTail);
+		return deck;
+	}
+
+	function deckWhy( _deck )
+	{
+		local C = ::Const.Skv.Delve;
+		local R = C.Rooms;
+		if (_deck == null || typeof _deck != "array") return "no deck";
+		local want = C.DeckHead.len() + 1 + C.DeckDeep.len() + C.DeckTail.len() + C.DrawCount;
+		if (_deck.len() != want) return _deck.len() + " rooms, not " + want;
+
+		local seen = [];
+		seen.resize(R.len(), false);
+		foreach (r in _deck)
+		{
+			if (typeof r != "integer" || r < 0 || r >= R.len()) return "an index the room table does not hold: " + r;
+			if (seen[r]) return this.roomKey(r) + " is in it twice";
+			seen[r] = true;
+		}
+		foreach (set in [ C.DeckHead, [ C.DeckHinge ], C.DeckDeep, C.DeckTail ])
+		{
+			foreach (r in set)
+			{
+				if (!seen[r]) return this.roomKey(r) + " is missing (it is in every run)";
+			}
+		}
+
+		local f = 0;
+		local d = 0;
+		foreach (r in C.Pool)
+		{
+			if (!seen[r]) continue;
+			if (R[r].Front) f = f + 1;
+			else d = d + 1;
+		}
+		if (f + d != C.DrawCount) return (f + d) + " pool rooms drawn, not " + C.DrawCount;
+		if (f < C.DrawMinFront) return "only " + f + " drawn room in front of the bone hall (needs " + C.DrawMinFront + ")";
+		if (d < C.DrawMinDeep) return "only " + d + " drawn room behind the bone hall (needs " + C.DrawMinDeep + ")";
+
+		foreach (i, r in C.DeckHead)
+		{
+			if (_deck[i] != r) return this.roomKey(r) + " is not at place " + i;
+		}
+		local hinge = _deck.find(C.DeckHinge);
+		if (hinge != C.DeckHead.len() + f) return this.roomKey(C.DeckHinge) + " is at place " + hinge + ", not right behind the " + f + " drawn front room(s)";
+		for (local i = C.DeckHead.len(); i < hinge; i = i + 1)
+		{
+			if (!R[_deck[i]].Front) return this.roomKey(_deck[i]) + ", a deep room, stands in front of the bone hall";
+		}
+		local tail = _deck.len() - C.DeckTail.len();
+		foreach (i, r in C.DeckTail)
+		{
+			if (_deck[tail + i] != r) return this.roomKey(r) + " is not at place " + (tail + i);
+		}
+		return this.orderBreak(_deck.slice(hinge + 1, tail));
+	}
+
+	function deckOk( _deck )
+	{
+		return this.deckWhy(_deck) == null;
+	}
+
+	function order( _deck, _way )
+	{
+		local C = ::Const.Skv.Delve;
+		if (_way != C.WayCave) return clone _deck;
+		local at = _deck.find(C.DeckHinge);
+		if (at == null)
+		{
+			::logError("Skv.Delve: the deck holds no " + this.roomKey(C.DeckHinge) + " for the cave to come out at; using the door's order. Deck: " + this.deckText(_deck));
+			return clone _deck;
+		}
+		return _deck.slice(at);
+	}
+
+	function runFights( _deck, _way, _trusted )
+	{
+		local C = ::Const.Skv.Delve;
+		local out = [ (_trusted || _way == C.WayCave) ? "Ambush" : "Door" ];
+		foreach (r in this.order(_deck, _way))
+		{
+			local f = C.Rooms[r].Fight;
+			if (f != null) out.push(f);
+		}
+		return out;
+	}
+
+	function wayLine( _deck, _way, _trusted )
+	{
+		local C = ::Const.Skv.Delve;
+		local rooms = this.order(_deck, _way);
+		local fights = this.runFights(_deck, _way, _trusted);
+		local f = "";
+		foreach (i, k in fights) f = f + (i == 0 ? "" : ", ") + k;
+		return (_way == C.WayCave ? "by her cave" : "by the door") + ": " + rooms.len() + " rooms (" + this.deckText(rooms) + "); "
+			+ fights.len() + " fights (" + f + ")";
+	}
+
+	function priced( _key, _dm, _scaled, _factors )
+	{
+		local C = ::Const.Skv.Delve;
+		local F = C.Fights[_key];
+		local price = C[F.Base];
+		local budget = price * _dm * _scaled;
+		local how = price + " x diff " + _dm + " x scaled " + _scaled;
+		foreach (f in _factors)
+		{
+			budget = budget * f.Mult;
+			how = how + " x " + f.Why + " " + f.Mult;
+		}
+		return {
+			Key = _key,
+			ID = F.ID,
+			List = F.List,
+			FactionType = F.FactionType,
+			Music = F.Music,
+			Base = price,
+			Budget = budget,
+			How = how,
+			Circle = F.Circle,
+			Servant = F.Servant,
+			Names = F.Names == null ? null : C[F.Names]
+		};
+	}
+
+	function restockMult( _returns )
+	{
+		return 1.0 + ::Const.Skv.Delve.RestockMult * _returns;
+	}
+	function restocked( _q, _returns )
+	{
+		if (_returns <= 0) return _q;
+		local mult = this.restockMult(_returns);
+		_q.Budget = _q.Budget * mult;
+		_q.How = _q.How + " x restocked (" + _returns + (_returns == 1 ? " return" : " returns") + ") " + mult;
+		return _q;
+	}
+
+	function ghoulFight( _dm, _scaled, _ambush, _circle )
+	{
+		local q = this.priced(_ambush ? "Ambush" : "Door", _dm, _scaled, []);
+		q.Circle = _ambush && _circle;
+		return q;
+	}
+
+	function webFight( _dm, _scaled, _burned )
+	{
+		local C = ::Const.Skv.Delve;
+		local q = this.priced("Webs", _dm, _scaled, _burned ? [ { Why = "burned", Mult = C.WebBurnMult } ] : []);
+		if (_burned) q.Circle = false;
+		return q;
+	}
+
+	function boneFight( _dm, _scaled, _cave )
+	{
+		local C = ::Const.Skv.Delve;
+		return this.priced("Bones", _dm, _scaled, _cave ? [ { Why = "by the cave", Mult = C.BonesCaveMult } ] : []);
+	}
+
+	function ratFight( _dm, _scaled, _burned )
+	{
+		local C = ::Const.Skv.Delve;
+		return this.priced("Rats", _dm, _scaled, _burned ? [ { Why = "burned", Mult = C.RatBurnMult } ] : []);
+	}
+
+	function galleryFight( _dm, _scaled, _botched )
+	{
+		local C = ::Const.Skv.Delve;
+		return this.priced("Gallery", _dm, _scaled, _botched ? [ { Why = "botched", Mult = C.GalleryBotchMult } ] : []);
+	}
+
+	function cultFight( _dm, _scaled, _alert, _unmasked )
+	{
+		local C = ::Const.Skv.Delve;
+		local fs = [];
+		if (_alert > 0) fs.push({ Why = "alert", Mult = 1.0 + _alert / 100.0 });
+		if (_unmasked) fs.push({ Why = "unmasked", Mult = C.CultUnmaskedMult });
+		return this.priced("Cult", _dm, _scaled, fs);
+	}
+
+	function listOf( _plan )
+	{
+		if (_plan.List in ::Const.World.Spawn) return ::Const.World.Spawn[_plan.List];
+		::logError("Skv.Delve: " + _plan.ID + " names the spawn list '" + _plan.List + "', and ::Const.World.Spawn has none of that name.");
+		return null;
+	}
+
+	function factionOf( _plan )
+	{
+		try { return ::World.FactionManager.getFactionOfType(_plan.FactionType).getID(); }
+		catch (e) { ::logError("Skv.Delve: no faction of type " + _plan.FactionType + " for " + _plan.ID + " (using 0) - " + e); }
+		return 0;
+	}
+
+	function nameCostliest( _units, _from, _names, _cb = null )
+	{
+		if (_names == null) return 0;
+		local idx = [];
+		for (local i = _from; i < _units.len(); i = i + 1)
+		{
+			local u = _units[i];
+
+			if (!("Cost" in u)) ::logError("Skv.Delve: a spawned unit has no Cost (" + (("Script" in u) ? u.Script : "no Script either") + "); it sorts last for the names.");
+			idx.push({ I = i, C = ("Cost" in u) ? u.Cost : 0 });
+		}
+		idx.sort(function ( _a, _b )
+		{
+			if (_a.C != _b.C) return _a.C > _b.C ? -1 : 1;
+			return _a.I <=> _b.I;
+		});
+		local n = ::Math.min(_names.len(), idx.len());
+		for (local k = 0; k < n; k = k + 1)
+		{
+			local u = _units[idx[k].I];
+			if ("Name" in u) u.Name = _names[k];
+			else u.Name <- _names[k];
+			if (_cb != null)
+			{
+				if ("Callback" in u) u.Callback = _cb;
+				else u.Callback <- _cb;
+			}
+		}
+		return n;
+	}
+
+	function rosterText( _units, _from = 0 )
+	{
+		local rows = [];
+		local named = "";
+		for (local i = _from; i < _units.len(); i = i + 1)
+		{
+			local u = _units[i];
+			local s = ::Skv.Lore.scriptName(u);
+			local c = ("Cost" in u) ? u.Cost : 0;
+			if (("Variant" in u) && u.Variant > 0) s = s + " champion";
+			local row = null;
+			foreach (r in rows)
+			{
+				if (r.S == s && r.C == c) { row = r; break; }
+			}
+			if (row == null) rows.push({ S = s, C = c, N = 1 });
+			else row.N = row.N + 1;
+			if (("Name" in u) && u.Name != "") named = named + (named == "" ? "" : ", ") + u.Name + " = " + s + " " + c;
+		}
+		if (rows.len() == 0) return "NOTHING";
+		rows.sort(function ( _a, _b )
+		{
+			if (_a.C != _b.C) return _a.C > _b.C ? -1 : 1;
+			return _a.S <=> _b.S;
+		});
+		local out = "";
+		foreach (i, r in rows) out = out + (i == 0 ? "" : ", ") + r.N + " x " + r.S + " (" + r.C + ")";
+		return out + (named == "" ? "" : " | named: " + named);
+	}
+
+	function fillPlan( _into, _plan, _fac, _cb = null )
+	{
+		local from = _into.len();
+		local list = this.listOf(_plan);
+		local lifted = "";
+		if (list != null)
+		{
+
+			if (("MinR" in list) && list.MinR > _plan.Budget) lifted = " LIFTED TO THE LIST'S FLOOR " + list.MinR;
+			::Skv.Spawn.fill(_into, list, _plan.Budget, _fac, "Delve/" + _plan.Key, list);
+		}
+		local named = this.nameCostliest(_into, from, _plan.Names, _cb);
+		::Skv.Spawn.check(_into, "Delve/" + _plan.Key);
+		local cost = 0;
+		for (local i = from; i < _into.len(); i = i + 1)
+		{
+			if ("Cost" in _into[i]) cost = cost + _into[i].Cost;
+		}
+		::logInfo("Skv.Delve: " + _plan.ID + " budget=" + _plan.Budget + " (" + _plan.How + ")" + lifted
+			+ " units=" + (_into.len() - from) + " descriptor cost=" + cost + " named=" + named
+			+ " deploy=" + (_plan.Circle ? "Circle" : "Line") + " faction=" + _fac
+			+ " :: " + this.rosterText(_into, from));
+		return { Units = _into.len() - from, Named = named };
+	}
+
+	function arena( _id, _tile, _circle, _music = null )
+	{
+		local p = ::Const.Tactical.CombatInfo.getClone();
+		p.CombatID = _id;
+		p.Tile = _tile;
+		p.TerrainTemplate = "tactical.skv_ruin_floor";
+		p.PlayerDeploymentType = ::Const.Tactical.DeploymentType.Line;
+		p.EnemyDeploymentType = _circle ? ::Const.Tactical.DeploymentType.Circle : ::Const.Tactical.DeploymentType.Line;
+		p.IsWithoutAmbience = true;
+		p.Entities = [];
+		if (_music != null)
+		{
+			try { p.Music = ::Const.Music[_music]; }
+			catch (e) { ::logError("Skv.Delve: no ::Const.Music." + _music + " for " + _id + " - " + e); }
+		}
+		return p;
+	}
+
+	function gullyArena( _id, _tile, _music = null )
+	{
+		local p = ::Const.Tactical.CombatInfo.getClone();
+		p.CombatID = _id;
+		p.Tile = _tile;
+		p.TerrainTemplate = ::Const.World.TerrainTacticalTemplate[_tile.TacticalType];
+		p.LocationTemplate = clone ::Const.Tactical.LocationTemplate;
+		p.LocationTemplate.Template = clone ::Const.Tactical.LocationTemplate.Template;
+		p.LocationTemplate.Template[0] = "tactical.ruins";
+		p.LocationTemplate.Fortification = ::Const.Tactical.FortificationType.None;
+		p.PlayerDeploymentType = ::Const.Tactical.DeploymentType.Line;
+		p.EnemyDeploymentType = ::Const.Tactical.DeploymentType.Line;
+		p.Entities = [];
+		if (_music != null)
+		{
+			try { p.Music = ::Const.Music[_music]; }
+			catch (e) { ::logError("Skv.Delve: no ::Const.Music." + _music + " for " + _id + " - " + e); }
+		}
+		return p;
+	}
+
+	function descriptor( _t, _fac, _row = null, _name = null, _cb = null )
+	{
+		local d = {
+			ID = _t.ID,
+			Variant = 0,
+			Row = _row == null ? _t.Row : _row,
+			Script = _t.Script,
+			Faction = _fac
+		};
+		if (_name != null) d.Name <- _name;
+		if (_cb != null) d.Callback <- _cb;
+		return d;
+	}
+
+	function servant( _cb = null )
+	{
+		local C = ::Const.Skv.Delve;
+		local T = ::Const.World.Spawn.Troops;
+		if (!(C.ServantTroop in T))
+		{
+			::logError("Skv.Delve: ::Const.World.Spawn.Troops has no " + C.ServantTroop + "; the servant cannot be spawned.");
+			return null;
+		}
+		return this.descriptor(T[C.ServantTroop], ::Const.Faction.PlayerAnimals, C.ServantRow, null,
+			_cb == null ? ::Skv.Delve.onServantPlaced : _cb);
+	}
+
+	function onServantPlaced( _e, _tag )
+	{
+		if (_e == null)
+		{
+			::logError("Skv.Delve: onServantPlaced got a null entity - the servant is not in the fight.");
+			return;
+		}
+		::Skv.Delve.ServantID = _e.getID();
+		local agent = "?";
+		local size = "?";
+		try { agent = _e.getAIAgent().getID(); } catch (e) { ::logError("Skv.Delve: the servant's AI agent could not be read - " + e); }
+		try { size = _e.getSize(); } catch (e) { ::logError("Skv.Delve: the servant's size could not be read - " + e); }
+		::logInfo("Skv.Delve: the servant is in. type=" + _e.getType() + " (SandGolem=" + ::Const.EntityType.SandGolem + ")"
+			+ " faction=" + _e.getFaction() + " (PlayerAnimals=" + ::Const.Faction.PlayerAnimals + ")"
+			+ " with us=" + _e.isAlliedWithPlayer() + " agent=" + agent + " size=" + size
+			+ " HP " + _e.getHitpoints() + "/" + _e.getHitpointsMax());
+	}
+
+	function addServant( _p, _plan, _cb = null )
+	{
+		local d = this.servant(_cb);
+		if (d == null) return false;
+		if (!_plan.Servant)
+			::logError("Skv.Delve: the servant is joining " + _plan.ID + ", a fight in front of the stone warrior (design §2.3 says never).");
+		if (_p.EnemyDeploymentType == ::Const.Tactical.DeploymentType.Circle)
+		{
+			::logError("Skv.Delve: " + _plan.ID + " was set to Circle with the servant in it; turned to Line (an ally in a Circle spawns among the enemies).");
+			_p.EnemyDeploymentType = ::Const.Tactical.DeploymentType.Line;
+		}
+		_p.Entities.push(d);
+		return true;
+	}
+
+	ServantID  = 0,
+	WatchLast  = "",
+	WatchRound = null,
+
+	function inFight()
+	{
+		try { return ("Tactical" in ::getroottable()) && ::Tactical != null && ("State" in ::Tactical) && ::Tactical.State != null; }
+		catch (e) { ::logError("Skv.Delve: could not tell whether a fight is running (assuming none) - " + e); }
+		return false;
+	}
+
+	function combatID()
+	{
+		if (!this.inFight()) return "";
+		try
+		{
+			local p = ::Tactical.State.getStrategicProperties();
+			return p == null ? "" : p.CombatID;
+		}
+		catch (e) { ::logError("Skv.Delve: the fight's CombatID could not be read - " + e); }
+		return "";
+	}
+
+	function watchReset()
+	{
+		this.ServantID = 0;
+		this.WatchLast = "";
+		this.WatchRound = null;
+	}
+
+	function servantText()
+	{
+		local id = this.ServantID;
+		local out = "";
+		if (id == 0) out = "no servant placed";
+		else
+		{
+			local e = ::Tactical.getEntityByID(id);
+			if (e == null || !e.isAlive()) out = "servant #" + id + " BROKEN (dead or gone)";
+			else out = "servant #" + id + " HP " + e.getHitpoints() + "/" + e.getHitpointsMax() + ", faction " + e.getFaction()
+				+ (e.isAlliedWithPlayer() ? " (with us)" : " (AGAINST us)");
+		}
+		local others = "";
+		local all = ::Tactical.Entities.getAllInstances();
+		for (local f = 0; f < all.len(); f = f + 1)
+		{
+			if (all[f].len() == 0 || f == ::Const.Faction.Player) continue;
+			foreach (o in all[f])
+			{
+				if (o == null || !o.isAlive() || o.getID() == id) continue;
+				if (f != ::Const.Faction.PlayerAnimals && o.getType() != ::Const.EntityType.SandGolem) continue;
+				others = others + (others == "" ? "" : ", ") + "#" + o.getID() + " type " + o.getType() + " faction " + f
+					+ (o.isAlliedWithPlayer() ? " (with us)" : " (AGAINST us)") + " HP " + o.getHitpoints() + "/" + o.getHitpointsMax();
+			}
+		}
+		return out + "; others on our side or of its kind: " + (others == "" ? "none" : others);
+	}
+
+	function watchArm( _p )
+	{
+		this.watchReset();
+		_p.AfterDeploymentCallback = function ()
+		{
+			::Skv.Delve.watch();
+		};
+	}
+
+	function watch()
+	{
+		if (!this.inFight()) return;
+		local ended = false;
+		try
+		{
+			local s = this.servantText();
+
+			local rd = "?";
+			try { rd = ::Tactical.TurnSequenceBar.getCurrentRound(); }
+			catch (e) { rd = "unreadable: " + e; }
+			ended = ::Tactical.State.isBattleEnded();
+			if (s != this.WatchLast || rd != this.WatchRound)
+			{
+				::logInfo("Skv.Delve [" + this.combatID() + " round " + rd + "]: " + s);
+				this.WatchLast = s;
+				this.WatchRound = rd;
+			}
+			if (ended) ::logInfo("Skv.Delve: THE FIGHT ENDED (" + this.combatID() + "). " + s);
+		}
+		catch (e)
+		{
+			::logError("Skv.Delve: a look at the fight threw; the servant's watch stops here - " + e);
+			return;
+		}
+		if (ended) return;
+		::Time.scheduleEvent(::TimeUnit.Real, ::Const.Skv.Delve.WatchPollMs, function ( _data )
+		{
+			::Skv.Delve.watch();
+		}, null);
+	}
+
+	function live()
+	{
+		local a = ::World.Contracts.getActiveContract();
+		if (a != null && a.getType() == "contract.skv_delve") return a;
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			foreach (c in s.getContracts())
+			{
+				if (c.getType() == "contract.skv_delve") return c;
+			}
+		}
+		return null;
+	}
+
+	function scaledNow( _given = null )
+	{
+		if (_given != null) return { Value = _given, Route = "given" };
+		local c = this.live();
+		if (c != null) return { Value = c.getScaledDifficultyMult(), Route = "the live #22" };
+		foreach (s in ::World.EntityManager.getSettlements())
+		{
+			local cs = s.getContracts();
+			if (cs.len() == 0) continue;
+			return { Value = cs[0].getScaledDifficultyMult(), Route = "a " + cs[0].getType() + " on " + s.getName() + "'s board" };
+		}
+		local f = ::Const.Skv.Delve.FreshScaled;
+		return { Value = f, Route = "ASSUMED " + f + " (no contract on any board to ask)" };
+	}
+};
+
+::Skv.DelveTest <- {
+	Ally    = 0,
+	Turner  = 0,
+	Traitor = 0,
+	Hostile = 0,
+	Turned  = false,
+	Last    = "",
+	LastRound = null,
+
+	function inFight() { return ::Skv.Delve.inFight(); }
+	function combatID() { return ::Skv.Delve.combatID(); }
+
+	function whyNot()
+	{
+		if (this.inFight()) return "a fight is running";
+		local a = null;
+		try { a = ::World.Contracts.getActiveContract(); }
+		catch (e)
+		{
+			::logError("Skv.DelveTest: the active contract could not be read - " + e);
+			return "the active contract could not be read";
+		}
+		if (a != null) return "a contract is active (" + a.getType() + "), and its combat hooks would hear the test fight. Use a save with none";
+
+		local town = null;
+		try { town = ::World.State.getCurrentTown(); }
+		catch (e)
+		{
+			::logError("Skv.DelveTest: could not tell whether the company is in a town - " + e);
+			return "the town screen could not be read";
+		}
+		if (town != null) return "the company is in a town; leave it first";
+
+		if (!::Skv.Screens.canShow()) return "another screen is open (the console counts: use Run, which closes it, not Run in console)";
+		return null;
+	}
+
+	function round()
+	{
+		try { return ::Tactical.TurnSequenceBar.getCurrentRound(); }
+		catch (e) { return "unreadable: " + e; }
+	}
+
+	function launch( _p, _label )
+	{
+		this.Ally = 0;
+		this.Turner = 0;
+		this.Traitor = 0;
+		this.Turned = false;
+		this.Last = "";
+		this.LastRound = null;
+		::Skv.Delve.watchReset();
+		if (!::Skv.Spawn.check(_p.Entities, _label)) return false;
+
+		_p.AfterDeploymentCallback = function ()
+		{
+			::Skv.DelveTest.deployed();
+		};
+
+		::World.State.startScriptedCombat(_p, false, true, true);
+		return true;
+	}
+
+	function onAllyPlaced( _e, _tag )
+	{
+		::Skv.Delve.onServantPlaced(_e, _tag);
+		if (_e != null) ::Skv.DelveTest.Ally = _e.getID();
+	}
+
+	function onTurnerPlaced( _e, _tag )
+	{
+		if (_e == null)
+		{
+			::logError("Skv.DelveTest: the unit meant to change sides was not placed.");
+			return;
+		}
+		::Skv.DelveTest.Turner = _e.getID();
+		::logInfo("Skv.DelveTest: the turncoat is placed: type=" + _e.getType() + " faction=" + _e.getFaction() + " with us=" + _e.isAlliedWithPlayer());
+	}
+
+	function onTraitorPlaced( _e, _tag )
+	{
+		if (_e == null)
+		{
+			::logError("Skv.DelveTest: the ally meant to turn hostile was not placed.");
+			return;
+		}
+		::Skv.DelveTest.Traitor = _e.getID();
+		::logInfo("Skv.DelveTest: the traitor is placed: type=" + _e.getType() + " faction=" + _e.getFaction()
+			+ " (PlayerAnimals=" + ::Const.Faction.PlayerAnimals + ") with us=" + _e.isAlliedWithPlayer());
+	}
+
+	function unit( _id )
+	{
+		if (_id == 0) return null;
+		local e = null;
+		try { e = ::Tactical.getEntityByID(_id); }
+		catch (err)
+		{
+			::logError("Skv.DelveTest: entity " + _id + " could not be looked up - " + err);
+			return null;
+		}
+		if (e == null || !e.isAlive()) return null;
+		return e;
+	}
+
+	function where( _e )
+	{
+		local t = _e.getTile();
+		local nb = 9999;
+		local nh = 9999;
+		local all = ::Tactical.Entities.getAllInstances();
+		for (local f = 0; f < all.len(); f = f + 1)
+		{
+			if (all[f].len() == 0) continue;
+			local brothers = f == ::Const.Faction.Player;
+			if (!brothers && ::World.FactionManager.isAlliedWithPlayer(f)) continue;
+			foreach (o in all[f])
+			{
+				if (o == null || !o.isAlive() || !o.isPlacedOnMap() || o.getID() == _e.getID()) continue;
+				local d = o.getTile().getDistanceTo(t);
+				if (brothers) nb = ::Math.min(nb, d);
+				else nh = ::Math.min(nh, d);
+			}
+		}
+		return "tile " + t.Coords.X + "," + t.Coords.Y + ", nearest brother " + nb + " tiles, nearest hostile " + nh + " tiles";
+	}
+
+	function status()
+	{
+		local out = "";
+		foreach (w in [ { Tag = "turncoat", ID = this.Turner }, { Tag = "traitor", ID = this.Traitor } ])
+		{
+			if (w.ID == 0) continue;
+			local e = this.unit(w.ID);
+			out = out + w.Tag + " " + (e == null ? "DEAD or gone"
+				: "alive, faction " + e.getFaction() + (e.isAlliedWithPlayer() ? " (with us)" : " (AGAINST us)")) + "; ";
+		}
+		local ours = 0;
+		local theirs = 0;
+		local friends = 0;
+		local hostiles = 0;
+		local all = ::Tactical.Entities.getAllInstances();
+		for (local f = 0; f < all.len(); f = f + 1)
+		{
+			if (all[f].len() == 0 || f == ::Const.Faction.Player) continue;
+			local allied = ::World.FactionManager.isAlliedWithPlayer(f);
+			foreach (o in all[f])
+			{
+				if (o == null || !o.isAlive()) continue;
+				if (allied) friends = friends + 1;
+				else hostiles = hostiles + 1;
+				if (o.getType() == ::Const.EntityType.SandGolem)
+				{
+					if (allied) ours = ours + 1;
+					else theirs = theirs + 1;
+				}
+			}
+		}
+		return out + "Ifrits with us " + ours + ", against us " + theirs + "; AI units with us " + friends + ", hostile " + hostiles
+			+ " | " + ::Skv.Delve.servantText();
+	}
+
+	function deployed()
+	{
+		try
+		{
+			::logInfo("Skv.DelveTest: deployed. " + this.combatID() + " line against line=" + ::Tactical.Entities.isLineVSLine()
+				+ " brothers=" + ::Tactical.Entities.getInstancesNum(::Const.Faction.Player));
+			foreach (w in [ { Tag = "the servant", ID = this.Ally }, { Tag = "the turncoat", ID = this.Turner }, { Tag = "the traitor", ID = this.Traitor } ])
+			{
+				local e = this.unit(w.ID);
+				if (e == null) continue;
+				local socket = "?";
+				if (e.hasSprite("socket")) socket = e.getSprite("socket").getBrush().Name;
+				::logInfo("  " + w.Tag + ": " + e.getName() + ", faction " + e.getFaction() + (e.isAlliedWithPlayer() ? " (with us)" : " (AGAINST us)")
+
+					+ ", agent " + e.getAIAgent().getID() + ", socket before bases " + socket + ", " + this.where(e));
+			}
+		}
+		catch (e) { ::logError("Skv.DelveTest: the deployment report threw - " + e); }
+		this.look();
+	}
+
+	function look()
+	{
+		if (!this.inFight()) return;
+		local ended = false;
+		try
+		{
+			local s = this.status();
+			local rd = this.round();
+			ended = ::Tactical.State.isBattleEnded();
+
+			if (s != this.Last || rd != this.LastRound)
+			{
+				::logInfo("Skv.DelveTest [round " + rd + "]: " + s);
+				this.Last = s;
+				this.LastRound = rd;
+			}
+			if (ended)
+			{
+
+				local word = "result unreadable";
+				try
+				{
+					local r = ::Tactical.Entities.getCombatResult();
+					local R = ::Const.Tactical.CombatResult;
+					word = r == R.EnemyDestroyed ? "the enemy was destroyed" : (r == R.EnemyRetreated ? "the enemy retreated"
+						: (r == R.PlayerRetreated ? "the company retreated" : (r == R.PlayerDestroyed ? "the company was destroyed" : "result " + r)));
+				}
+				catch (e) { ::logError("Skv.DelveTest: the combat result could not be read - " + e); }
+				::logInfo("Skv.DelveTest: THE FIGHT ENDED (" + this.combatID() + "): " + word + ". " + s);
+				foreach (w in [ { Tag = "the servant", ID = this.Ally }, { Tag = "the turncoat", ID = this.Turner }, { Tag = "the traitor", ID = this.Traitor } ])
+				{
+					if (w.ID == 0) continue;
+					local e = this.unit(w.ID);
+					::logInfo("  " + w.Tag + (e == null ? " did NOT live" : " LIVED, HP " + e.getHitpoints() + "/" + e.getHitpointsMax() + ", faction " + e.getFaction()));
+				}
+			}
+		}
+		catch (e)
+		{
+			::logError("Skv.DelveTest: a look at the fight threw; the watch stops here - " + e);
+			return;
+		}
+		if (ended) return;
+		::Time.scheduleEvent(::TimeUnit.Real, ::Const.Skv.Delve.TestPollMs, function ( _data )
+		{
+			::Skv.DelveTest.look();
+		}, null);
+	}
+
+	function sideChange( _e, _fac, _socket, _tag )
+	{
+		if (_e == null)
+		{
+			::logError("Skv.DelveTest: " + _tag + " is dead or gone; nothing to change.");
+			return false;
+		}
+		local was = _e.getFaction();
+		local agent = "?";
+		local at = "?";
+		try { agent = _e.getAIAgent().getID(); } catch (e) { ::logError("Skv.DelveTest: " + _tag + "'s AI agent could not be read - " + e); }
+		try { at = this.where(_e); } catch (e) { ::logError("Skv.DelveTest: " + _tag + "'s place could not be read - " + e); }
+		::logInfo("Skv.DelveTest: " + _tag + " (" + _e.getName() + ") step 1, before: faction " + was + ", with us=" + _e.isAlliedWithPlayer()
+			+ ", agent " + agent + ", player controlled=" + _e.isPlayerControlled() + ", " + at);
+		if (_e.isPlayerControlled())
+		{
+			::logError("Skv.DelveTest: " + _tag + " is player controlled; this rig swaps no agent, so it does not turn a brother.");
+			return false;
+		}
+
+		try { _e.setFaction(_fac); }
+		catch (e)
+		{
+			::logError("Skv.DelveTest: " + _tag + " step 2, setFaction(" + _fac + ") THREW - " + e);
+			return false;
+		}
+		::logInfo("Skv.DelveTest: " + _tag + " step 2, setFaction(" + _fac + "): faction now " + _e.getFaction() + ", with us=" + _e.isAlliedWithPlayer()
+			+ ", agent still " + agent + ", alive=" + _e.isAlive());
+
+		try
+		{
+			if (_socket != null && _socket != "" && _e.hasSprite("socket"))
+			{
+				local old = _e.getSprite("socket").getBrush().Name;
+				_e.getSprite("socket").setBrush(_socket);
+				::logInfo("Skv.DelveTest: " + _tag + " step 3, socket " + old + " -> " + _socket);
+			}
+			else ::logInfo("Skv.DelveTest: " + _tag + " step 3, socket left as it is (no brush to give it, or no socket sprite).");
+			_e.setDirty(true);
+		}
+		catch (e) { ::logError("Skv.DelveTest: " + _tag + " step 3, the socket or setDirty threw (the side change itself stands) - " + e); }
+
+		try
+		{
+			::logInfo("Skv.DelveTest: " + _tag + " step 4, the field after: instances of faction " + was + " = " + ::Tactical.Entities.getInstancesNum(was)
+				+ ", of faction " + _fac + " = " + ::Tactical.Entities.getInstancesNum(_fac)
+				+ ", hostiles = " + ::Tactical.Entities.getHostilesNum() + " (0 ends the fight)");
+		}
+		catch (e) { ::logError("Skv.DelveTest: " + _tag + " step 4, the counts threw - " + e); }
+		return _e.getFaction() == _fac;
+	}
+};
+
+::skvdelve <- function ( _ignored = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.delve: not in a campaign.");
+		return null;
+	}
+	local C = ::Const.Skv.Delve;
+	local D = ::Skv.Delve;
+	local L = ::Skv.Lore;
+	local lk = ::Const.Skv.Lore.OnceKey;
+	local key = C.OnceKey;
+	local retired = ::Skv.Once.isRetired(lk);
+	local rec = D.partOneRecord();
+	::logInfo("== Skv.Delve (contract #22, To Delve the Dungeon Deep) ==  day=" + ::World.getTime().Days);
+	::logInfo("  PART I (#21): once.retired=" + retired
+		+ "   outcome record: " + D.partOneRecordText()
+		+ (retired && rec == null ? " (a Part I finished before 1.8.1: counts as success)" : "")
+		+ "   => " + (D.partOneDone() ? "Part II may be offered" : "Part II is NOT offered  << BLOCKING"));
+	::logInfo("  #22: once.active=" + ::World.Flags.has("SkvOnce." + key + ".active")
+		+ " once.retired=" + ::World.Flags.has("SkvOnce." + key + ".retired")
+		+ (::Skv.Once.isLocked(key) ? "  << BLOCKING" : "")
+		+ "   score=" + ::Skv.Cfg.score() + (::Skv.Cfg.score() <= 0 ? "  << BLOCKING (dial is off)" : "")
+		+ "   make_nobles_aware=" + (::Skv.Anvil.noblesAware() ? "done (military hosts open)" : "not done (military hosts closed)"));
+	::logInfo("  rarity per faction update: town " + C.RarityNorth + " %, city-state " + C.RaritySouth + " %, noble house " + C.RarityNoble + " %"
+		+ "   the site: " + C.SiteMinDist + "-" + C.SiteMaxDist + " tiles out, ON A HILL: hills in range are a gate (::Const.Skv.Delve, live-editable)");
+
+	::logInfo("  #22's arc record " + C.ArcFlagOutcome + ": " + (::World.Flags.has(C.ArcFlagOutcome)
+		? ::World.Flags.getAsInt(C.ArcFlagOutcome) + " (0 abandoned, 1 the sword as it was, 2 the same unknowing, 3 the paper sold, 4 the paper kept, 5 gave up)" : "none"));
+	local all = 0;
+	local open = 0;
+	local now = 0;
+	local skipped = 0;
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		if (!L.postsHere(s))
+		{
+			skipped = skipped + 1;
+			continue;
+		}
+		all = all + 1;
+		local why = D.hostWhy(s);
+		if (why == null) open = open + 1;
+		local kind = L.kindOf(s);
+		local hills = D.hillsInRange(s);
+
+		local f = L.factionOf(s);
+		local ready = "?";
+		local excluded = "?";
+		local roll = "?";
+		if (f != null)
+		{
+			try
+			{
+				ready = (f.getType() == ::Const.FactionType.Settlement
+					? f.isReadyForContract(::Const.Contracts.ContractCategoryMap.skv_delve_contract)
+					: f.isReadyForContract()) ? "ready" : "full/cooldown";
+			}
+			catch (e) { ::logError("Skv.delve: isReadyForContract threw at " + s.getName() + " - " + e); }
+			try { excluded = f.hasContractExclusion("contract.skv_delve") ? "EXCLUDED" : "not excluded"; }
+			catch (e) { ::logError("Skv.delve: hasContractExclusion threw at " + s.getName() + " - " + e); }
+			roll = D.rarity(f) + " %";
+		}
+		if (why == null && ready == "ready" && excluded == "not excluded") now = now + 1;
+		::logInfo("  " + s.getName() + " [" + (kind == null ? "?" : kind) + ", size " + s.getSize() + "]  "
+			+ (why == null ? "CAN HOST" : "no: " + why)
+
+			+ "   hills in range: " + (hills < 0 ? "unreadable" : "" + hills + ", free for the keep: " + D.siteTiles(s).Tiles.len())
+			+ "   board " + ready + ", " + excluded + ", roll " + roll);
+	}
+	local gate = ::Skv.Cfg.score() > 0 && !::Skv.Once.isLocked(key) && D.partOneDone();
+	::logInfo("  " + open + " of " + all + " can host (" + skipped + " settlements skipped: their faction cannot post it); "
+		+ now + " of them with a ready board and no exclusion. "
+		+ (gate ? (now > 0 ? "The action's guards pass there NOW, up to its rarity roll." : "No host passes every guard now.")
+			: "The dial, the once-lock or Part I blocks the offer everywhere (above)."));
+
+	local c = D.live();
+	if (c == null)
+	{
+		::logInfo("  no live To Delve the Dungeon Deep (::skvdelvepost(true) posts one at the nearest host).");
+		return null;
+	}
+	local m = c.m;
+	local home = c.getHome();
+	local names = function ( _v, _bits )
+	{
+		local out = "";
+		foreach (b in _bits) if ((_v & b[0]) != 0) out = out + (out == "" ? "" : ", ") + b[1];
+		return out == "" ? "none" : out;
+	};
+	::logInfo("  LIVE at " + (home == null ? "?" : home.getName()) + "  active=" + m.IsActive
+		+ "  state=" + (c.getActiveState() == null ? "?" : c.getActiveState().ID)
+		+ "  act=" + m.Act + " (0 riders, 1 road and gully, 2 inside, 3 road home, 4 at the host, 5 paid)"
+		+ "  diff=" + c.getDifficultyMult() + "  scaled=" + c.getScaledDifficultyMult() + "  pool=" + m.Payment.Pool + "  fee=" + c.fee()
+		+ "  accepted day " + m.DayAccepted + "  band=" + m.Band + " (0 neutral, 1 lawful, 2 lawless)"
+		+ "  screen=" + (c.getActiveScreen() == null ? "none" : c.getActiveScreen().ID));
+	::logInfo("    riders=" + m.Riders + ": " + names(m.Riders, [ [ C.RiderMajorAsked, "Major asked" ], [ C.RiderMajorWord, "WORD GIVEN" ], [ C.RiderPrinceAsked, "Prince asked" ], [ C.RiderPrinceAgreed, "TERMS AGREED" ], [ C.RiderGarden, "garden tried" ] ])
+		+ "   maurit=" + m.Maurit + " (0 unmet, 1 killed at the gully, 2 trusted and owed, 3 ambush won, 4 gully fled)"
+		+ "  wary=" + m.Wary + " (1 caught her lie, 2 did not; +4 an ambush was fled)"
+		+ "  trusted=" + c.trusted() + " dead destroyed=" + c.deadDestroyed()
+		+ "  betrayal due now=" + c.betrayalDue(false) + ", on leaving=" + c.betrayalDue(true) + ", as a " + (c.ambushCircle() ? "Circle" : "Line"));
+	local deckWhy = D.deckWhy(m.Deck);
+	::logInfo("    way=" + m.Way + " (0 unchosen, 1 the door, 2 her cave)  deck: " + D.deckText(m.Deck) + (deckWhy == null ? "" : "  << BROKEN: " + deckWhy)
+		+ "  pos=" + D.roomKey(m.Pos) + "  rooms=" + m.Rooms + " passed=" + m.Passed);
+	local run = "";
+	foreach (r in c.runRooms())
+		run = run + (run == "" ? "" : ", ") + D.roomKey(r) + (c.roomDone(r) ? " [done]" : (c.roomPassed(r) ? " [passed]" : " [open]"));
+	local nxt = c.nextRoom();
+
+	::logInfo("    this run: " + (run == "" ? "none" : run) + "   next=" + (nxt == null ? "none" : D.roomKey(nxt)));
+	::logInfo("    words=" + m.Words + ": " + names(m.Words, [ [ C.WordAir, "air spoken" ], [ C.WordStone, "stone spoken" ], [ C.WordWater, "water spoken" ], [ C.WordFire, "fire spoken" ],
+			[ C.WordTriedAir, "air tried" ], [ C.WordTriedStone, "stone tried" ], [ C.WordTriedWater, "water tried" ], [ C.WordTriedStatue, "statue tried" ], [ C.WordTriedArchive, "sheet tried" ] ])
+		+ "   script=" + m.Script + " (0 unknown, 1 a brother, 2 the list) reader=" + (m.Reader == "" ? "-" : m.Reader)
+		+ "   golem=" + m.Golem + " fights left (joins=" + c.golemJoins() + ", the stone warrior waits for its word=" + c.stoneWaits() + ")");
+	::logInfo("    locks=" + m.Locks + ": the case " + c.lockState(false) + ", the cells' door " + c.lockState(true) + " (0 untried, 1 picked, 2 pick failed, 3 forced)"
+		+ "   lamp=" + m.Lamp + "  burn=" + m.Burn + "  papers=" + m.Papers
+		+ "   clues=" + m.Clues + ": " + names(m.Clues, [ [ C.ClueSeal, "the seal" ], [ C.ClueSheet, "the sheet" ], [ C.ClueHerWord, "her word" ], [ C.ClueKobolds, "the wrapped kobolds" ],
+			[ C.CluePrince, "the Prince showed it" ], [ C.ClueBurial, "the burial" ], [ C.ClueGarden, "the garden" ], [ C.CluePicks, "HER PICKS" ] ]));
+	::logInfo("    tarka=" + m.Tarka + " (1 a little, 2 won over, 3 botched, 4 beaten, 5 paid, 6 fled)  cult=" + m.Cult + " (low nibble: 1 stood aside, 2 unmasked and fought, 3 fought, 4 fled)"
+		+ "  speaker=" + m.Speaker + " (1 cornered, 2 on the rope, 3 spared, 6 rope bargain; escapes=" + c.speakerEscapes() + ")"
+		+ "  sword=" + m.Sword + "  ending=" + m.Ending
+		+ "  fights won inside=" + c.wonInside() + " fled=" + c.fledCount() + " (give-up allowed=" + c.canGiveUp() + ")"
+		+ "  alert=" + m.Alert + "  named: pack " + c.namedOf(C.NamedPackShift) + ", gallery " + c.namedOf(C.NamedGalleryShift)
+		+ "  returns (Res8)=" + c.returns() + " -> fights inside x" + ::Skv.Delve.restockMult(c.returns()));
+	local grantNames = [ "Garden", "Trust", "Kit", "Cells", "Webs", "Bones", "Refuse", "Scribes", "Stores", "Water", "Shelves", "Case", "Parley", "Altar", "Speaker", "Claim", "Amara", "MajorEnd", "Vials", "Bags", "BurialOwed", "BurialPaid", "ShelvesLeft", "HiltLeft" ];
+	local set = "";
+	foreach (i, nm in grantNames) if ((m.Granted & (1 << i)) != 0) set = set + (set == "" ? "" : ", ") + nm;
+	::logInfo("    shares of fee " + c.fee() + ": the sword " + c.swordPay() + "  the Major's bounty now " + c.bountyPay()
+		+ " (word " + c.majorOwed() + ", dead destroyed " + c.deadDestroyed() + ", bone hall cleared " + c.boneHallCleared() + ")"
+		+ "   granted=" + m.Granted + ": " + (set == "" ? "none" : set));
+
+	local plans = "";
+	foreach (k in [ "Door", "Ambush", "Webs", "Bones", "Rats", "Gallery", "Cult" ])
+	{
+		local q = c.fightPlan(k);
+		if (q == null) continue;
+		plans = plans + (plans == "" ? "" : " | ") + k + " " + q.Budget + " " + (q.Circle ? "Circle" : "Line") + (c.servantIn(k) ? " +servant" : "");
+	}
+	::logInfo("    fights now (budget, deployment): " + plans);
+	if (!c.siteLive())
+	{
+		::logInfo("    " + C.SiteName + ": no marker" + (m.Act >= C.ActHome ? " or not needed any more" : (m.IsActive ? "  << THE SWORD IS STILL IN THE KEEP AND THERE IS NO MARKER" : " (placed at the accept)")));
+	}
+	else
+	{
+		local t = m.Site.getTile();
+		::logInfo("    " + C.SiteName + ": at " + t.Coords.X + "," + t.Coords.Y + " terrain=" + t.Type + " (" + ::Skv.Trail.terrainName(t.Type) + ")"
+			+ (home == null ? "" : "  " + t.getDistanceTo(home.getTile()) + " tiles, " + ::Skv.Rose.landSteps(home.getTile(), t) + " steps from the host")
+			+ "  the company stands on it=" + c.atSite());
+	}
+	return c;
+};
+
+::skvdelvepost <- function ( _force = false )
+{
+	local live = ::skvdelve();
+	if (!_force) return live;
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null) return null;
+	local C = ::Const.Skv.Delve;
+	local D = ::Skv.Delve;
+	local L = ::Skv.Lore;
+	local key = C.OnceKey;
+	if (live != null)
+	{
+		::logInfo("Skv.delvepost: already posted - not posting a second.");
+		return live;
+	}
+	local skipped = [];
+	if (::Skv.Cfg.score() <= 0) skipped.push("the frequency dial (off)");
+	if (::Skv.Once.isLocked(key)) skipped.push("the once-lock");
+	local partOne = D.partOneDone();
+	if (!partOne)
+	{
+		skipped.push("PART I (not done)");
+		::logInfo("Skv.delvepost: PART I IS NOT DONE (#21 retired=" + ::Skv.Once.isRetired(::Const.Skv.Lore.OnceKey) + ", outcome record " + D.partOneRecordText()
+			+ "). The forced post steps OVER ::Skv.Delve.partOneDone(); #21's flags are NOT touched, so the game itself still offers nothing.");
+	}
+
+	local hosts = [];
+	local loose = [];
+	foreach (s in ::World.EntityManager.getSettlements())
+	{
+		if (D.hostWhy(s) == null) { hosts.push(s); continue; }
+		if (!s.isIsolated() && L.postsHere(s)) loose.push(s);
+	}
+	local order = ::Skv.Debug.nearestFirst(hosts);
+	local forced = false;
+	if (hosts.len() == 0)
+	{
+		::logInfo("Skv.delvepost: NO settlement passes ::Skv.Delve.hostWhy -- FORCING at the nearest settlement that is not isolated "
+			+ "(its host rule SKIPPED, the reason is printed).");
+		order = ::Skv.Debug.nearestFirst(loose);
+		forced = true;
+	}
+	if (order.len() == 0)
+	{
+		::logInfo("Skv.delvepost: no settlement on this map can post it. Nothing was changed (the once-lock, the retired flag and the arc record stand).");
+		return null;
+	}
+
+	local retired = ::Skv.Once.retiredFlag(key);
+	local wasRetired = ::World.Flags.has(retired);
+	local oldArc = ::World.Flags.has(C.ArcFlagOutcome) ? ::World.Flags.getAsInt(C.ArcFlagOutcome) : null;
+	::Skv.Once.release(key);
+	::World.Flags.remove(retired);
+
+	if (oldArc != null)
+	{
+		::logInfo("Skv.delvepost: clearing the earlier arc record " + C.ArcFlagOutcome + "=" + oldArc);
+		::World.Flags.remove(C.ArcFlagOutcome);
+	}
+
+	::Skv.Once.claim(key);
+	local tried = "";
+	foreach (s in order)
+	{
+		local f = ::World.FactionManager.getFaction(s.getFaction());
+		if (f == null) { tried = tried + (tried == "" ? "" : ", ") + s.getName() + " (no faction)"; continue; }
+		local c = ::new("scripts/contracts/contracts/skv_delve_contract");
+		c.setFaction(f.getID());
+		c.setHome(s);
+		c.setEmployerID(f.getRandomCharacter().getID());
+		::Skv.Debug.forcePost(c);
+
+		foreach (x in s.getContracts())
+		{
+			if (x.getType() == "contract.skv_delve")
+			{
+				::logInfo("Skv.delvepost: FORCED onto the board at " + s.getName() + " (" + L.kindOf(s) + ", size " + s.getSize() + "), "
+					+ ::Skv.Debug.tilesAway(s) + " tiles away -- verified present"
+					+ (tried == "" ? "" : " (refused first at: " + tried + ")")
+					+ ". Gates stepped over: board readiness, hasContractExclusion and the rarity roll ("
+					+ D.rarity(f) + " %)" + (skipped.len() == 0 ? "" : ", " + c.joinList(skipped, ", "))
+					+ (forced ? ", AND THE HOST RULE [" + D.hostWhy(s) + "]" : "") + "."
+					+ (partOne ? "" : "  << PART I WAS NOT DONE: this offer exists only because it was forced."));
+				return c;
+			}
+		}
+		tried = tried + (tried == "" ? "" : ", ") + s.getName();
+	}
+	::Skv.Once.release(key);
+	if (wasRetired) ::World.Flags.set(retired, true);
+	if (oldArc != null) ::World.Flags.set(C.ArcFlagOutcome, oldArc);
+	::logInfo("Skv.delvepost: REFUSED at every host (" + tried + "). Put back: the retired flag " + (wasRetired ? "(set again)" : "(there was none)")
+		+ ", the arc record " + (oldArc != null ? C.ArcFlagOutcome + "=" + oldArc : "(there was none)") + "; the live-offer slot is left free.");
+	return null;
+};
+
+::skvdelvejump <- function ( _to = "hub", _state = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null) return false;
+	local c = ::Skv.Delve.live();
+	if (c == null || !c.m.IsActive)
+	{
+		::logInfo("Skv.delvejump: no ACCEPTED To Delve the Dungeon Deep. Post it with ::skvdelvepost(true) and accept it at the board first.");
+		return false;
+	}
+	local m = c.m;
+	local C = ::Const.Skv.Delve;
+	local D = ::Skv.Delve;
+	local stops = "\"gully\", \"hub\", a room (\"air\", \"cells\", \"webs\", \"bones\", \"stone\", \"water\", \"archive\", \"refuse\", \"scribes\", \"stores\", \"gallery\", \"flame\"), \"parley\", \"unmasked\", \"charge\", \"dragged\", \"rope\", \"sword\", \"back\"";
+	if (typeof _to != "string")
+	{
+		::logInfo("Skv.delvejump: give a stop: " + stops + ".");
+		return false;
+	}
+	local to = _to.tolower();
+	local room = null;
+	foreach (i, r in C.Rooms)
+	{
+		if (r.Key.tolower() == to) room = i;
+	}
+
+	local sub = null;
+	if (to == "parley") { room = C.RoomGallery; sub = to; }
+	else if (to == "unmasked" || to == "charge" || to == "dragged") { room = C.RoomFlame; sub = to; }
+	if (room == null && to != "gully" && to != "hub" && to != "rope" && to != "sword" && to != "back")
+	{
+		::logInfo("Skv.delvejump: unknown stop \"" + _to + "\". Stops: " + stops + ".");
+		return false;
+	}
+
+	local allowed = [ "Band", "Riders", "Maurit", "Wary", "Way", "Rooms", "Passed", "Words", "Script", "Reader", "Golem", "Papers", "Clues",
+		"Burn", "Lamp", "Locks", "Tarka", "Cult", "Speaker", "Sword", "Ending", "Fights", "Alert", "Res8" ];
+	local given = {};
+	local sick = 0;
+
+	local whole = function ( _k, _v )
+	{
+		local t = typeof _v;
+		if (t == "bool") return _v ? 1 : 0;
+		if (t == "integer") return _v;
+		if (t == "float" || t == "string")
+		{
+			try { return _v.tointeger(); }
+			catch (e) { ::logInfo("Skv.delvejump: " + _k + " = \"" + _v + "\" is no number (" + e + "); ignored."); return null; }
+		}
+		::logInfo("Skv.delvejump: " + _k + " = a " + t + ", no number; ignored.");
+		return null;
+	};
+	if (_state != null)
+	{
+		if (typeof _state != "table")
+		{
+			::logInfo("Skv.delvejump: the state must be a table, e.g. { Way = 2, Maurit = 2 }.");
+			return false;
+		}
+		foreach (k, v in _state)
+		{
+			if (k == "Sick")
+			{
+				local n = whole(k, v);
+				if (n != null) sick = n;
+				continue;
+			}
+			if (k == "Granted")
+			{
+				::logInfo("Skv.delvejump: a jump never sets a Granted bit; \"Granted\" is ignored.");
+				continue;
+			}
+			if (allowed.find(k) == null)
+			{
+				::logInfo("Skv.delvejump: \"" + k + "\" is no field a jump may set; ignored. Allowed: " + c.joinList(allowed, ", ") + ", Sick.");
+				continue;
+			}
+			if (k == "Reader") m[k] = "" + v;
+			else
+			{
+				local n = whole(k, v);
+				if (n == null) continue;
+
+				if (k == "Res8" && (n < 0 || n > C.RestockMax))
+				{
+					local was = n;
+					n = n < 0 ? 0 : C.RestockMax;
+					::logInfo("Skv.delvejump: Res8 = " + was + " is outside its U8 field; " + n + " is set.");
+				}
+				m[k] = n;
+			}
+			given[k] <- true;
+			::logInfo("Skv.delvejump: " + k + " set to " + m[k] + ".");
+		}
+	}
+
+	local put = function ( _k, _v )
+	{
+		if (_k in given) return;
+		if (m[_k] != _v) ::logInfo("Skv.delvejump: " + _k + " " + m[_k] + " -> " + _v + " (the stop's own).");
+		m[_k] = _v;
+	};
+
+	local unend = function ()
+	{
+		if (c.hasGrant(C.GrantClaim) || c.hasGrant(C.GrantAmara))
+		{
+			if (m.Ending != C.EndNone) ::logInfo("Skv.delvejump: the return was answered already (ending " + m.Ending + ", granted=" + m.Granted + "); the ending is kept.");
+			return;
+		}
+		put("Ending", C.EndNone);
+	};
+
+	c.ensureDeck("the jump");
+
+	local inside = function ()
+	{
+
+		if (m.Maurit == C.MauritUnmet || m.Maurit == C.MauritFled)
+			put("Maurit", m.Way == C.WayCave ? C.MauritTrusted : C.MauritKilled);
+		if (m.Maurit == C.MauritUnmet || m.Maurit == C.MauritFled)
+			::logInfo("Skv.delvejump: Maurit was given as " + m.Maurit + " (unmet or fled), which no company inside the keep has; kept as given.");
+
+		if (m.Way == 0) put("Way", C.WayDoor);
+		if (m.Way == C.WayCave && !c.trusted()) put("Way", C.WayDoor);
+		if (m.Way == C.WayCave && !c.trusted())
+			::logInfo("Skv.delvejump: the cave AND a dead woman who was never trusted (Maurit " + m.Maurit + ") were both given: kept as given.");
+		if (c.trusted())
+		{
+			if ((m.Clues & C.ClueHerWord) == 0) put("Clues", m.Clues | C.ClueHerWord);
+			if ((m.Wary & 3) == 0) put("Wary", m.Wary | C.WaryMissed);
+		}
+		if (c.deadDestroyed() && (m.Clues & C.CluePicks) == 0) put("Clues", m.Clues | C.CluePicks);
+		m.Act = C.ActInside;
+	};
+
+	local allRooms = function ()
+	{
+		local run = 0;
+		foreach (r in c.runRooms()) run = run | (1 << r);
+		put("Passed", m.Passed & run);
+		put("Rooms", run & ~m.Passed);
+	};
+
+	local tidyLamp = function ()
+	{
+		local ls = m.Lamp & 3;
+		local desksOpen = !c.roomDone(C.RoomScribes) && !c.roomPassed(C.RoomScribes);
+		if (((ls == C.LampNest || ls == C.LampLeft) && desksOpen) || (ls == C.LampFountain && !c.roomDone(C.RoomWater))) put("Lamp", 0);
+	};
+
+	local s = null;
+	if (to == "gully")
+	{
+		m.Act = C.ActRoad;
+
+		if (m.Maurit != C.MauritUnmet && m.Maurit != C.MauritFled)
+		{
+			if ("Maurit" in given) ::logInfo("Skv.delvejump: Maurit " + m.Maurit + " was given for the gully, where she is unmet (0) or the fight was fled (4); set to 0.");
+			m.Maurit = C.MauritUnmet;
+		}
+		if (m.Way != 0)
+		{
+			if ("Way" in given) ::logInfo("Skv.delvejump: Way " + m.Way + " was given for the gully, where no way in is chosen yet; set to 0.");
+			m.Way = 0;
+		}
+		put("Wary", 0);
+		put("Rooms", 0);
+		put("Passed", 0);
+		put("Golem", 0);
+		put("Tarka", C.TarkaUnmet);
+		put("Cult", C.CultUnmet);
+		put("Speaker", C.SpeakerUnmet);
+		put("Sword", C.SwordNone);
+		unend();
+		put("Clues", m.Clues & ~(C.ClueHerWord | C.CluePicks));
+		tidyLamp();
+
+		if (m.Maurit == C.MauritFled && c.fledCount() == 0) put("Fights", m.Fights | 0x10);
+		m.Pos = 0;
+		s = "Gully";
+	}
+	else if (to == "hub")
+	{
+		inside();
+
+		local bits = 0;
+		foreach (r in c.runRooms()) bits = bits | (1 << r);
+		put("Sword", C.SwordNone);
+		unend();
+		if (m.Sword == C.SwordNone)
+		{
+
+			bits = bits & ~(1 << C.RoomFlame);
+			put("Speaker", C.SpeakerUnmet);
+			put("Cult", C.CultUnmet);
+			put("Words", m.Words & ~(C.WordFire | C.WordTriedStatue));
+		}
+		put("Rooms", m.Rooms & bits);
+		put("Passed", m.Passed & bits & ~m.Rooms);
+		tidyLamp();
+		s = "Hub";
+	}
+	else if (room != null)
+	{
+		inside();
+
+		if (C.Rooms[room].Front && m.Way == C.WayCave)
+		{
+			::logInfo("Skv.delvejump: " + C.Rooms[room].Key + " lies in front of the bone hall and the way in is her cave; the way in is turned to the door.");
+			m.Way = C.WayDoor;
+		}
+		local draws = 0;
+		while (m.Deck.find(room) == null && draws < 500)
+		{
+			m.Deck = D.drawDeck();
+			draws = draws + 1;
+		}
+		if (draws > 0) ::logInfo("Skv.delvejump: " + C.Rooms[room].Key + " was not in the deck; drawn again " + draws + " time(s): " + D.deckText(m.Deck));
+		if (!c.inRun(room))
+		{
+			::logError("Skv.delvejump: " + C.Rooms[room].Key + " could not be put into this run (deck " + D.deckText(m.Deck) + ", way " + m.Way + "); no jump.");
+			return false;
+		}
+
+		local before = 0;
+		local reached = false;
+		foreach (r in c.runRooms())
+		{
+			if (r == room) reached = true;
+			if (!reached) before = before | (1 << r);
+		}
+		if ("Rooms" in given) m.Rooms = m.Rooms & ~(1 << room);
+		else put("Rooms", before);
+		if ("Passed" in given) m.Passed = m.Passed & ~(1 << room);
+		else put("Passed", 0);
+
+		put("Sword", C.SwordNone);
+		unend();
+		put("Speaker", C.SpeakerUnmet);
+
+		if (room != C.RoomFlame)
+		{
+
+			if (room != C.RoomGallery) { put("Tarka", C.TarkaUnmet); put("Alert", 0); }
+			if (c.roomDone(C.RoomFlame)) put("Cult", m.Cult & 0xF0);
+			else
+			{
+				put("Cult", C.CultUnmet);
+				put("Words", m.Words & ~(C.WordFire | C.WordTriedStatue));
+			}
+		}
+
+		if (room == C.RoomAir) put("Words", m.Words & ~(C.WordAir | C.WordTriedAir));
+		else if (room == C.RoomStone) { put("Words", m.Words & ~(C.WordStone | C.WordTriedStone)); put("Golem", 0); }
+		else if (room == C.RoomWater) put("Words", m.Words & ~(C.WordWater | C.WordTriedWater));
+
+		else if (room == C.RoomCells) { put("Locks", m.Locks & 0x0F); put("Clues", m.Clues & ~C.ClueSeal); }
+		else if (room == C.RoomArchive)
+		{
+			put("Locks", m.Locks & 0xF0);
+			put("Words", m.Words & ~C.WordTriedArchive);
+			put("Clues", m.Clues & ~C.ClueSheet);
+		}
+
+		else if (room == C.RoomGallery) { put("Tarka", C.TarkaUnmet); put("Alert", 0); }
+		else if (room == C.RoomFlame)
+		{
+			put("Cult", C.CultUnmet);
+			put("Words", m.Words & ~(C.WordFire | C.WordTriedStatue));
+			if (sub == "dragged") put("Tarka", C.TarkaWon);
+			else if (m.Tarka == C.TarkaUnmet || m.Tarka == C.TarkaBotched || m.Tarka == C.TarkaFled || (sub == "charge" && m.Tarka == C.TarkaWon))
+				put("Tarka", C.TarkaBeaten);
+			if (sub == "unmasked" && !c.canRead()) put("Script", C.ScriptList);
+		}
+
+		else if (room == C.RoomWebs) { put("Burn", m.Burn & ~C.BurnWebs); put("Clues", m.Clues & ~C.ClueKobolds); }
+		else if (room == C.RoomRefuse) put("Burn", m.Burn & ~C.BurnHeap);
+		else if (room == C.RoomStores) put("Burn", m.Burn & ~(C.BurnBottlesPass | C.BurnBottlesFail | C.BurnTrapPass | C.BurnTrapFail));
+		tidyLamp();
+		s = c.enterRoom(room);
+
+		if (sub == "parley") s = c.openParley(room);
+		else if (sub == "unmasked") s = c.speakFlame(room);
+		else if (sub == "charge") s = c.chargeIn(room);
+		else if (sub == "dragged") s = c.dragOut(room);
+		if (sub != null) ::logInfo("Skv.delvejump: \"" + to + "\" pressed its button in " + C.Rooms[room].Key + " -> " + s + " (tarka=" + m.Tarka + " cult=" + m.Cult + " words=" + m.Words + " alert=" + m.Alert + ").");
+	}
+	else if (to == "rope" || to == "sword")
+	{
+		inside();
+		allRooms();
+		if (m.Tarka == C.TarkaUnmet) put("Tarka", C.TarkaBeaten);
+		unend();
+		if (to == "rope")
+		{
+			put("Speaker", C.SpeakerOnRope);
+			put("Sword", C.SwordNone);
+
+			put("Cult", (m.Cult & 0xF0) | (m.Speaker == C.SpeakerCornered ? C.CultAside : C.CultFought));
+			if (m.Speaker == C.SpeakerOnRope && !c.speakerEscapes())
+				::logInfo("Skv.delvejump: the rope with cult " + m.Cult + " and tarka " + m.Tarka + ", where play would corner him (speakerEscapes() is false); kept as given.");
+			s = c.flameNext();
+		}
+		else
+		{
+			put("Cult", (m.Cult & 0xF0) | C.CultFought);
+			if (m.Speaker == C.SpeakerUnmet || m.Speaker == C.SpeakerCornered || m.Speaker == C.SpeakerOnRope) put("Speaker", C.SpeakerBargain);
+			put("Sword", C.SwordHeld);
+			s = "Sword";
+		}
+	}
+	else
+	{
+		inside();
+		allRooms();
+		if (m.Ending == C.EndGaveUp)
+		{
+			put("Sword", C.SwordNone);
+			if (c.fledCount() == 0) put("Fights", m.Fights | 0x10);
+		}
+		else
+		{
+			if (m.Speaker == C.SpeakerUnmet || m.Speaker == C.SpeakerCornered || m.Speaker == C.SpeakerOnRope) put("Speaker", C.SpeakerBargain);
+
+			if (!c.swordHeld()) put("Sword", C.SwordHeld);
+			else ::logInfo("Skv.delvejump: the sword is held already (sword " + m.Sword + "); kept.");
+		}
+		m.Act = C.ActHost;
+		s = c.returnScreen();
+	}
+
+	if (room == null) m.Rows = [];
+	if (c.getActiveState() == null || c.getActiveState().ID != "Running") c.setState("Running");
+
+	if (m.Act < C.ActHome && !c.siteLive())
+	{
+		try { c.spawnSite(); }
+		catch (e) { ::logError("Skv.delvejump: could not place the marker - " + e); }
+	}
+	c.updateObjectives();
+	c.setRings();
+
+	if (sick > 0)
+	{
+		local made = 0;
+		foreach (bro in ::World.getPlayerRoster().getAll())
+		{
+			if (made >= sick) break;
+			if (bro.isInReserves() || bro.getSkills().hasSkill("injury.sickness")) continue;
+			bro.getSkills().add(::new("scripts/skills/injury/sickness_injury"));
+			made = made + 1;
+			::logInfo("Skv.delvejump: " + bro.getName() + " is made sick (has it now: " + bro.getSkills().hasSkill("injury.sickness") + ").");
+		}
+		if (made < sick) ::logInfo("Skv.delvejump: only " + made + " of " + sick + " men could be made sick (the rest are sick already or in reserve).");
+	}
+
+	m.TempFlags.set("DelveAtSite", true);
+	::logInfo("Skv.delvejump: jumped to \"" + to + "\" -> screen " + s + ". act=" + m.Act + " maurit=" + m.Maurit + " way=" + m.Way + " rooms=" + m.Rooms
+		+ " passed=" + m.Passed + " golem=" + m.Golem + " sword=" + m.Sword + " ending=" + m.Ending + " granted=" + m.Granted + " (never changed by a jump)");
+	c.setScreen(s);
+	if (c.getActiveScreen() != null) ::World.Contracts.showActiveContract();
+	else ::logError("Skv.delvejump: \"" + to + "\" opened no screen (" + s + ").");
+	::skvdelve();
+	return true;
+};
+
+::skvdelvedeck <- function ( _n = 20000 )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.delvedeck: not in a campaign.");
+		return null;
+	}
+	if (typeof _n != "integer" || _n < 1)
+	{
+		::logInfo("Skv.delvedeck: give a count of draws, e.g. ::skvdelvedeck(20000).");
+		return null;
+	}
+	local C = ::Const.Skv.Delve;
+	local D = ::Skv.Delve;
+	local R = C.Rooms;
+	local pct = function ( _k, _of )
+	{
+		return (::Math.round(1000.0 * _k / _of) / 10.0) + " %";
+	};
+	local tally = function ( _t, _k )
+	{
+		if (_k in _t) _t[_k] = _t[_k] + 1;
+		else _t[_k] <- 1;
+	};
+
+	local picks = 0;
+	local exact = {};
+	for (local m = 0; m < (1 << C.Pool.len()); m = m + 1)
+	{
+		local pick = [];
+		local f = 0;
+		foreach (i, r in C.Pool)
+		{
+			if ((m & (1 << i)) == 0) continue;
+			pick.push(r);
+			if (R[r].Front) f = f + 1;
+		}
+		if (pick.len() != C.DrawCount || f < C.DrawMinFront || pick.len() - f < C.DrawMinDeep) continue;
+		picks = picks + 1;
+		foreach (i, a in pick)
+		{
+			tally(exact, D.roomKey(a));
+			for (local j = i + 1; j < pick.len(); j = j + 1) tally(exact, D.roomKey(a) + "+" + D.roomKey(pick[j]));
+		}
+	}
+
+	local seen = {};
+	local door = {};
+	local cave = {};
+	local caveRooms = {};
+	local broken = 0;
+	local good = 0;
+	local sample = null;
+	for (local k = 0; k < _n; k = k + 1)
+	{
+		local deck = D.drawDeck();
+		local why = D.deckWhy(deck);
+		if (why == null)
+		{
+			local c = D.order(deck, C.WayCave);
+			if (c.len() == 0 || c[0] != C.DeckHinge) why = "the cave's run does not start at " + D.roomKey(C.DeckHinge);
+			else if (D.order(deck, C.WayDoor).len() != deck.len()) why = "the door's run is not the whole deck";
+			else
+			{
+				foreach (r in c)
+				{
+					if (R[r].Front) { why = "the cave's run holds the front room " + D.roomKey(r); break; }
+				}
+			}
+		}
+		if (why != null)
+		{
+			broken = broken + 1;
+			if (broken <= 10) ::logError("Skv.delvedeck: RULE BROKEN at draw " + k + ": " + why + ". Deck: " + D.deckText(deck));
+			continue;
+		}
+		good = good + 1;
+		if (sample == null) sample = deck;
+		local drawn = [];
+		foreach (r in C.Pool)
+		{
+			if (deck.find(r) != null) drawn.push(r);
+		}
+		foreach (i, a in drawn)
+		{
+			tally(seen, D.roomKey(a));
+			for (local j = i + 1; j < drawn.len(); j = j + 1) tally(seen, D.roomKey(a) + "+" + D.roomKey(drawn[j]));
+		}
+
+		tally(door, D.runFights(deck, C.WayDoor, false).len());
+		tally(cave, D.runFights(deck, C.WayCave, true).len());
+		tally(caveRooms, D.order(deck, C.WayCave).len());
+	}
+
+	::logInfo("== Skv.delvedeck: " + _n + " draws (design §1.4; " + picks + " picks of " + C.DrawCount + " are allowed) ==");
+	if (good == 0 || picks == 0)
+	{
+		::logError("Skv.delvedeck: " + good + " of " + _n + " decks passed the rules and the constants allow " + picks + " picks; nothing to count."
+			+ " (Pool, DrawCount, DrawMinFront and DrawMinDeep in ::Const.Skv.Delve.)");
+		return false;
+	}
+	::logInfo("  sample deck: " + D.deckText(sample));
+	::logInfo("    " + D.wayLine(sample, C.WayDoor, false));
+	::logInfo("    " + D.wayLine(sample, C.WayCave, true));
+
+	local share = function ( _key )
+	{
+		return _key + " " + pct((_key in seen) ? seen[_key] : 0, good) + " (exact " + pct((_key in exact) ? exact[_key] : 0, picks) + ")";
+	};
+	local line = "";
+	foreach (i, r in C.Pool) line = line + (i == 0 ? "" : ", ") + share(D.roomKey(r));
+	::logInfo("  rooms drawn: " + line);
+	line = "";
+	foreach (i, a in C.Pool)
+	{
+		for (local j = i + 1; j < C.Pool.len(); j = j + 1)
+			line = line + (line == "" ? "" : ", ") + share(D.roomKey(a) + "+" + D.roomKey(C.Pool[j]));
+	}
+	::logInfo("  pairs drawn together: " + line);
+	local spread = function ( _t )
+	{
+		local s = "";
+		for (local k = 0; k <= 16; k = k + 1)
+		{
+			if (k in _t) s = s + (s == "" ? "" : ", ") + k + ": " + pct(_t[k], good);
+		}
+		return s;
+	};
+	::logInfo("  fights a run holds (the pack counted once; nothing passed by, nothing talked away): by the door " + spread(door)
+		+ " | by her cave " + spread(cave));
+	::logInfo("  rooms in the run: by the door " + sample.len() + " always | by her cave " + spread(caveRooms));
+	if (broken == 0) ::logInfo("  RULES: all " + _n + " decks passed.");
+	else ::logError("Skv.delvedeck: RULES BROKEN in " + broken + " of " + _n + " decks (the first ten are logged above).");
+	return broken == 0;
+};
+
+::skvdelvefill <- function ( _dm = null, _scaled = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.delvefill: not in a campaign.");
+		return null;
+	}
+	local C = ::Const.Skv.Delve;
+	local D = ::Skv.Delve;
+	local sc = D.scaledNow(_scaled);
+	local dms = _dm == null ? C.FillDMs : [ _dm ];
+	::logInfo("== Skv.delvefill (#22's fights, no fight) ==  scaled=" + sc.Value + " (" + sc.Route + ")  day=" + ::World.getTime().Days);
+	foreach (dm in dms)
+	{
+		::logInfo("  DM " + dm + ":");
+		local plans = [
+			D.ghoulFight(dm, sc.Value, false, false),
+			D.ghoulFight(dm, sc.Value, true, true),
+			D.webFight(dm, sc.Value, false),
+			D.webFight(dm, sc.Value, true),
+			D.boneFight(dm, sc.Value, false),
+			D.boneFight(dm, sc.Value, true),
+			D.ratFight(dm, sc.Value, false),
+			D.ratFight(dm, sc.Value, true),
+			D.galleryFight(dm, sc.Value, false),
+			D.galleryFight(dm, sc.Value, true),
+			D.cultFight(dm, sc.Value, 0, false),
+			D.cultFight(dm, sc.Value, C.CultAlert, false),
+			D.cultFight(dm, sc.Value, 0, true),
+			D.cultFight(dm, sc.Value, C.CultAlert, true)
+		];
+		foreach (q in plans)
+		{
+			local into = [];
+			D.fillPlan(into, q, D.factionOf(q));
+		}
+	}
+	return true;
+};
+
+::skvdelveally <- function ( _circle = false )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.delveally: not in a campaign.");
+		return null;
+	}
+	local C = ::Const.Skv.Delve;
+	local D = ::Skv.Delve;
+	local T = ::Skv.DelveTest;
+	local why = T.whyNot();
+	if (why != null)
+	{
+		::logInfo("Skv.delveally: no test fight: " + why + ".");
+		return false;
+	}
+	local circle = _circle == true;
+	local sc = D.scaledNow();
+	local q = D.galleryFight(C.TestDM, sc.Value, false);
+	local fac = D.factionOf(q);
+	if (fac == 0)
+	{
+		::logError("Skv.delveally: the kobolds' faction did not resolve; no fight.");
+		return false;
+	}
+	::logInfo("== Skv.delveally: " + (circle ? "THE NEGATIVE CONTROL, enemy in a Circle" : "Line against Line")
+		+ " ==  DM " + C.TestDM + " scaled=" + sc.Value + " (" + sc.Route + ")");
+
+	q.Circle = circle;
+	local p = D.arena(C.TestAllyID, ::World.State.getPlayer().getTile(), q.Circle, q.Music);
+	D.fillPlan(p.Entities, q, fac);
+	local pushed = false;
+	if (circle)
+	{
+
+		local d = D.servant(T.onAllyPlaced);
+		if (d != null)
+		{
+			p.Entities.push(d);
+			pushed = true;
+		}
+	}
+	else pushed = D.addServant(p, q, T.onAllyPlaced);
+	if (!pushed)
+	{
+		::logError("Skv.delveally: the servant could not be built; no fight.");
+		return false;
+	}
+	T.Hostile = fac;
+	::logInfo("  the servant: " + C.ServantTroop + " on faction " + ::Const.Faction.PlayerAnimals + " (PlayerAnimals), row " + C.ServantRow
+		+ "; " + p.Entities.len() + " units in all. Watch where it stands, whom it strikes, and what is left when it breaks.");
+	return T.launch(p, "Delve/test ally");
+};
+
+::skvdelveturn <- function ( _ignored = null )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Contracts == null)
+	{
+		::logInfo("Skv.delveturn: not in a campaign.");
+		return null;
+	}
+	local C = ::Const.Skv.Delve;
+	local D = ::Skv.Delve;
+	local T = ::Skv.DelveTest;
+
+	if (T.inFight())
+	{
+		if (T.combatID() != C.TestTurnID)
+		{
+			::logInfo("Skv.delveturn: this fight was not started by ::skvdelveturn(). Run it on the world map first.");
+			return false;
+		}
+		if (T.Turned)
+		{
+			try
+			{
+				::logInfo("Skv.delveturn: the change was already made. Now: " + T.status());
+				foreach (w in [ { Tag = "the turncoat", ID = T.Turner }, { Tag = "the traitor", ID = T.Traitor } ])
+				{
+					local e = T.unit(w.ID);
+					if (e != null) ::logInfo("  " + w.Tag + ": HP " + e.getHitpoints() + "/" + e.getHitpointsMax() + ", " + T.where(e));
+				}
+			}
+			catch (e) { ::logError("Skv.delveturn: the status threw - " + e); }
+			return true;
+		}
+		local active = null;
+		try { active = ::Tactical.TurnSequenceBar.getActiveEntity(); }
+		catch (e) { ::logError("Skv.delveturn: the active unit could not be read - " + e); }
+		if (active == null || !active.isPlayerControlled())
+		{
+			::logInfo("Skv.delveturn: run it while one of your own men has the turn.");
+			return false;
+		}
+		T.Turned = true;
+		::logInfo("== Skv.delveturn: the change, round " + T.round() + ", on " + active.getName() + "'s turn ==");
+		local a = T.sideChange(T.unit(T.Turner), ::Const.Faction.PlayerAnimals, "bust_base_player", "the turncoat");
+		local socket = "";
+		try { socket = ::World.FactionManager.getFaction(T.Hostile).getTacticalBase(); }
+		catch (e) { ::logError("Skv.delveturn: the hostile faction's base brush could not be read (the traitor keeps its own) - " + e); }
+		local b = T.sideChange(T.unit(T.Traitor), T.Hostile, socket, "the traitor");
+		local now = "?";
+		try { now = T.status(); } catch (e) { ::logError("Skv.delveturn: the status after the change threw - " + e); }
+		::logInfo("Skv.delveturn: the turncoat " + (a ? "CHANGED SIDE" : "did NOT change side") + "; the traitor " + (b ? "CHANGED SIDE" : "did NOT change side")
+			+ ". Now: " + now);
+		return a && b;
+	}
+
+	local why = T.whyNot();
+	if (why != null)
+	{
+		::logInfo("Skv.delveturn: no test fight: " + why + ".");
+		return false;
+	}
+	local sc = D.scaledNow();
+	local q = D.galleryFight(C.TestDM, sc.Value, false);
+	q.Names = [ C.TestTurnName ];
+	local fac = D.factionOf(q);
+	if (fac == 0)
+	{
+		::logError("Skv.delveturn: the kobolds' faction did not resolve; no fight.");
+		return false;
+	}
+	::logInfo("== Skv.delveturn: the fight ==  DM " + C.TestDM + " scaled=" + sc.Value + " (" + sc.Route + ")");
+	local p = D.arena(C.TestTurnID, ::World.State.getPlayer().getTile(), false, q.Music);
+	local r = D.fillPlan(p.Entities, q, fac, T.onTurnerPlaced);
+	if (r.Named == 0)
+	{
+		::logError("Skv.delveturn: the fill named no unit, so nothing could change side; no fight.");
+		return false;
+	}
+	local K = ::Const.World.Spawn.Troops;
+	if ("SkvKobold" in K)
+		p.Entities.push(D.descriptor(K.SkvKobold, ::Const.Faction.PlayerAnimals, C.ServantRow, C.TestTraitorName, T.onTraitorPlaced));
+	else
+		::logError("Skv.delveturn: ::Const.World.Spawn.Troops has no SkvKobold; the fight runs without the ally that turns hostile.");
+	T.Hostile = fac;
+	::logInfo("  \"" + C.TestTurnName + "\" is the costliest kobold; \"" + C.TestTraitorName + "\" is the kobold on your side."
+		+ " In the fight, on one of your own men's turns, run ::skvdelveturn() again.");
+	return T.launch(p, "Delve/test turn");
+};
+
+::Skv.Held <- {
+
+	function matches( _it, _id, _ammo )
+	{
+		if (_it == null || _it.getID() != _id) return false;
+		return !_ammo || _it.m.Ammo > 0;
+	}
+
+	function find( _id, _ammo = false )
+	{
+		local stash = ::World.Assets.getStash();
+		foreach (it in stash.getItems())
+		{
+			if (this.matches(it, _id, _ammo)) return { Item = it, Where = "stash", Bro = null };
+		}
+		local roster = ::World.getPlayerRoster().getAll();
+		foreach (bro in roster)
+		{
+			foreach (it in bro.getItems().getAllItemsAtSlot(::Const.ItemSlot.Bag))
+			{
+				if (this.matches(it, _id, _ammo)) return { Item = it, Where = "bag", Bro = bro };
+			}
+		}
+		foreach (bro in roster)
+		{
+			local off = bro.getItems().getItemAtSlot(::Const.ItemSlot.Offhand);
+			if (this.matches(off, _id, _ammo)) return { Item = off, Where = "offhand", Bro = bro };
+		}
+		return null;
+	}
+
+	function has( _id, _tag, _ammo = false )
+	{
+		try { return this.find(_id, _ammo) != null; }
+		catch (e) { ::logError(_tag + ": could not search for " + _id + " - " + e); }
+		return false;
+	}
+
+	function whereOf( _f )
+	{
+		return _f.Where == "stash" ? "the stash" : _f.Bro.getName() + "'s " + _f.Where;
+	}
+
+	function spend( _id, _tag, _ammo = false )
+	{
+		local f = null;
+		try { f = this.find(_id, _ammo); }
+		catch (e)
+		{
+			::logError(_tag + ": could not search for " + _id + "; nothing spent - " + e);
+			return null;
+		}
+		if (f == null) return null;
+
+		local gone = false;
+		try
+		{
+			if (f.Where == "stash")
+			{
+				::World.Assets.getStash().remove(f.Item);
+				gone = ::World.Assets.getStash().getItems().find(f.Item) == null;
+			}
+			else if (f.Where == "bag")
+			{
+				f.Bro.getItems().removeFromBag(f.Item);
+				gone = f.Bro.getItems().getAllItemsAtSlot(::Const.ItemSlot.Bag).find(f.Item) == null;
+			}
+			else
+			{
+				f.Bro.getItems().unequip(f.Item);
+				gone = f.Bro.getItems().getItemAtSlot(::Const.ItemSlot.Offhand) != f.Item;
+			}
+		}
+		catch (e)
+		{
+			::logError(_tag + ": " + _id + " was found in " + this.whereOf(f) + " and could not be removed; nothing spent - " + e);
+			return null;
+		}
+		if (!gone)
+		{
+			::logError(_tag + ": " + _id + " is still in " + this.whereOf(f) + " after its removal; nothing spent.");
+			return null;
+		}
+		::logInfo(_tag + ": spent one " + _id + " from " + this.whereOf(f) + ".");
+		return f;
+	}
+};
+
+::Skv.Daily <- {
+
+	function owned()
+	{
+		local out = [];
+		foreach (bro in ::World.getPlayerRoster().getAll())
+		{
+			local items = null;
+			try { items = bro.getItems().getAllItems(); }
+			catch (e)
+			{
+				::logError("Skv.Daily: could not read " + bro.getName() + "'s items; his are skipped - " + e);
+				continue;
+			}
+			foreach (it in items)
+			{
+				if (it != null) out.push({ Item = it, Where = bro.getName() + (bro.isInReserves() ? " (reserve)" : "") });
+			}
+		}
+		local stash = [];
+		try { stash = ::World.Assets.getStash().getItems(); }
+		catch (e) { ::logError("Skv.Daily: could not read the stash; it is skipped - " + e); }
+		foreach (it in stash)
+		{
+			if (it != null) out.push({ Item = it, Where = "the stash" });
+		}
+		return out;
+	}
+
+	function optsIn( _item )
+	{
+		return ("RechargesDaily" in _item.m) && _item.m.RechargesDaily == true;
+	}
+
+	function walk( _elapsed, _why, _report )
+	{
+		local out = { Touched = [], Left = [] };
+		local seen = [];
+		foreach (o in this.owned())
+		{
+			local it = o.Item;
+			if (seen.find(it) != null) continue;
+			seen.push(it);
+
+			local optIn = false;
+			local charged = false;
+			try
+			{
+				optIn = this.optsIn(it);
+				charged = ("Charges" in it.m);
+			}
+			catch (e)
+			{
+				::logError("Skv.Daily: could not read an item in " + o.Where + "; it is skipped - " + e);
+				continue;
+			}
+
+			if (!optIn)
+			{
+				if (charged && _report)
+				{
+					local c = "?";
+					try { c = it.m.Charges + "/" + (("ChargesMax" in it.m) ? it.m.ChargesMax : "?"); }
+					catch (e) { ::logError("Skv.Daily: could not read " + it.getID() + "'s charges for the report - " + e); }
+					out.Left.push(it.getName() + " [" + it.getID() + "] in " + o.Where + ": " + c + ", LEFT ALONE (no RechargesDaily)");
+				}
+				continue;
+			}
+
+			try
+			{
+				local max = it.m.ChargesMax;
+				local was = it.m.Charges;
+				if (was >= max)
+				{
+					if (_report) out.Left.push(it.getName() + " [" + it.getID() + "] in " + o.Where + ": " + was + "/" + max + ", LEFT ALONE (full)");
+					continue;
+				}
+				it.m.Charges = ::Math.min(max, was + _elapsed);
+				local line = it.getName() + " [" + it.getID() + "] in " + o.Where + ": " + was + " -> " + it.m.Charges + "/" + max;
+				out.Touched.push(line);
+				::logInfo("Skv.Daily: " + _why + ": recharged " + line);
+			}
+			catch (e)
+			{
+				::logError("Skv.Daily: recharging " + it.getID() + " in " + o.Where + " failed; it is left as it was - " + e);
+			}
+		}
+
+		if (_report)
+		{
+			::logInfo("Skv.Daily: " + _why + ": " + out.Touched.len() + " recharged, " + out.Left.len() + " charged item(s) left alone.");
+			foreach (l in out.Left) ::logInfo("  left: " + l);
+		}
+		return out;
+	}
+};
+
+::skvdaily <- function ( _drain = false )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.getPlayerRoster() == null)
+	{
+		::logInfo("Skv.daily: not in a campaign.");
+		return null;
+	}
+
+	if (::Skv.Delve.inFight())
+	{
+		::logInfo("Skv.daily: run it on the world map, not in a fight.");
+		return null;
+	}
+	if (_drain)
+	{
+		foreach (o in ::Skv.Daily.owned())
+		{
+			try
+			{
+				if (::Skv.Daily.optsIn(o.Item))
+				{
+					o.Item.m.Charges = 0;
+					::logInfo("Skv.daily: emptied " + o.Item.getName() + " in " + o.Where + " (0/" + o.Item.m.ChargesMax + ").");
+				}
+			}
+			catch (e) { ::logError("Skv.daily: could not empty an item in " + o.Where + " - " + e); }
+		}
+	}
+	local r = ::Skv.Daily.walk(1, "::skvdaily (one day, by hand)", true);
+	if (r.Touched.len() == 0) ::logInfo("Skv.daily: nothing was recharged (every pearl full, or none owned). ::skvdaily(true) empties them first.");
+	return r.Touched.len();
+};
+
+::skvdelveitems <- function ( _n = 1 )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.Assets == null)
+	{
+		::logInfo("Skv.delveitems: not in a campaign.");
+		return null;
+	}
+	local n = ::Math.max(1, ::Math.min(20, _n));
+	local paths = [
+		"scripts/items/misc/skv_potion_of_protection_from_evil",
+		"scripts/items/misc/skv_potion_of_blur",
+		"scripts/items/accessory/skv_bracers_of_protection",
+		"scripts/items/accessory/skv_pearl_of_power",
+		"scripts/items/tools/skv_alchemists_fire_item",
+		"scripts/items/tools/skv_thunderstone_item",
+		"scripts/items/misc/skv_potion_of_cure_light_wounds",
+		"scripts/items/misc/skv_potion_of_cure_moderate_wounds",
+		"scripts/items/tools/skv_alchemists_acid_item",
+		"scripts/items/loot/skv_letter_of_credit",
+		"scripts/items/tools/skv_smokestick_item",
+		"scripts/items/tools/skv_blessed_water_item"
+	];
+	local got = 0;
+	local full = false;
+	foreach (p in paths)
+	{
+		local made = 0;
+		for (local k = 0; k < n; k++)
+		{
+			if (!::World.Assets.getStash().hasEmptySlot())
+			{
+				full = true;
+				break;
+			}
+			local name = ::Skv.Loot.grantItem(null, p);
+			if (name == null)
+			{
+				::logError("Skv.delveitems: " + p + " was not made (a load failure is logged above).");
+				break;
+			}
+			made++;
+		}
+		got += made;
+		::logInfo("Skv.delveitems: " + made + " x " + p);
+		if (full) break;
+	}
+	::logInfo("Skv.delveitems: " + got + " item(s) put into the stash" + (full ? "; THE STASH IS FULL, the rest were not made." : "."));
+	return got;
+};
+
+::skvpearltest <- function ( _a = 0, _b = 1, _c = 2, _d = 3 )
+{
+	if (!("World" in ::getroottable()) || ::World == null || ::World.getPlayerRoster() == null)
+	{
+		::logInfo("Skv.pearltest: not in a campaign.");
+		return null;
+	}
+	if (::Skv.Delve.inFight())
+	{
+		::logInfo("Skv.pearltest: run it on the world map, not in a fight.");
+		return null;
+	}
+
+	local active = ::World.getPlayerRoster().getAll().filter(@(_, b) !b.isInReserves());
+	::logInfo("== Skv.pearltest: the active roster ==");
+	foreach (i, b in active) ::logInfo("  " + i + ": " + b.getName());
+
+	local idx = [ _a, _b, _c, _d ];
+	foreach (i, x in idx)
+	{
+		for (local j = 0; j < i; j++)
+		{
+			if (idx[j] == x)
+			{
+				::logInfo("Skv.pearltest: index " + x + " is chosen twice; give four different indices.");
+				return null;
+			}
+		}
+	}
+
+	local P = ::Legends.Perk;
+	local plan = [
+		{ Tag = "A", Idx = _a, Perks = [ P.LegendSecondWind, P.LegendThrowSand, P.LegendHex, P.LegendValaWarden ], Web = false,
+		  Acc = "scripts/items/accessory/falcon_item" },
+		{ Tag = "B", Idx = _b, Perks = [ P.LegendSummonFalcon, P.LegendSummonWolf ], Web = true,
+		  Acc = "scripts/items/accessory/special/legend_oms_amphora_item" },
+		{ Tag = "C", Idx = _c, Perks = [ P.LegendSummonHound ], Web = false,
+		  Acc = "scripts/items/accessory/legend_sighthound_item" },
+		{ Tag = "D", Idx = _d, Perks = [], Web = false,
+		  Acc = "scripts/items/accessory/legend_catapult_item" }
+	];
+
+	local stash = ::World.Assets.getStash();
+	local done = 0;
+	foreach (q in plan)
+	{
+		if (q.Idx < 0 || q.Idx >= active.len())
+		{
+			::logInfo("Skv.pearltest: " + q.Tag + ": no active brother at index " + q.Idx + "; skipped.");
+			continue;
+		}
+		local bro = active[q.Idx];
+		local items = bro.getItems();
+		local notes = [];
+
+		foreach (pk in q.Perks)
+		{
+			local id = "?";
+			try
+			{
+				id = ::Legends.Perks.getID(pk);
+
+				local perkConst = pk;
+				::Legends.Perks.grant(bro, pk, function ( _perk )
+				{
+					if (!this.getBackground().addPerk(perkConst, 0, false))
+						this.getBackground().m.PerkTreeMap[_perk.getID()].IsRefundable = false;
+				}.bindenv(bro));
+				notes.push(id + (::Legends.Perks.has(bro, pk) ? "" : " (NOT HELD after the grant)"));
+			}
+			catch (e) { ::logError("Skv.pearltest: " + bro.getName() + ": the perk " + id + " was not granted - " + e); }
+		}
+
+		if (q.Web)
+		{
+			try
+			{
+				::Legends.Actives.grant(bro, ::Legends.Active.Web);
+				notes.push("actives.web" + (bro.getSkills().hasSkill("actives.web") ? "" : " (NOT HELD after the grant)"));
+			}
+			catch (e) { ::logError("Skv.pearltest: " + bro.getName() + ": the web active was not granted - " + e); }
+		}
+
+		try
+		{
+			local old = items.getItemAtSlot(::Const.ItemSlot.Accessory);
+			local room = true;
+			if (old != null)
+			{
+				if (!stash.hasEmptySlot())
+				{
+					room = false;
+					::logInfo("Skv.pearltest: " + bro.getName() + " keeps his " + old.getName() + ": the stash is full, so " + q.Acc + " was not given.");
+				}
+				else
+				{
+					items.unequip(old);
+
+					if (stash.add(old) != null) notes.push("his " + old.getName() + " -> the stash");
+					else ::logError("Skv.pearltest: " + bro.getName() + "'s " + old.getName() + " was unequipped and the stash refused it: LOST.");
+				}
+			}
+			if (room)
+			{
+				local acc = ::new(q.Acc);
+				if (items.equip(acc)) notes.push("wears " + acc.getID());
+				else
+				{
+					::logError("Skv.pearltest: " + bro.getName() + " could not wear " + q.Acc + "; it goes to the stash.");
+					if (!stash.hasEmptySlot() || stash.add(acc) == null)
+						::logError("Skv.pearltest: the stash refused " + q.Acc + " as well: not given.");
+				}
+			}
+		}
+		catch (e) { ::logError("Skv.pearltest: " + bro.getName() + ": the accessory " + q.Acc + " failed - " + e); }
+
+		try
+		{
+			local pearl = ::new("scripts/items/accessory/skv_pearl_of_power");
+			if (items.addToBag(pearl))
+			{
+				notes.push("a pearl in his bag (" + pearl.getAmountString() + "), its action attached: "
+					+ bro.getSkills().hasSkill("actives.skv_pearl_of_power"));
+			}
+			else if (stash.hasEmptySlot())
+			{
+				stash.add(pearl);
+				notes.push("NO FREE BAG SLOT: his pearl went to the stash (move it to a bag)");
+			}
+			else ::logInfo("Skv.pearltest: " + bro.getName() + " has no free bag slot and the stash is full; no pearl.");
+		}
+		catch (e) { ::logError("Skv.pearltest: " + bro.getName() + ": the pearl failed - " + e); }
+
+		local s = "";
+		foreach (i, n in notes) s += (i == 0 ? "" : "; ") + n;
+		::logInfo("Skv.pearltest: " + q.Tag + " = " + bro.getName() + ": " + s);
+		done++;
+	}
+
+	try
+	{
+		if (stash.hasEmptySlot())
+		{
+			stash.add(::new("scripts/items/legend_helmets/vanity/legend_helmet_redback_helm"));
+			::logInfo("Skv.pearltest: a Redback Helm is in the stash (attach it to a helmet: its Web is the real gear path).");
+		}
+	}
+	catch (e) { ::logError("Skv.pearltest: the Redback Helm was not made - " + e); }
+
+	::logInfo("Skv.pearltest: " + done + " brother(s) set up. In a fight: spend one ability of each kind, use the pearl (its tooltip"
+		+ " lists what it would restore), use the ability again; then try the pearl a second time (it must refuse).");
+	return done;
 };

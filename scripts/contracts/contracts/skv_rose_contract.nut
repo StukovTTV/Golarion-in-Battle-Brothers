@@ -1287,6 +1287,8 @@ this.skv_rose_contract <- this.inherit("scripts/contracts/contract", {
 		_vars.push(["SKVTOWN", this.townName()]);
 		_vars.push(["SKVNAME", "[color=#9dbccb]"]);
 		_vars.push(["SKVNAME_OFF", "[/color]"]);
+		_vars.push(["SKVLOC", "[color=#b39dbc]"]);
+		_vars.push(["SKVLOC_OFF", "[/color]"]);
 	}
 
 	function start()
@@ -1689,7 +1691,7 @@ this.skv_rose_contract <- this.inherit("scripts/contracts/contract", {
 			function start()
 			{
 				local c = this.Contract;
-				this.Text = c.img(::Const.Skv.Rose.ImgLodge) + "{The man who receives you in the hall of the Pathfinder lodge is %SKVNAME%Valsin%SKVNAME_OFF%, and he has the look of a man who has not slept.%SPEECH_ON%Three nights ago one of my agents, Nelfurhin Zor, was taken off the street on her way home. People here call the one who took her the Rose Street Killer, and she is not the first. Every one taken was a freed slave, and every one was known to Milani's faithful, who buy men and women out of chains, or carry them out when buying is not possible.\n\nI have three leads and nobody to send. The streets blame the Bloody Barbers, a guild of cutthroats down at the docks. The Sewer Dragons, kobolds who live under the city and have been friends to this lodge, ask for help against newcomers in their tunnels. And a guard in the drowned quarter says a freed man is hiding there and will not come out.\n\nI need outside hands. There is no advance. I pay when you come back.%SPEECH_OFF%}";
+				this.Text = c.img(::Const.Skv.Rose.ImgLodge) + "{The man who receives you in the hall of the Pathfinder lodge is %SKVNAME%Valsin%SKVNAME_OFF%, and he has the look of a man who has not slept.%SPEECH_ON%Three nights ago one of my agents, %SKVNAME%Nelfurhin Zor%SKVNAME_OFF%, was taken off the street on her way home. People here call the one who took her the %SKVNAME%Rose Street Killer%SKVNAME_OFF%, and she is not the first. Every one taken was a freed slave, and every one was known to %SKVLOC%Milani's faithful%SKVLOC_OFF%, who buy men and women out of chains, or carry them out when buying is not possible.\n\nI have three leads and nobody to send. The streets blame the %SKVLOC%Bloody Barbers%SKVLOC_OFF%, a guild of cutthroats down at the docks. The %SKVLOC%Sewer Dragons%SKVLOC_OFF%, kobolds who live under the city and have been friends to this lodge, ask for help against newcomers in their tunnels. And a guard in the %SKVLOC%drowned quarter%SKVLOC_OFF% says a freed man is hiding there and will not come out.\n\nI need outside hands. There is no advance. I pay when you come back.%SPEECH_OFF%}";
 				this.Options = [
 					{
 						Text = "{We'll take the hunt.}",
@@ -1729,7 +1731,7 @@ this.skv_rose_contract <- this.inherit("scripts/contracts/contract", {
 			],
 			function start()
 			{
-				this.Text = this.Contract.img(::Const.Skv.Rose.ImgLodge) + "{%randombrother% has heard names like this one before, and he starts there.%SPEECH_ON%Every harbour has a corner where a woman sells roses to the sailors. The first of the victims went missing near the one here, so the street named the killer after it. A name like that means nothing more.%SPEECH_OFF%%randombrother2% knows of Milani's faithful only by rumour, and says so.%SPEECH_ON%They buy slaves free, and when the price is too high they steal them. Slavers hate them more than they hate the watch. If somebody is killing the people they freed, I would want to know who is paid for it.%SPEECH_OFF%One of the older men has a question of his own: whether a kobold that talks and trades can be trusted any more than one that bites. Nobody has an answer for him.}";
+				this.Text = this.Contract.img(::Const.Skv.Rose.ImgLodge) + "{%SKVNAME%%randombrother%%SKVNAME_OFF% has heard names like this one before, and starts there.%SPEECH_ON%Every harbour has a corner where a woman sells roses to the sailors. The first of the victims went missing near the one here, so the street named the killer after it. A name like that means nothing more.%SPEECH_OFF%%SKVNAME%%randombrother2%%SKVNAME_OFF% knows of %SKVLOC%Milani's faithful%SKVLOC_OFF% only by rumour, and says so.%SPEECH_ON%They buy slaves free, and when the price is too high they steal them. Slavers hate them more than they hate the watch. If somebody is killing the people they freed, I would want to know who is paid for it.%SPEECH_OFF%One of the older men has a question of his own: whether a kobold that talks and trades can be trusted any more than one that bites. Nobody has an answer.}";
 			}
 		});
 

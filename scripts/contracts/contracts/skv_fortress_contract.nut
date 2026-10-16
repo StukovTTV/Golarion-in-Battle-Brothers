@@ -486,13 +486,11 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 		return this.say("The Trapped Entry", "{" + text + "}", rows, "", image);
 	}
 
-	function findFirePot()
+	function fireHeld()
 	{
-		local stash = ::World.Assets.getStash();
-		if (stash == null) return null;
-		foreach (it in stash.getItems())
+		foreach (k in ::Const.Skv.Kinds.Fire)
 		{
-			if (it != null && it.getID() == "weapon.fire_bomb") return it;
+			if (::Skv.Held.has(k.ID, "Skv.Fortress", k.Ammo)) return k;
 		}
 		return null;
 	}
@@ -522,12 +520,18 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 
 		if (_usePot)
 		{
-			local pot = this.findFirePot();
-			if (pot == null) return "BatsRoost";
-			::World.Assets.getStash().remove(pot);
+			local k = this.fireHeld();
+			local f = k != null ? ::Skv.Held.spend(k.ID, "Skv.Fortress", k.Ammo) : null;
+			if (f == null)
+			{
+
+				::logInfo("Skv.Fortress: the roost's fire was asked for and none could be spent; the choice is shown again.");
+				return "BatsRoost";
+			}
 			this.m.Access = this.m.Access | 0x40;
-			rows.push({ id = 10, icon = "ui/items/" + pot.getIcon(), text = "[color=" + ::Const.UI.Color.NegativeEventValue + "]You lose Fire Pot[/color]" });
-			text = "The pot bursts against the far wall and the ceiling comes apart into a thousand screaming pieces. The swarm goes out through the broken side of the tower in one black rush, and the smoke goes after it, and then there is only the smell of burnt oil and a floor a foot deep in droppings.\n\n";
+			::logInfo("Skv.Fortress: the roost burned with one " + k.Name + " from " + ::Skv.Held.whereOf(f) + ".");
+			rows.push({ id = 10, icon = "ui/items/" + f.Item.getIcon(), text = "[color=" + ::Const.UI.Color.NegativeEventValue + "]You lose " + k.Name + "[/color]" });
+			text = "It bursts against the far wall and the ceiling comes apart into a thousand screaming pieces. The swarm goes out through the broken side of the tower in one black rush, and the smoke goes after it, and then there is only the smell of burnt oil and a floor a foot deep in droppings.\n\n";
 		}
 		else
 		{
@@ -734,8 +738,8 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 				"scripts/items/weapons/shortsword",
 				"scripts/items/weapons/knife",
 				"scripts/items/weapons/knife",
-				"scripts/items/tools/acid_flask_item",
-				"scripts/items/tools/acid_flask_item",
+				"scripts/items/tools/skv_alchemists_acid_item",
+				"scripts/items/tools/skv_alchemists_acid_item",
 				"scripts/items/accessory/cat_potion_item",
 				"scripts/items/accessory/recovery_potion_item",
 				"scripts/items/loot/skv_amethyst"
@@ -1411,16 +1415,17 @@ this.skv_fortress_contract <- this.inherit("scripts/contracts/contract", {
 			function start()
 			{
 				local c = this.Contract;
-				local hasPot = c.findFirePot() != null;
+				local k = c.fireHeld();
+				local hasPot = k != null;
 
 				this.Text = "[img]gfx/ui/events/event_44.png[/img]{The stair comes out on the third floor, and half of the third floor is on the second floor - the eastern side has gone down with the rest and left a ragged edge open to the sky. What is left is dark, and it stinks of droppings, and the ceiling is furred over with something that breathes.\n\nIt rustles. Thousands of small bodies, packed wing to wing, and the moment a light or a man moves under them, the whole ceiling is going to come down."
-					+ (hasPot ? " There is a fire pot in the baggage." : "") + "}";
+					+ (hasPot ? " The company carries " + k.Phrase + "." : "") + "}";
 
 				this.Options = [];
 				if (hasPot)
 				{
 					this.Options.push({
-						Text = "{Throw a fire pot into the roost. (spends 1 Fire Pot)}",
+						Text = "{Throw fire into the roost. (spends 1 " + k.Name + ")}",
 						function getResult() { return this.Contract.resolveRoost(true); }
 					});
 				}

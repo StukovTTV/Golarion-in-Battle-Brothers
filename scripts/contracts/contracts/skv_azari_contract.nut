@@ -350,13 +350,11 @@ this.skv_azari_contract <- this.inherit("scripts/contracts/contract", {
 		];
 	}
 
-	function findHolyWater()
+	function holyHeld()
 	{
-		foreach (it in ::World.Assets.getStash().getItems())
+		foreach (k in ::Const.Skv.Kinds.Holy)
 		{
-			if (it == null) continue;
-			local id = it.getID();
-			if (id == "weapon.holy Water" || id == "weapon.holy_water") return it;
+			if (::Skv.Held.has(k.ID, "Skv.Azari", k.Ammo)) return k;
 		}
 		return null;
 	}
@@ -841,7 +839,7 @@ this.skv_azari_contract <- this.inherit("scripts/contracts/contract", {
 					function getResult()
 					{
 
-						if (this.Contract.findHolyWater() != null) return "CryptRite";
+						if (this.Contract.holyHeld() != null) return "CryptRite";
 						return this.Contract.roomScreenFor(this.Contract.m.Deck[this.Contract.m.CrawlIndex]);
 					}
 				}
@@ -856,20 +854,35 @@ this.skv_azari_contract <- this.inherit("scripts/contracts/contract", {
 		this.m.Screens.push({
 			ID = "CryptRite",
 			Title = "The Ancient Dead",
-			Text = "[img]gfx/ui/events/event_116.png[/img]{The vault is still again, the dead scattered where they fell. %SKVNAME%%randombrother%%SKVNAME_OFF% turns a flask of blessed water over in his hand. A few words said over them, a sprinkle, and these old servants might lie easier - and so might the men who had to put them down a second time. But blessed water is dear, and hard come by.}",
+			Text = "",
 			Image = "",
 			List = [],
 			Options = [],
 			function start()
 			{
+				local k = this.Contract.holyHeld();
+				if (k == null)
+				{
+
+					::logError("Skv.Azari: CryptRite shown with no blessed water held; the text names the original, and the rite's spend will find nothing.");
+					k = ::Const.Skv.Kinds.Holy[::Const.Skv.Kinds.Holy.len() - 1];
+				}
+				this.Text = "[img]gfx/ui/events/event_116.png[/img]{The vault is still again, the dead scattered where they fell. %SKVNAME%%randombrother%%SKVNAME_OFF% turns " + k.Phrase + " over and over. A few words said over them, a sprinkle, and these old servants might lie easier - and so might the men who had to put them down a second time. But a flask spent here is one the company will not have later.}";
 				this.Options = [
 					{
-						Text = "{Say the words, and lay them to rest. (uses a Flask of Blessed Water)}",
+						Text = "{Say the words, and lay them to rest. (spends 1 " + k.Name + ")}",
 						function getResult()
 						{
-							local water = this.Contract.findHolyWater();
-							if (water != null) this.World.Assets.getStash().remove(water);
+							local held = this.Contract.holyHeld();
+							local f = held != null ? ::Skv.Held.spend(held.ID, "Skv.Azari", held.Ammo) : null;
+							if (f == null)
+							{
+								::logInfo("Skv.Azari: the rite was asked for and no blessed water could be spent; no moral, the crawl goes on.");
+								return this.Contract.roomScreenFor(this.Contract.m.Deck[this.Contract.m.CrawlIndex]);
+							}
+							::logInfo("Skv.Azari: the rite spent one " + held.Name + " from " + ::Skv.Held.whereOf(f) + ".");
 							local rows = [];
+							rows.push({ id = 10, icon = "ui/items/" + f.Item.getIcon(), text = "[color=" + ::Const.UI.Color.NegativeEventValue + "]You lose " + held.Name + "[/color]" });
 							rows.push(this.Contract.moralRow(3, "Laid the ancient dead to rest"));
 							rows.extend(this.Contract.piousMoodShift(1.0, "We gave the old dead their rest"));
 							this.Contract.m.RoomRows = rows;

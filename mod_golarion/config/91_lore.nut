@@ -18,7 +18,9 @@
 	Bite  = { Min = 15, Max = 35, HeadBonus = 15, ActionPoints = 4, Fatigue = 8 },
 	Claws = { Min = 25, Max = 45, ArmorMult = 0.7, ActionPoints = 4, Fatigue = 10 },
 
-	MeatChance = 33
+	MeatChance = 33,
+
+	RatcatcherDamageMult = 1.10
 };
 
 ::Const.Tactical.Actor.SkvGiantRat <- {
@@ -166,6 +168,12 @@
 	TierFailed  = 0,
 	TierPoor    = 1,
 	TierSuccess = 2,
+
+	ArcFlagOutcome   = "Skv.Lore.Outcome",
+	OutcomeAbandoned = 0,
+	OutcomeFailed    = 1,
+	OutcomePoor      = 2,
+	OutcomeSuccess   = 3,
 
 	VaultMoves = 5,
 
